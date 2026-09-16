@@ -1,0 +1,29 @@
+# Dependencies
+/node_modules
+
+# Next.js
+/.next/
+/out/
+next-env.d.ts
+
+# Production
+/build
+/dist
+
+# Secrets – niemals committen
+.env
+.env.local
+.env.*.local
+.env.production
+
+# Laufzeitdaten
+/data
+/uploads
+*.log
+
+# Tests / Tooling
+/coverage
+.DS_Store
+*.tsbuildinfo
+.vitest
+/src/generated

@@ -1,0 +1,330 @@
+// Abi-Shop – Datenmodell
+// Grundsatz: so wenige Tabellen wie möglich, aber jede Konsistenzregel in der Datenbank
+// verankert (Foreign Keys, Unique Constraints, Delete-Regeln), nicht nur im Anwendungscode.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+/// ADMIN darf alles. DISTRIBUTION darf ausschliesslich die Ausgabe bedienen.
+enum Role {
+  ADMIN
+  DISTRIBUTION
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+  CANCELLED
+}
+
+/// Stand der Sammelbestellung beim Hersteller.
+enum FulfillmentStatus {
+  NEW
+  ORDERED
+  ARRIVED
+}
+
+enum ItemDistributionStatus {
+  NOT_DISTRIBUTED
+  DISTRIBUTED
+}
+
+enum OrderDistributionStatus {
+  NOT_DISTRIBUTED
+  PARTIALLY_DISTRIBUTED
+  FULLY_DISTRIBUTED
+}
+
+// ---------------------------------------------------------------------------
+// Benutzer, Sessions, 2FA
+// ---------------------------------------------------------------------------
+
+model User {
+  id           String  @id @default(cuid())
+  email        String  @unique
+  name         String
+  /// Argon2id-Hash. Niemals das Klartextpasswort speichern.
+  passwordHash String  @db.Text
+  role         Role
+  isActive     Boolean @default(true)
+
+  /// TOTP-Secret, AES-256-GCM-verschluesselt mit einem aus AUTH_SECRET abgeleiteten Key.
+  totpSecret    String?   @db.Text
+  totpConfirmedAt DateTime?
+
+  /// Brute-Force-Schutz, ueberlebt einen Neustart der Anwendung.
+  failedLoginAttempts Int       @default(0)
+  lockedUntil         DateTime?
+  lastLoginAt         DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sessions      Session[]
+  recoveryCodes RecoveryCode[]
+  auditLogs     AuditLog[]
+  distributedItems OrderItem[]  @relation("DistributedBy")
+  uploadedMedia    MediaAsset[] @relation("UploadedBy")
+
+  @@index([role, isActive])
+  @@map("users")
+}
+
+/// Serverseitige Session. Die Primaerschluessel-Spalte enthaelt den SHA-256-Hash des
+/// Cookie-Tokens – wer die Datenbank liest, kann daraus keine gueltige Session bauen.
+model Session {
+  id         String   @id
+  userId     String
+  /// Solange false, ist die Session nur fuer den 2FA-Schritt gueltig, sonst fuer nichts.
+  totpVerified Boolean @default(false)
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  lastUsedAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("sessions")
+}
+
+/// Einmal nutzbare 2FA-Notfallcodes, Argon2-gehasht.
+model RecoveryCode {
+  id       String    @id @default(cuid())
+  userId   String
+  codeHash String    @db.Text
+  usedAt   DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("recovery_codes")
+}
+
+// ---------------------------------------------------------------------------
+// Katalog
+// ---------------------------------------------------------------------------
+
+model Product {
+  id          String  @id @default(cuid())
+  slug        String  @unique
+  name        String
+  description String? @db.Text
+  /// Kurztext fuer die Uebersichtskachel.
+  summary     String?
+  imageId     String?
+  active      Boolean @default(true)
+  sortOrder   Int     @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  image    MediaAsset?      @relation(fields: [imageId], references: [id], onDelete: SetNull)
+  variants ProductVariant[]
+
+  @@index([active, sortOrder])
+  @@index([imageId])
+  @@map("products")
+}
+
+/// Eine konkret bestellbare Auspraegung mit eigenem Preis.
+/// color und size sind NOT NULL mit Default '' – MySQL behandelt NULL in Unique-Indizes
+/// als verschieden, mit Leerstring greift die Eindeutigkeit tatsaechlich.
+model ProductVariant {
+  id         String  @id @default(cuid())
+  productId  String
+  color      String  @default("")
+  size       String  @default("")
+  /// Freitext fuer Varianten ohne Farbe/Groesse, z. B. "Standard" bei der Abi-Zeitung.
+  label      String  @default("")
+  priceCents Int
+  active     Boolean @default(true)
+  sortOrder  Int     @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  product Product     @relation(fields: [productId], references: [id], onDelete: Restrict)
+  items   OrderItem[]
+
+  @@unique([productId, color, size, label])
+  @@index([productId, active, sortOrder])
+  @@map("product_variants")
+}
+
+// ---------------------------------------------------------------------------
+// Bestellungen
+// ---------------------------------------------------------------------------
+
+model Order {
+  id String @id @default(cuid())
+
+  /// Menschenlesbare Referenz, z. B. ABI-7F4K92. Dient NICHT als Zugriffsschutz.
+  orderNumber String @unique
+  /// 256-Bit-Zufallstoken, alleiniger Schluessel fuer /bestellung/<token>.
+  publicToken String @unique
+
+  firstName String
+  lastName  String
+  email     String
+  className String
+
+  totalCents Int
+
+  paymentStatus      PaymentStatus           @default(PENDING)
+  paidAt             DateTime?
+  fulfillmentStatus  FulfillmentStatus       @default(NEW)
+  /// Denormalisiert, wird immer in derselben Transaktion wie die Positionen neu berechnet.
+  distributionStatus OrderDistributionStatus @default(NOT_DISTRIBUTED)
+  distributionCompletedAt DateTime?
+
+  stripeCheckoutSessionId String? @unique
+  stripePaymentIntentId   String? @unique
+
+  confirmationEmailSentAt DateTime?
+  /// Interne Notiz des Admins, wird dem Besteller nie angezeigt.
+  adminNote               String?   @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  items OrderItem[]
+
+  @@index([lastName, firstName])
+  @@index([paymentStatus, createdAt])
+  @@index([className])
+  @@index([fulfillmentStatus])
+  @@index([distributionStatus])
+  @@map("orders")
+}
+
+/// Position mit vollstaendigem Preis-Snapshot: spaetere Preisaenderungen am Katalog
+/// veraendern bezahlte Bestellungen nicht.
+model OrderItem {
+  id      String @id @default(cuid())
+  orderId String
+
+  /// Restrict: eine Variante mit Bestellungen laesst sich nicht loeschen, nur deaktivieren.
+  /// Damit bleibt die Sammelbestellung dauerhaft korrekt aggregierbar.
+  variantId String
+
+  productName  String
+  variantLabel String
+  color        String @default("")
+  size         String @default("")
+
+  unitPriceCents Int
+  quantity       Int
+  lineTotalCents Int
+
+  distributionStatus  ItemDistributionStatus @default(NOT_DISTRIBUTED)
+  distributedAt       DateTime?
+  distributedByUserId String?
+
+  createdAt DateTime @default(now())
+
+  order         Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  variant       ProductVariant @relation(fields: [variantId], references: [id], onDelete: Restrict)
+  distributedBy User?          @relation("DistributedBy", fields: [distributedByUserId], references: [id], onDelete: SetNull)
+
+  @@index([orderId])
+  @@index([variantId])
+  @@index([distributionStatus])
+  @@index([distributedByUserId])
+  @@map("order_items")
+}
+
+// ---------------------------------------------------------------------------
+// Konfiguration, Protokoll, Infrastruktur
+// ---------------------------------------------------------------------------
+
+/// Genau eine Zeile mit id = 1.
+model Settings {
+  id Int @id @default(1)
+
+  shopName     String  @default("Abi-Shop")
+  contactEmail String  @default("")
+
+  orderStartAt DateTime?
+  orderEndAt   DateTime?
+  closedNotice String?   @db.Text
+
+  /// Wird in der Bestaetigungsmail und auf der Bestellseite angezeigt.
+  pickupInfo String @db.Text
+
+  /// Rechtstexte, vom Admin pflegbar, werden als Klartext gerendert (kein HTML).
+  imprintText    String @db.Text
+  privacyText    String @db.Text
+  withdrawalText String @db.Text
+  termsText      String @db.Text
+
+  updatedAt DateTime @updatedAt
+
+  @@map("settings")
+}
+
+/// Protokoll sicherheits- und geldrelevanter Admin-Aktionen.
+/// Bewusst sparsam: kein Request-Body, keine IP, keine Besteller-Adressdaten.
+model AuditLog {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  actorUserId String?
+  /// Snapshot, damit das Protokoll auch nach Deaktivierung des Kontos lesbar bleibt.
+  actorEmail  String
+  action      String
+  entityType  String
+  entityId    String?
+  /// Menschenlesbare Zusammenfassung, z. B. "NEW -> ORDERED".
+  summary     String   @db.Text
+
+  actor User? @relation(fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
+  @@index([entityType, entityId])
+  @@index([actorUserId])
+  @@map("audit_logs")
+}
+
+/// Idempotenzschutz fuer Stripe-Webhooks. Der Primaerschluessel ist die Stripe-Event-ID;
+/// ein zweiter Zustellversuch laeuft in den Unique-Constraint und bleibt wirkungslos.
+model StripeWebhookEvent {
+  id          String   @id
+  type        String
+  receivedAt  DateTime @default(now())
+  processedAt DateTime?
+  /// Kurze Notiz zum Ergebnis, z. B. "order ABI-7F4K92 -> PAID".
+  result      String?  @db.Text
+
+  @@index([type, receivedAt])
+  @@map("stripe_webhook_events")
+}
+
+/// Produktbilder. Die Datei liegt unter zufaelligem Namen auf einem Volume,
+/// ausgeliefert wird sie ausschliesslich ueber einen Route Handler mit festem Content-Type.
+model MediaAsset {
+  id               String   @id @default(cuid())
+  storageFilename  String   @unique
+  originalFilename String
+  mimeType         String
+  byteSize         Int
+  createdAt        DateTime @default(now())
+  uploadedByUserId String?
+
+  uploadedBy User?     @relation("UploadedBy", fields: [uploadedByUserId], references: [id], onDelete: SetNull)
+  products   Product[]
+
+  @@index([uploadedByUserId])
+  @@map("media_assets")
+}
