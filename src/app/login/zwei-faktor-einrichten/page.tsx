@@ -20,5 +20,11 @@ export default async function TotpSetupPage() {
   // QR-Code lokal erzeugen: kein externer Dienst bekommt das Secret zu sehen.
   const qrDataUrl = await QRCode.toDataURL(setup.uri, { margin: 1, width: 320 });
 
-  return <TotpSetupForm qrDataUrl={qrDataUrl} manualKey={setup.manualKey} />;
+  return (
+    <TotpSetupForm
+      qrDataUrl={qrDataUrl}
+      manualKey={setup.manualKey}
+      recoveryCodes={setup.recoveryCodes}
+    />
+  );
 }

@@ -15,74 +15,103 @@ function SubmitButton() {
   );
 }
 
-export function TotpSetupForm({ qrDataUrl, manualKey }: { qrDataUrl: string; manualKey: string }) {
+/**
+ * Einrichtung des zweiten Faktors in einem Rutsch: QR-Code scannen, Notfallcodes sichern,
+ * Code eingeben.
+ *
+ * Die Notfallcodes stehen bewusst schon hier und nicht erst nach der Bestätigung – so gehen
+ * sie auch dann nicht verloren, wenn das Formular ohne JavaScript abgeschickt wird und die
+ * Seite danach neu gerendert wird.
+ */
+export function TotpSetupForm({
+  qrDataUrl,
+  manualKey,
+  recoveryCodes,
+}: {
+  qrDataUrl: string;
+  manualKey: string;
+  recoveryCodes: string[];
+}) {
   const [state, formAction] = useActionState(confirmTotpSetupAction, INITIAL);
 
-  if (state.status === 'done') {
-    return (
-      <div className="surface-card space-y-4 rounded-2xl p-6">
-        <h1 className="text-xl">Notfallcodes</h1>
-        <p className="text-sm">
-          Diese Codes werden <strong>nur jetzt</strong> angezeigt. Druck sie aus oder schreib sie ab und
-          bewahre sie sicher auf. Jeder Code funktioniert genau einmal – damit kommst du auch ohne
-          Handy wieder rein.
+  return (
+    <form action={formAction} className="surface-card space-y-5 rounded-2xl p-6">
+      <div>
+        <h1 className="text-xl">Zwei-Faktor einrichten</h1>
+        <p className="text-muted mt-1 text-sm">
+          Für Admin-Konten ist ein zweiter Faktor Pflicht.
+        </p>
+      </div>
+
+      <section>
+        <h2 className="text-strong text-sm font-semibold">1. QR-Code scannen</h2>
+        <p className="text-muted mt-1 text-sm">
+          Mit einer Authenticator-App, zum Beispiel Aegis, 2FAS oder Google Authenticator.
         </p>
 
-        <ul className="bg-surface-muted grid grid-cols-2 gap-2 rounded-lg p-3 font-mono text-sm">
-          {state.recoveryCodes.map((code) => (
+        {/* Serverseitig erzeugt und als data:-URL eingebettet – kein externer Dienst. */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={qrDataUrl}
+          alt="QR-Code zur Einrichtung der Zwei-Faktor-Authentifizierung"
+          className="mx-auto mt-3 size-48 rounded-lg bg-white p-2"
+        />
+
+        <details className="text-muted mt-2 text-sm">
+          <summary className="cursor-pointer">Kamera geht nicht? Schlüssel manuell eingeben</summary>
+          <code className="mt-2 block font-mono text-xs break-all">{manualKey}</code>
+        </details>
+      </section>
+
+      <section>
+        <h2 className="text-strong text-sm font-semibold">2. Notfallcodes sichern</h2>
+        <p className="text-muted mt-1 text-sm">
+          Damit kommst du auch ohne Handy wieder rein. Jeder Code funktioniert genau einmal.
+          Ausdrucken oder abschreiben und sicher aufbewahren.
+        </p>
+
+        <ul className="bg-surface-muted mt-3 grid grid-cols-2 gap-2 rounded-lg p-3 font-mono text-sm">
+          {recoveryCodes.map((code) => (
             <li key={code}>{code}</li>
           ))}
         </ul>
 
-        <a href="/admin" className="btn-primary h-11 w-full">
-          Weiter zum Adminbereich
-        </a>
-      </div>
-    );
-  }
-
-  return (
-    <form action={formAction} className="surface-card space-y-4 rounded-2xl p-6">
-      <div>
-        <h1 className="text-xl">Zwei-Faktor einrichten</h1>
-        <p className="text-muted mt-1 text-sm">
-          Für Admin-Konten ist ein zweiter Faktor Pflicht. Scanne den Code mit einer
-          Authenticator-App (z. B. Aegis, 2FAS, Google Authenticator).
+        <p className="text-muted mt-2 text-xs">
+          Nach dem Abschluss der Einrichtung lassen sich diese Codes nicht erneut anzeigen –
+          gespeichert bleiben dann nur noch Prüfsummen.
         </p>
-      </div>
 
-      {/* Der QR-Code wird serverseitig erzeugt und als data:-URL eingebettet – kein externer Dienst. */}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={qrDataUrl}
-        alt="QR-Code zur Einrichtung der Zwei-Faktor-Authentifizierung"
-        className="mx-auto size-48 rounded-lg bg-white p-2"
-      />
+        {/*
+          Natives `required` statt einer Sperre über React-State: Der Browser erzwingt das
+          Häkchen auch dann, wenn JavaScript nicht geladen hat. Ein Button, der ohne
+          JavaScript dauerhaft gesperrt wäre, würde die Einrichtung unmöglich machen.
+        */}
+        <label className="mt-3 flex items-start gap-2 text-sm">
+          <input type="checkbox" name="codesGesichert" required className="mt-0.5 size-4 shrink-0" />
+          Ich habe die Notfallcodes gesichert.
+        </label>
+      </section>
 
-      <details className="text-muted text-sm">
-        <summary className="cursor-pointer">Kamera geht nicht? Schlüssel manuell eingeben</summary>
-        <code className="mt-2 block break-all font-mono text-xs">{manualKey}</code>
-      </details>
+      <section>
+        <h2 className="text-strong text-sm font-semibold">3. Code aus der App eingeben</h2>
 
-      {state.status === 'error' && state.message ? (
-        <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm font-medium text-red-800 dark:bg-red-950 dark:text-red-200">
-          {state.message}
-        </p>
-      ) : null}
+        {state.status === 'error' && state.message ? (
+          <p role="alert" className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-sm font-medium text-red-800 dark:bg-red-950 dark:text-red-200">
+            {state.message}
+          </p>
+        ) : null}
 
-      <div>
-        <label htmlFor="code" className="field-label">Code aus der App</label>
+        <label htmlFor="code" className="sr-only">Code aus der App</label>
         <input
           id="code"
           name="code"
           required
-          autoFocus
           inputMode="numeric"
           autoComplete="one-time-code"
           placeholder="123456"
-          className="field-input text-center font-mono text-lg tracking-widest"
+          className="field-input mt-2 text-center font-mono text-lg tracking-widest"
         />
-      </div>
+      </section>
 
       <SubmitButton />
     </form>

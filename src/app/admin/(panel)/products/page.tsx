@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Disclosure } from '@/components/admin/disclosure';
 import { ProductForm } from '@/components/admin/product-form';
 import { VariantForm } from '@/components/admin/variant-form';
 import { ProductImage } from '@/components/shop/product-image';
@@ -29,12 +30,11 @@ export default async function ProductsPage() {
         aufgegebene Bestellungen und die Sammelbestellung dauerhaft korrekt auswertbar.
       </p>
 
-      <details className="surface-card rounded-xl p-5">
-        <summary className="text-strong cursor-pointer font-semibold">Neues Produkt anlegen</summary>
-        <div className="mt-4">
+      <div className="surface-card rounded-xl p-5">
+        <Disclosure summary="Neues Produkt anlegen">
           <ProductForm />
-        </div>
-      </details>
+        </Disclosure>
+      </div>
 
       {products.map((product) => (
         <section key={product.id} className="surface-card rounded-xl p-5">
@@ -62,9 +62,8 @@ export default async function ProductsPage() {
             </div>
           </div>
 
-          <details className="mt-4">
-            <summary className="text-strong cursor-pointer text-sm font-medium">Produkt bearbeiten</summary>
-            <div className="mt-4">
+          <div className="mt-4">
+            <Disclosure summary="Produkt bearbeiten">
               <ProductForm
                 product={{
                   id: product.id,
@@ -77,8 +76,8 @@ export default async function ProductsPage() {
                   sortOrder: product.sortOrder,
                 }}
               />
-            </div>
-          </details>
+            </Disclosure>
+          </div>
 
           <h3 className="text-strong mt-5 text-sm font-semibold">Varianten</h3>
 
@@ -99,9 +98,8 @@ export default async function ProductsPage() {
                     </span>
                   </div>
 
-                  <details className="mt-2">
-                    <summary className="text-muted cursor-pointer text-xs">Bearbeiten</summary>
-                    <div className="mt-3">
+                  <div className="mt-2">
+                    <Disclosure summary="Bearbeiten" tone="muted">
                       <VariantForm
                         productId={product.id}
                         variant={{
@@ -114,19 +112,18 @@ export default async function ProductsPage() {
                           sortOrder: variant.sortOrder,
                         }}
                       />
-                    </div>
-                  </details>
+                    </Disclosure>
+                  </div>
                 </li>
               ))}
             </ul>
           )}
 
-          <details className="mt-4">
-            <summary className="cursor-pointer text-sm font-medium text-brand-600">Variante hinzufügen</summary>
-            <div className="mt-3">
+          <div className="mt-4">
+            <Disclosure summary="Variante hinzufügen" tone="accent">
               <VariantForm productId={product.id} />
-            </div>
-          </details>
+            </Disclosure>
+          </div>
         </section>
       ))}
     </div>

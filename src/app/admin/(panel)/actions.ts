@@ -19,6 +19,7 @@ import { hashPassword, passwordSchema } from '@/server/auth/password';
 import { prisma } from '@/server/db';
 import { logUnexpected } from '@/server/logger';
 import { storeProductImage } from '@/server/media';
+import { assertSameOrigin } from '@/server/request-context';
 import { SETTINGS_ID } from '@/server/settings';
 
 /**
@@ -87,6 +88,9 @@ function parseBerlinDateTime(value: string | undefined): Date | null {
 // ---------------------------------------------------------------------------
 
 export async function saveProductAction(_previous: ActionState, formData: FormData): Promise<ActionState> {
+  const origin = await assertSameOrigin();
+  if (!origin.ok) return fail(origin.message);
+
   const auth = await authorize(['ADMIN']);
   if (!auth.ok) return fail(auth.error);
 
@@ -154,6 +158,9 @@ export async function saveProductAction(_previous: ActionState, formData: FormDa
 }
 
 export async function saveVariantAction(_previous: ActionState, formData: FormData): Promise<ActionState> {
+  const origin = await assertSameOrigin();
+  if (!origin.ok) return fail(origin.message);
+
   const auth = await authorize(['ADMIN']);
   if (!auth.ok) return fail(auth.error);
 
@@ -252,6 +259,9 @@ const statusUpdateSchema = z.object({
  * Rückerstattung) gedacht und deshalb immer im Audit-Log nachvollziehbar.
  */
 export async function updateOrderStatusAction(_previous: ActionState, formData: FormData): Promise<ActionState> {
+  const origin = await assertSameOrigin();
+  if (!origin.ok) return fail(origin.message);
+
   const auth = await authorize(['ADMIN']);
   if (!auth.ok) return fail(auth.error);
 
@@ -314,6 +324,9 @@ export async function updateOrderStatusAction(_previous: ActionState, formData: 
 
 /** Setzt den Sammelbestellungsstatus für alle bezahlten Bestellungen auf einmal. */
 export async function bulkFulfillmentAction(_previous: ActionState, formData: FormData): Promise<ActionState> {
+  const origin = await assertSameOrigin();
+  if (!origin.ok) return fail(origin.message);
+
   const auth = await authorize(['ADMIN']);
   if (!auth.ok) return fail(auth.error);
 
@@ -347,6 +360,9 @@ export async function bulkFulfillmentAction(_previous: ActionState, formData: Fo
 // ---------------------------------------------------------------------------
 
 export async function updateSettingsAction(_previous: ActionState, formData: FormData): Promise<ActionState> {
+  const origin = await assertSameOrigin();
+  if (!origin.ok) return fail(origin.message);
+
   const auth = await authorize(['ADMIN']);
   if (!auth.ok) return fail(auth.error);
 
@@ -411,6 +427,9 @@ export async function updateSettingsAction(_previous: ActionState, formData: For
 // ---------------------------------------------------------------------------
 
 export async function createUserAction(_previous: ActionState, formData: FormData): Promise<ActionState> {
+  const origin = await assertSameOrigin();
+  if (!origin.ok) return fail(origin.message);
+
   const auth = await authorize(['ADMIN']);
   if (!auth.ok) return fail(auth.error);
 
@@ -459,6 +478,9 @@ const userActionSchema = z.object({
 });
 
 export async function modifyUserAction(_previous: ActionState, formData: FormData): Promise<ActionState> {
+  const origin = await assertSameOrigin();
+  if (!origin.ok) return fail(origin.message);
+
   const auth = await authorize(['ADMIN']);
   if (!auth.ok) return fail(auth.error);
 

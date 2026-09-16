@@ -14,7 +14,7 @@ import { confirmTotpSetup } from '@/server/auth/totp-setup';
 import { verifyTotpCode } from '@/server/auth/totp';
 import { prisma } from '@/server/db';
 import { logUnexpected } from '@/server/logger';
-import { clientIp } from '@/server/request-context';
+import { assertSameOrigin, clientIp } from '@/server/request-context';
 
 /**
  * Anmelde-Actions.
@@ -49,6 +49,9 @@ export async function loginAction(_previous: LoginState, formData: FormData): Pr
   });
 
   if (!parsed.success) return { status: 'error', message: GENERIC_LOGIN_ERROR };
+
+  const origin = await assertSameOrigin();
+  if (!origin.ok) return { status: 'error', message: origin.message };
 
   const ip = await clientIp();
   const emailKey = parsed.data.email.toLowerCase();
@@ -97,6 +100,9 @@ export type TotpState = { status: 'idle' | 'error'; message?: string };
 const codeSchema = z.string().trim().min(6).max(20);
 
 export async function verifyTotpAction(_previous: TotpState, formData: FormData): Promise<TotpState> {
+  const origin = await assertSameOrigin();
+  if (!origin.ok) return { status: 'error', message: origin.message };
+
   const context = await getSessionContext();
   if (!context) redirect('/login');
   if (context.totpVerified) redirect('/admin');
@@ -150,14 +156,22 @@ export async function verifyTotpAction(_previous: TotpState, formData: FormData)
   redirect('/admin');
 }
 
-export type TotpSetupState =
-  | { status: 'idle' | 'error'; message?: string }
-  | { status: 'done'; recoveryCodes: string[] };
+export type TotpSetupState = { status: 'idle' | 'error'; message?: string };
 
+/**
+ * Schliesst die Einrichtung des zweiten Faktors ab.
+ *
+ * Bei Erfolg wird direkt weitergeleitet. Die Notfallcodes wurden bereits auf der
+ * Einrichtungsseite angezeigt – sie hängen bewusst nicht am Ergebnis dieser Action,
+ * damit sie auch bei einem Formular-Versand ohne JavaScript nicht verloren gehen.
+ */
 export async function confirmTotpSetupAction(
   _previous: TotpSetupState,
   formData: FormData,
 ): Promise<TotpSetupState> {
+  const origin = await assertSameOrigin();
+  if (!origin.ok) return { status: 'error', message: origin.message };
+
   const context = await getSessionContext();
   if (!context) redirect('/login');
 
@@ -170,12 +184,12 @@ export async function confirmTotpSetupAction(
 
     // Die Session gilt jetzt als vollständig authentifiziert.
     await markSessionTotpVerified(context.sessionId);
-
-    return { status: 'done', recoveryCodes: result.recoveryCodes };
   } catch (error) {
     const errorId = logUnexpected('confirmTotpSetupAction', error);
     return { status: 'error', message: `Einrichtung derzeit nicht möglich. (Kennung ${errorId})` };
   }
+
+  redirect('/admin');
 }
 
 export async function logoutAction(): Promise<never> {

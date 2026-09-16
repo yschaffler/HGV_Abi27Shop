@@ -1,6 +1,7 @@
 import 'server-only';
 import { headers } from 'next/headers';
 import { env } from './env';
+import { logger } from './logger';
 
 /**
  * Client-IP für das Rate Limiting.
@@ -22,18 +23,48 @@ export async function clientIp(): Promise<string> {
   return headerList.get('x-real-ip')?.trim() || 'direct';
 }
 
+export type OriginCheck = { ok: true } | { ok: false; message: string };
+
 /**
- * Zusätzlicher Origin-Check für Route Handler, die Zustand ändern.
- * Server Actions bringen diese Prüfung bereits mit; Route Handler nicht.
+ * Expliziter Origin-Check für zustandsändernde Aufrufe.
+ *
+ * Next.js vergleicht bei Server Actions von sich aus Origin und Host. Die Dokumentation
+ * hält dabei aber ausdrücklich fest: Ein Request GANZ OHNE Origin-Header wird nur mit einer
+ * Warnung durchgelassen, nicht abgewiesen. Browser senden bei POST immer einen Origin,
+ * also kostet es uns nichts, hier auf dessen Vorhandensein zu bestehen – und schliesst
+ * die Lücke für alles, was kein Browser ist.
+ *
+ * Zweiter Schutz auf einer anderen Ebene: Das Session-Cookie ist SameSite=Lax. Eine
+ * fremde Seite bekommt bei einem seitenübergreifenden POST also ohnehin keine Session
+ * mitgeschickt und könnte selbst bei umgangenem Origin-Check nichts Angemeldetes auslösen.
  */
-export async function isSameOriginRequest(): Promise<boolean> {
+export async function assertSameOrigin(): Promise<OriginCheck> {
   const headerList = await headers();
   const origin = headerList.get('origin');
-  if (!origin) return false;
 
-  try {
-    return new URL(origin).origin === new URL(env().APP_URL).origin;
-  } catch {
-    return false;
+  if (!origin) {
+    logger.warn('Zustandsändernder Aufruf ohne Origin-Header abgewiesen');
+    return { ok: false, message: 'Die Anfrage konnte nicht zugeordnet werden. Bitte Seite neu laden.' };
   }
+
+  let originHost: string;
+  try {
+    originHost = new URL(origin).host;
+  } catch {
+    return { ok: false, message: 'Die Anfrage konnte nicht zugeordnet werden. Bitte Seite neu laden.' };
+  }
+
+  // Zulässig ist die konfigurierte öffentliche Adresse ...
+  const configuredHost = new URL(env().APP_URL).host;
+
+  // ... oder der Host, unter dem dieser Request tatsächlich hereinkam. Letzteres deckt
+  // Setups ab, in denen ein Reverse Proxy die Adresse umschreibt.
+  const requestHost = headerList.get('x-forwarded-host') ?? headerList.get('host');
+
+  if (originHost === configuredHost || (requestHost !== null && originHost === requestHost)) {
+    return { ok: true };
+  }
+
+  logger.warn('Zustandsändernder Aufruf mit fremdem Origin abgewiesen', { originHost });
+  return { ok: false, message: 'Die Anfrage konnte nicht zugeordnet werden. Bitte Seite neu laden.' };
 }

@@ -4,6 +4,7 @@ import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limit';
 import { idSchema } from '@/lib/validation/admin';
 import { authorize, ROLES_WITH_DISTRIBUTION_ACCESS } from '@/server/auth/rbac';
 import { prisma } from '@/server/db';
+import { assertSameOrigin } from '@/server/request-context';
 import {
   distributeAllItems,
   distributeItem,
@@ -86,6 +87,9 @@ async function reload(orderId: string, notice: string | null): Promise<Distribut
 }
 
 export async function distributeItemAction(itemId: string): Promise<DistributeResult> {
+  const origin = await assertSameOrigin();
+  if (!origin.ok) return { ok: false, message: origin.message };
+
   const auth = await authorize(ROLES_WITH_DISTRIBUTION_ACCESS);
   if (!auth.ok) return { ok: false, message: auth.error };
 
@@ -116,6 +120,9 @@ export async function distributeItemAction(itemId: string): Promise<DistributeRe
 }
 
 export async function distributeAllAction(orderId: string): Promise<DistributeResult> {
+  const origin = await assertSameOrigin();
+  if (!origin.ok) return { ok: false, message: origin.message };
+
   const auth = await authorize(ROLES_WITH_DISTRIBUTION_ACCESS);
   if (!auth.ok) return { ok: false, message: auth.error };
 

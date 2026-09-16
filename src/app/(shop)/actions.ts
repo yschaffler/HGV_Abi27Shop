@@ -2,7 +2,7 @@
 
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
-import { clientIp } from '@/server/request-context';
+import { assertSameOrigin, clientIp } from '@/server/request-context';
 import { logUnexpected } from '@/server/logger';
 import { loadVariantsForPricing } from '@/server/shop/catalog';
 import { createPendingOrder } from '@/server/shop/order';
@@ -109,6 +109,9 @@ export async function submitCheckoutAction(
   _previous: CheckoutFormState,
   formData: FormData,
 ): Promise<CheckoutFormState> {
+  const origin = await assertSameOrigin();
+  if (!origin.ok) return { status: 'error', message: origin.message };
+
   const ip = await clientIp();
   const limit = checkRateLimit(`checkout:${ip}`, RATE_LIMITS.checkout);
 

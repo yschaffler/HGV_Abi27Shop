@@ -64,6 +64,12 @@ model User {
   totpSecret    String?   @db.Text
   totpConfirmedAt DateTime?
 
+  /// Notfallcodes im Klartext, AES-256-GCM-verschlüsselt – ausschliesslich während der
+  /// Einrichtung des zweiten Faktors. Nur dadurch zeigt ein erneuter Aufruf der
+  /// Einrichtungsseite dieselben Codes und nicht bei jedem Rendern neue. Sobald der zweite
+  /// Faktor bestätigt ist, wird das Feld geleert; danach existieren nur noch die Hashes.
+  pendingRecoveryCodes String? @db.Text
+
   /// Brute-Force-Schutz, überlebt einen Neustart der Anwendung.
   failedLoginAttempts Int       @default(0)
   lockedUntil         DateTime?

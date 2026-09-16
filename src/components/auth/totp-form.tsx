@@ -1,6 +1,7 @@
 'use client';
 
-import { useActionState, useState } from 'react';
+import Link from 'next/link';
+import { useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { verifyTotpAction, type TotpState } from '@/app/login/actions';
 
@@ -15,9 +16,17 @@ function SubmitButton() {
   );
 }
 
-export function TotpForm() {
+/**
+ * Zweiter Faktor beim Anmelden.
+ *
+ * Der Wechsel zwischen Authenticator-Code und Notfallcode läuft über einen echten Link mit
+ * Query-Parameter statt über einen Umschalter im React-State. Grund: Der Notfallcode ist die
+ * Rückfalloption, wenn sonst nichts mehr geht – die darf nicht daran scheitern, dass
+ * JavaScript noch nicht geladen ist.
+ */
+export function TotpForm({ mode }: { mode: 'totp' | 'recovery' }) {
   const [state, formAction] = useActionState(verifyTotpAction, INITIAL);
-  const [useRecovery, setUseRecovery] = useState(false);
+  const useRecovery = mode === 'recovery';
 
   return (
     <form action={formAction} className="surface-card space-y-4 rounded-2xl p-6">
@@ -56,13 +65,12 @@ export function TotpForm() {
 
       <SubmitButton />
 
-      <button
-        type="button"
-        onClick={() => setUseRecovery((value) => !value)}
-        className="text-muted w-full text-sm hover:underline"
+      <Link
+        href={useRecovery ? '/login/zwei-faktor' : '/login/zwei-faktor?modus=notfallcode'}
+        className="text-muted block text-center text-sm hover:underline"
       >
         {useRecovery ? 'Doch die Authenticator-App verwenden' : 'Authenticator nicht zur Hand? Notfallcode verwenden'}
-      </button>
+      </Link>
     </form>
   );
 }
