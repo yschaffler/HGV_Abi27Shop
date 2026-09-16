@@ -1,0 +1,93 @@
+# Abi-Shop – vollstaendiges Setup mit einem Befehl:
+#
+#   cp .env.example .env    # und ausfuellen
+#   docker compose up -d --build
+#
+# Danach laeuft der Shop auf http://localhost:3000 und die Datenbank in einem eigenen
+# Container mit persistentem Volume. Vor dem Livegang gehoert ein Reverse Proxy davor,
+# der HTTPS terminiert – siehe README.
+
+services:
+  db:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-abishop}
+      MYSQL_USER: ${MYSQL_USER:-abishop}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?MYSQL_PASSWORD muss in .env gesetzt sein}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?MYSQL_ROOT_PASSWORD muss in .env gesetzt sein}
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - db-data:/var/lib/mysql
+    healthcheck:
+      # Die App startet erst, wenn die Datenbank wirklich Anfragen beantwortet.
+      test: ['CMD', 'mysqladmin', 'ping', '-h', '127.0.0.1', '-u', 'root', '-p${MYSQL_ROOT_PASSWORD}']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+    # Kein Port nach aussen: Die Datenbank ist nur aus dem Compose-Netz erreichbar.
+    # Fuer einen Blick von aussen voruebergehend "ports: ['127.0.0.1:3306:3306']" ergaenzen.
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: mysql://${MYSQL_USER:-abishop}:${MYSQL_PASSWORD}@db:3306/${MYSQL_DATABASE:-abishop}
+      APP_URL: ${APP_URL}
+      AUTH_SECRET: ${AUTH_SECRET}
+      SESSION_MAX_AGE_HOURS: ${SESSION_MAX_AGE_HOURS:-12}
+      TRUST_PROXY_HEADERS: ${TRUST_PROXY_HEADERS:-true}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+      STRIPE_PAYMENT_METHOD_TYPES: ${STRIPE_PAYMENT_METHOD_TYPES:-}
+      EMAIL_DRIVER: ${EMAIL_DRIVER:-smtp}
+      EMAIL_FROM: ${EMAIL_FROM}
+      EMAIL_REPLY_TO: ${EMAIL_REPLY_TO:-}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_SECURE: ${SMTP_SECURE:-false}
+    ports:
+      # Nur an localhost gebunden: Nach aussen geht es ueber den Reverse Proxy.
+      - '127.0.0.1:${APP_PORT:-3000}:3000'
+    volumes:
+      # Produktbilder ueberleben ein Neu-Bauen des Images.
+      - uploads:/app/data/uploads
+
+  # Einmalige Aufgaben: ersten Admin anlegen, Beispieldaten einspielen, Migrationen
+  # von Hand fahren. Nutzt das Builder-Stage, weil dort die Entwicklungswerkzeuge liegen –
+  # das schlanke Laufzeit-Image bleibt dadurch frei davon.
+  #
+  #   docker compose run --rm tools npm run admin:create
+  #   docker compose run --rm tools npm run db:seed
+  #
+  # Das Profil sorgt dafuer, dass dieser Dienst bei "docker compose up" nicht mitstartet.
+  tools:
+    profiles: ['tools']
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: mysql://${MYSQL_USER:-abishop}:${MYSQL_PASSWORD}@db:3306/${MYSQL_DATABASE:-abishop}
+      AUTH_SECRET: ${AUTH_SECRET}
+      APP_URL: ${APP_URL}
+    entrypoint: []
+    command: ['npm', 'run', 'admin:create']
+
+volumes:
+  db-data:
+  uploads:
