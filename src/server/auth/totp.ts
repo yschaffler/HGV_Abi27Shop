@@ -40,6 +40,23 @@ export function normalizeTotpCode(input: string): string {
   return input.replace(/\s/g, '');
 }
 
+/**
+ * Baut die Einrichtungsdaten aus einem bereits gespeicherten (verschlüsselten) Secret neu auf.
+ * Wird gebraucht, wenn jemand die Einrichtungsseite neu lädt, nachdem er den QR-Code
+ * schon gescannt hat – der Code in der App soll dann weiter gelten.
+ */
+export function restoreTotpEnrollment(params: {
+  encryptedSecret: string;
+  accountEmail: string;
+  issuer: string;
+}): { secret: string; uri: string } {
+  const secret = decryptSecret(params.encryptedSecret);
+  return {
+    secret,
+    uri: generateURI({ issuer: params.issuer, label: params.accountEmail, secret }),
+  };
+}
+
 export async function verifyTotpCode(encryptedSecret: string, code: string): Promise<boolean> {
   const normalized = normalizeTotpCode(code);
   if (!/^\d{6}$/.test(normalized)) return false;
