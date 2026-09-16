@@ -4,14 +4,14 @@ import { randomUUID } from 'node:crypto';
 /**
  * Minimales strukturiertes Logging.
  *
- * Regel: technische Details bleiben im Serverlog, der Benutzer bekommt ausschliesslich eine
- * verstaendliche Meldung und eine Fehler-ID, mit der man den Eintrag im Log wiederfindet.
+ * Regel: technische Details bleiben im Serverlog, der Benutzer bekommt ausschließlich eine
+ * verständliche Meldung und eine Fehler-ID, mit der man den Eintrag im Log wiederfindet.
  */
 
 type Level = 'info' | 'warn' | 'error';
 type Fields = Record<string, unknown>;
 
-/** Feldnamen, deren Werte niemals im Log landen duerfen. */
+/** Feldnamen, deren Werte niemals im Log landen dürfen. */
 const REDACTED_KEYS = [
   'password',
   'passwordhash',
@@ -61,8 +61,8 @@ export const logger = {
 };
 
 /**
- * Loggt einen unerwarteten Fehler und liefert eine kurze ID zurueck, die dem Benutzer
- * angezeigt werden kann. Der Benutzer erfaehrt dadurch nichts ueber die Interna.
+ * Loggt einen unerwarteten Fehler und liefert eine kurze ID zurück, die dem Benutzer
+ * angezeigt werden kann. Der Benutzer erfährt dadurch nichts über die Interna.
  */
 export function logUnexpected(scope: string, error: unknown, fields: Fields = {}): string {
   const errorId = randomUUID().slice(0, 8);

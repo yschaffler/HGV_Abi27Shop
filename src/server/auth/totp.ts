@@ -3,21 +3,21 @@ import { generateSecret, generateURI, verify as verifyOtp } from 'otplib';
 import { decryptSecret, encryptSecret } from '../crypto/secretbox';
 
 /**
- * Zweiter Faktor nach RFC 6238 (TOTP) – kompatibel mit jeder gaengigen Authenticator-App.
+ * Zweiter Faktor nach RFC 6238 (TOTP) – kompatibel mit jeder gängigen Authenticator-App.
  *
- * Das Secret liegt in der Datenbank ausschliesslich AES-256-GCM-verschluesselt. Ein Dump der
- * Datenbank allein reicht damit nicht, um gueltige Codes zu erzeugen.
+ * Das Secret liegt in der Datenbank ausschließlich AES-256-GCM-verschlüsselt. Ein Dump der
+ * Datenbank allein reicht damit nicht, um gültige Codes zu erzeugen.
  */
 
 /** Ein Zeitschritt Toleranz in jede Richtung, damit leicht falsch gehende Uhren funktionieren. */
 const EPOCH_TOLERANCE_SECONDS = 30;
 
 export type TotpEnrollment = {
-  /** Klartext-Secret – nur fuer die Einrichtung, wird nie gespeichert. */
+  /** Klartext-Secret – nur für die Einrichtung, wird nie gespeichert. */
   secret: string;
-  /** Verschluesselte Form fuer die Datenbank. */
+  /** Verschlüsselte Form für die Datenbank. */
   encryptedSecret: string;
-  /** otpauth://-URI fuer den QR-Code. */
+  /** otpauth://-URI für den QR-Code. */
   uri: string;
 };
 

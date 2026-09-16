@@ -1,10 +1,10 @@
 /**
- * Legt einen Admin- oder Ausgabe-Benutzer an oder setzt dessen Passwort zurueck.
+ * Legt einen Admin- oder Ausgabe-Benutzer an oder setzt dessen Passwort zurück.
  *
  *   npm run admin:create
  *   npm run admin:create -- --email=abi@example.de --name="Max Muster" --role=ADMIN
  *
- * Das Passwort wird nie als Kommandozeilenargument entgegengenommen – es stuende sonst in
+ * Das Passwort wird nie als Kommandozeilenargument entgegengenommen – es stünde sonst in
  * der Shell-History und in der Prozessliste. Stattdessen wird es verdeckt abgefragt.
  * Der zweite Faktor wird beim ersten Login im Browser eingerichtet.
  */
@@ -32,8 +32,8 @@ function argValue(name: string): string | undefined {
  *
  * Im Terminal wird zeilenweise gefragt und die Passworteingabe verdeckt. Wenn stdin kein
  * Terminal ist (Setup-Skript, Container), wird stdin einmal komplett gelesen und
- * zeilenweise abgearbeitet – readline wuerde bei einem Pipe-Eingang alle Zeilen auf einmal
- * ausliefern und die spaeteren Antworten verwerfen.
+ * zeilenweise abgearbeitet – readline würde bei einem Pipe-Eingang alle Zeilen auf einmal
+ * ausliefern und die späteren Antworten verwerfen.
  */
 const interactive = Boolean(stdin.isTTY);
 
@@ -51,7 +51,7 @@ async function nextPipedLine(question: string): Promise<string> {
   const lines = await readPipedLines();
   stdout.write(question);
   const value = lines.shift();
-  if (value === undefined) throw new Error(`Keine Eingabe fuer: ${question.trim()}`);
+  if (value === undefined) throw new Error(`Keine Eingabe für: ${question.trim()}`);
   stdout.write('\n');
   return value;
 }
@@ -98,7 +98,7 @@ async function main(): Promise<void> {
   const name = (argValue('name') ?? (await prompt('Name: '))).trim();
   const roleInput = (argValue('role') ?? (await prompt('Rolle [ADMIN|DISTRIBUTION] (ADMIN): '))).trim().toUpperCase();
 
-  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) throw new Error('Ungueltige E-Mail-Adresse');
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) throw new Error('Ungültige E-Mail-Adresse');
   if (name.length < 2) throw new Error('Name ist zu kurz');
 
   const role: Role = roleInput === 'DISTRIBUTION' ? 'DISTRIBUTION' : 'ADMIN';
@@ -107,7 +107,7 @@ async function main(): Promise<void> {
   const repeat = await promptHidden('Passwort wiederholen: ');
 
   if (password.length < 12) throw new Error('Passwort muss mindestens 12 Zeichen haben');
-  if (password !== repeat) throw new Error('Die Passwoerter stimmen nicht ueberein');
+  if (password !== repeat) throw new Error('Die Passwörter stimmen nicht überein');
 
   const passwordHash = await hash(password, ARGON2_OPTIONS);
 

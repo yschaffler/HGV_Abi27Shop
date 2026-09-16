@@ -9,7 +9,7 @@ import type { AuthUser } from '../auth/session';
  *
  * Zentrale Anforderung: An der Ausgabe stehen mehrere Leute mit mehreren iPads. Es darf
  * nicht passieren, dass zwei Personen denselben Artikel gleichzeitig "ausgeben" und ein
- * Pulli doppelt rausgeht. Deshalb wird nirgends gelesen-geprueft-geschrieben, sondern immer
+ * Pulli doppelt rausgeht. Deshalb wird nirgends gelesen-geprüft-geschrieben, sondern immer
  * bedingt geschrieben: `updateMany` mit `distributionStatus: NOT_DISTRIBUTED` in der
  * Bedingung. Wer als Zweiter klickt, trifft null Zeilen und bekommt einen Hinweis statt
  * einer zweiten Ausgabe.
@@ -35,7 +35,7 @@ export type DistributionSearchHit = {
 };
 
 /**
- * Autocomplete fuer die Ausgabe. Es werden ausschliesslich bezahlte Bestellungen gefunden –
+ * Autocomplete für die Ausgabe. Es werden ausschließlich bezahlte Bestellungen gefunden –
  * was nicht bezahlt ist, wird auch nicht ausgegeben.
  */
 export async function searchPaidOrders(rawQuery: string): Promise<DistributionSearchHit[]> {
@@ -110,7 +110,7 @@ export type DistributionOutcome =
 
 /**
  * Aktualisiert den Gesamtstatus der Bestellung aus ihren Positionen – immer innerhalb
- * derselben Transaktion wie die Positionsaenderung.
+ * derselben Transaktion wie die Positionsänderung.
  */
 async function syncOrderStatus(
   tx: Parameters<Parameters<typeof prisma.$transaction>[0]>[0],
@@ -177,7 +177,7 @@ export async function distributeItem(itemId: string, actor: AuthUser): Promise<D
 
 /**
  * "Alles ausgeben": gibt nur die noch offenen Positionen aus. Bereits ausgegebene Artikel
- * bleiben unveraendert und werden nicht erneut als ausgegeben protokolliert.
+ * bleiben unverändert und werden nicht erneut als ausgegeben protokolliert.
  */
 export async function distributeAllItems(orderId: string, actor: AuthUser): Promise<DistributionOutcome> {
   const order = await prisma.order.findUnique({

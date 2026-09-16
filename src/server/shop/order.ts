@@ -10,14 +10,14 @@ import type { CheckoutInput } from '@/lib/validation/order';
 /**
  * Anlegen einer Bestellung.
  *
- * Reihenfolge ist entscheidend und bewusst so gewaehlt:
- *   1. Bestellzeitraum pruefen  (nicht das Formular, sondern der Server entscheidet)
+ * Reihenfolge ist entscheidend und bewusst so gewählt:
+ *   1. Bestellzeitraum prüfen  (nicht das Formular, sondern der Server entscheidet)
  *   2. Varianten aus der Datenbank laden
- *   3. Preise berechnen         (ausschliesslich aus DB-Werten)
+ *   3. Preise berechnen         (ausschließlich aus DB-Werten)
  *   4. Bestellung + Positionen in EINER Transaktion mit Preis-Snapshot schreiben
  *
- * Der Zahlungsstatus ist dabei immer PENDING. Auf PAID kommt eine Bestellung ausschliesslich
- * ueber den signaturgeprueften Stripe-Webhook.
+ * Der Zahlungsstatus ist dabei immer PENDING. Auf PAID kommt eine Bestellung ausschließlich
+ * über den signaturgeprüften Stripe-Webhook.
  */
 
 export type CreateOrderResult =
@@ -37,7 +37,7 @@ export async function createPendingOrder(input: CheckoutInput): Promise<CreateOr
       message:
         status.state === 'NOT_STARTED'
           ? 'Der Bestellzeitraum hat noch nicht begonnen.'
-          : 'Der Bestellzeitraum ist abgelaufen. Es koennen keine Bestellungen mehr aufgegeben werden.',
+          : 'Der Bestellzeitraum ist abgelaufen. Es können keine Bestellungen mehr aufgegeben werden.',
     };
   }
 
@@ -51,7 +51,7 @@ export async function createPendingOrder(input: CheckoutInput): Promise<CreateOr
 
   const { cart } = pricing;
 
-  // Die Bestellnummer ist zufaellig; bei einer Kollision im Unique-Index einfach neu wuerfeln.
+  // Die Bestellnummer ist zufällig; bei einer Kollision im Unique-Index einfach neu würfeln.
   for (let attempt = 0; attempt < MAX_ORDER_NUMBER_ATTEMPTS; attempt += 1) {
     const orderNumber = createOrderNumber();
     const publicToken = createPublicToken();
@@ -108,8 +108,8 @@ export const orderWithItemsInclude = {
 };
 
 /**
- * Einziger oeffentlicher Weg zu einer Bestellung. Der Token ist das Geheimnis;
- * es gibt keinen Zugriff ueber eine ID oder die Bestellnummer.
+ * Einziger öffentlicher Weg zu einer Bestellung. Der Token ist das Geheimnis;
+ * es gibt keinen Zugriff über eine ID oder die Bestellnummer.
  */
 export async function findOrderByPublicToken(token: string) {
   return prisma.order.findUnique({

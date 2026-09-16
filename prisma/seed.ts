@@ -1,8 +1,8 @@
 /**
- * Beispieldaten fuer die Entwicklung und den ersten Aufbau.
+ * Beispieldaten für die Entwicklung und den ersten Aufbau.
  *
- * Idempotent: mehrfaches Ausfuehren erzeugt keine Duplikate. Legt bewusst KEINEN
- * Admin-Benutzer an – dafuer gibt es scripts/create-admin.ts mit einem echten Passwort.
+ * Idempotent: mehrfaches Ausführen erzeugt keine Duplikate. Legt bewusst KEINEN
+ * Admin-Benutzer an – dafür gibt es scripts/create-admin.ts mit einem echten Passwort.
  */
 import 'dotenv/config';
 import { PrismaMariaDb } from '@prisma/adapter-mariadb';
@@ -26,13 +26,13 @@ async function main(): Promise<void> {
       orderStartAt: new Date('2026-09-20T10:00:00Z'),
       orderEndAt: new Date('2026-10-04T21:59:00Z'),
       pickupInfo:
-        'Die Artikel werden gesammelt beim Hersteller bestellt und anschliessend in der Schule ' +
+        'Die Artikel werden gesammelt beim Hersteller bestellt und anschließend in der Schule ' +
         'an einem zentralen Ausgabepunkt verteilt. Es gibt keinen Versand. Den Ausgabetermin ' +
         'geben wir rechtzeitig bekannt.',
-      imprintText: '[Vor dem Livegang ausfuellen – siehe LEGAL_CHECKLIST.md]',
-      privacyText: '[Vor dem Livegang ausfuellen – siehe LEGAL_CHECKLIST.md]',
-      withdrawalText: '[Vor dem Livegang ausfuellen – siehe LEGAL_CHECKLIST.md]',
-      termsText: '[Vor dem Livegang ausfuellen – siehe LEGAL_CHECKLIST.md]',
+      imprintText: '[Vor dem Livegang ausfüllen – siehe LEGAL_CHECKLIST.md]',
+      privacyText: '[Vor dem Livegang ausfüllen – siehe LEGAL_CHECKLIST.md]',
+      withdrawalText: '[Vor dem Livegang ausfüllen – siehe LEGAL_CHECKLIST.md]',
+      termsText: '[Vor dem Livegang ausfüllen – siehe LEGAL_CHECKLIST.md]',
     },
   });
 
@@ -42,10 +42,10 @@ async function main(): Promise<void> {
     create: {
       slug: 'abipulli',
       name: 'Abipulli',
-      summary: 'Schwerer Hoodie mit Abi-Motiv und Namensliste auf dem Ruecken.',
+      summary: 'Schwerer Hoodie mit Abi-Motiv und Namensliste auf dem Rücken.',
       description:
         'Unser Klassiker: dicker Baumwoll-Hoodie mit gesticktem Abi-Logo auf der Brust und ' +
-        'der Namensliste des Jahrgangs auf dem Ruecken. Faellt normal aus.',
+        'der Namensliste des Jahrgangs auf dem Rücken. Fällt normal aus.',
       sortOrder: 10,
     },
   });

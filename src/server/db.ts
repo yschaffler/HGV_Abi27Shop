@@ -5,20 +5,24 @@ import { env } from './env';
 
 /**
  * Prisma 7 arbeitet mit Driver Adaptern statt mit einer Rust-Engine. Der MariaDB-Adapter
- * spricht das MySQL-Protokoll und ist damit fuer MySQL 8 wie fuer MariaDB der richtige.
+ * spricht das MySQL-Protokoll und ist damit für MySQL 8 wie für MariaDB der richtige.
  *
- * Der Adapter bekommt den Connection String unveraendert. Pool-Parameter (connectionLimit,
- * connectTimeout, ssl ...) werden als Query-Parameter an DATABASE_URL angehaengt – siehe
- * .env.example. So gibt es genau eine Stelle, an der die Datenbankverbindung konfiguriert wird.
+ * Der Client wird bewusst LAZY erzeugt:
+ * `next build` läuft mit NODE_ENV=production, hat aber keine Produktions-Secrets. Würde
+ * hier beim Laden des Moduls env() aufgerufen, scheitert schon der Docker-Build. Mit dem
+ * Proxy passiert das erst bei der ersten echten Abfrage – also zur Laufzeit, wenn die
+ * Konfiguration tatsächlich vorliegt. Ein falsch konfigurierter Container fällt dann
+ * sofort beim Healthcheck auf.
  *
- * Im Entwicklungsmodus wird die Instanz an globalThis gehaengt, damit Hot Reload nicht bei
- * jedem Speichern einen neuen Connection Pool oeffnet.
+ * Pool-Parameter (connectionLimit, connectTimeout, ssl ...) werden als Query-Parameter an
+ * DATABASE_URL angehaengt – siehe .env.example. So gibt es genau eine Stelle, an der die
+ * Datenbankverbindung konfiguriert wird.
  */
 
-const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
+const globalForPrisma = globalThis as unknown as { prismaClient?: PrismaClient };
 
 function createClient(): PrismaClient {
-  // Die URL enthaelt das Datenbankpasswort und darf niemals geloggt werden.
+  // Die URL enthält das Datenbankpasswort und darf niemals geloggt werden.
   const adapter = new PrismaMariaDb(env().DATABASE_URL);
 
   return new PrismaClient({
@@ -27,8 +31,18 @@ function createClient(): PrismaClient {
   });
 }
 
-export const prisma: PrismaClient = globalForPrisma.prisma ?? createClient();
-
-if (env().NODE_ENV !== 'production') {
-  globalForPrisma.prisma = prisma;
+function getClient(): PrismaClient {
+  if (!globalForPrisma.prismaClient) {
+    globalForPrisma.prismaClient = createClient();
+  }
+  return globalForPrisma.prismaClient;
 }
+
+export const prisma: PrismaClient = new Proxy({} as PrismaClient, {
+  get(_target, property) {
+    const client = getClient();
+    const value = Reflect.get(client, property) as unknown;
+    // Methoden wie $transaction brauchen den Client als `this`.
+    return typeof value === 'function' ? value.bind(client) : value;
+  },
+});

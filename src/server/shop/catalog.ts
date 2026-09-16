@@ -3,9 +3,9 @@ import { prisma } from '../db';
 import type { CatalogVariant } from './pricing';
 
 /**
- * Lesezugriffe auf den Katalog. Der oeffentliche Shop sieht ausschliesslich aktive
+ * Lesezugriffe auf den Katalog. Der öffentliche Shop sieht ausschließlich aktive
  * Produkte und aktive Varianten; deaktivierte Artikel verschwinden aus dem Shop, bleiben
- * aber fuer bestehende Bestellungen und die Sammelbestellung erhalten.
+ * aber für bestehende Bestellungen und die Sammelbestellung erhalten.
  */
 
 export type PublicVariant = {
@@ -98,7 +98,7 @@ export async function getPublicProductBySlug(slug: string): Promise<PublicProduc
 }
 
 /**
- * Laedt genau die Varianten, die fuer eine Preisberechnung gebraucht werden – inklusive
+ * Lädt genau die Varianten, die für eine Preisberechnung gebraucht werden – inklusive
  * der Information, ob Variante und Produkt aktiv sind. Deaktivierte Varianten werden
  * bewusst mitgeladen, damit die Preisberechnung "nicht mehr bestellbar" von
  * "gibt es nicht" unterscheiden kann.

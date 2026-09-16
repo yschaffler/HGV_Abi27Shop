@@ -1,9 +1,9 @@
 /**
  * Bestellzeitraum.
  *
- * Diese Pruefung laeuft ausschliesslich auf dem Server und wird unmittelbar vor dem Anlegen
- * der Bestellung erneut ausgefuehrt – nicht nur beim Rendern der Seite. Ein Formular, das
- * um 23:58 geoeffnet und um 00:05 abgeschickt wird, erzeugt keine Bestellung mehr.
+ * Diese Prüfung läuft ausschließlich auf dem Server und wird unmittelbar vor dem Anlegen
+ * der Bestellung erneut ausgeführt – nicht nur beim Rendern der Seite. Ein Formular, das
+ * um 23:58 geöffnet und um 00:05 abgeschickt wird, erzeugt keine Bestellung mehr.
  */
 
 export type OrderWindow = {
@@ -49,9 +49,9 @@ export function orderWindowNotice(status: OrderWindowStatus, fallback?: string |
     case 'NOT_STARTED':
       return status.startAt
         ? `Die Bestellung startet am ${formatBerlinDateTime(status.startAt)}.`
-        : (fallback ?? 'Die Bestellung ist noch nicht geoeffnet.');
+        : (fallback ?? 'Die Bestellung ist noch nicht geöffnet.');
     case 'ENDED':
-      return fallback ?? 'Der Bestellzeitraum ist abgelaufen. Es koennen keine Bestellungen mehr aufgegeben werden.';
+      return fallback ?? 'Der Bestellzeitraum ist abgelaufen. Es können keine Bestellungen mehr aufgegeben werden.';
     case 'OPEN':
       return null;
   }

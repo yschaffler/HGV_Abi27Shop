@@ -12,12 +12,12 @@ import { normalizeRecoveryCode } from '../crypto/tokens';
  *
  * Zwei Bremsen greifen ineinander:
  *  1. Rate Limiting je IP (im Aufrufer, In-Memory) – bremst Massenversuche sofort ab.
- *  2. Kontosperre in der Datenbank – ueberlebt einen Neustart der Anwendung und schuetzt
+ *  2. Kontosperre in der Datenbank – überlebt einen Neustart der Anwendung und schützt
  *     ein einzelnes Konto auch gegen verteilte Versuche.
  *
  * Die Fehlermeldung ist immer dieselbe, egal ob die E-Mail existiert, das Passwort falsch ist
- * oder das Konto gesperrt ist. Andernfalls waere ueber die Anmeldemaske herauszufinden,
- * welche Adressen ueberhaupt Konten haben.
+ * oder das Konto gesperrt ist. Andernfalls wäre über die Anmeldemaske herauszufinden,
+ * welche Adressen überhaupt Konten haben.
  */
 
 const MAX_FAILED_ATTEMPTS = 8;
@@ -65,7 +65,7 @@ export async function attemptLogin(email: string, password: string): Promise<Log
       entityType: 'User',
       entityId: user.id,
       summary: shouldLock
-        ? `Fehlversuch ${failedAttempts}, Konto fuer ${LOCKOUT_MINUTES} Minuten gesperrt`
+        ? `Fehlversuch ${failedAttempts}, Konto für ${LOCKOUT_MINUTES} Minuten gesperrt`
         : `Fehlversuch ${failedAttempts}`,
     });
 
@@ -83,7 +83,7 @@ export async function attemptLogin(email: string, password: string): Promise<Log
   // Session Fixation: es wird immer ein frisches Token ausgestellt.
   await createSession(user.id, { totpVerified: !hasTotp && !mustSetUpTotp });
 
-  // Gelegenheit zum Aufraeumen, ohne dafuer einen Cronjob zu brauchen.
+  // Gelegenheit zum Aufräumen, ohne dafür einen Cronjob zu brauchen.
   void purgeExpiredSessions().catch(() => undefined);
 
   if (mustSetUpTotp) return { ok: true, next: 'TOTP_SETUP' };
@@ -101,8 +101,8 @@ export async function attemptLogin(email: string, password: string): Promise<Log
 }
 
 /**
- * Prueft einen Notfallcode und verbraucht ihn. Codes sind Argon2-gehasht gespeichert,
- * deshalb muss gegen alle offenen Codes des Benutzers geprueft werden.
+ * Prüft einen Notfallcode und verbraucht ihn. Codes sind Argon2-gehasht gespeichert,
+ * deshalb muss gegen alle offenen Codes des Benutzers geprüft werden.
  */
 export async function consumeRecoveryCode(userId: string, input: string): Promise<boolean> {
   const normalized = normalizeRecoveryCode(input);
@@ -112,7 +112,7 @@ export async function consumeRecoveryCode(userId: string, input: string): Promis
 
   for (const candidate of openCodes) {
     if (await verifyPassword(candidate.codeHash, normalized)) {
-      // Bedingtes Update: zwei gleichzeitige Versuche koennen denselben Code nicht zweimal einloesen.
+      // Bedingtes Update: zwei gleichzeitige Versuche können denselben Code nicht zweimal einlösen.
       const consumed = await prisma.recoveryCode.updateMany({
         where: { id: candidate.id, usedAt: null },
         data: { usedAt: new Date() },
@@ -124,7 +124,7 @@ export async function consumeRecoveryCode(userId: string, input: string): Promis
   return false;
 }
 
-/** Ersetzt alle Notfallcodes eines Benutzers und liefert die Klartextcodes genau einmal zurueck. */
+/** Ersetzt alle Notfallcodes eines Benutzers und liefert die Klartextcodes genau einmal zurück. */
 export async function replaceRecoveryCodes(userId: string, codes: string[]): Promise<void> {
   const hashed = await Promise.all(
     codes.map(async (code) => ({ userId, codeHash: await hashPassword(normalizeRecoveryCode(code)) })),

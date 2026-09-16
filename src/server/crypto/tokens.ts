@@ -2,13 +2,13 @@ import 'server-only';
 import { createHash, randomBytes, randomInt, timingSafeEqual } from 'node:crypto';
 
 /**
- * Alle oeffentlich sichtbaren Bezeichner stammen aus dem CSPRNG des Betriebssystems.
+ * Alle öffentlich sichtbaren Bezeichner stammen aus dem CSPRNG des Betriebssystems.
  * Nirgends Math.random(), nirgends fortlaufende IDs.
  */
 
 /**
  * Crockford-Base32 ohne I, L, O und U: keine Verwechslung von 0/O und 1/I/L beim
- * Vorlesen an der Ausgabe, und kein zufaellig entstehendes Schimpfwort.
+ * Vorlesen an der Ausgabe, und kein zufällig entstehendes Schimpfwort.
  */
 const ORDER_NUMBER_ALPHABET = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
 const ORDER_NUMBER_LENGTH = 6;
@@ -17,8 +17,8 @@ const ORDER_NUMBER_LENGTH = 6;
  * Menschenlesbare Referenz wie ABI-7F4K92.
  *
  * Wichtig: Diese Nummer ist KEIN Zugriffsschutz. Sie steht auf Listen, wird vorgelesen und
- * hat mit 6 Zeichen nur rund 30 Bit Entropie. Der Zugriff auf eine Bestellung laeuft
- * ausschliesslich ueber createPublicToken().
+ * hat mit 6 Zeichen nur rund 30 Bit Entropie. Der Zugriff auf eine Bestellung läuft
+ * ausschließlich über createPublicToken().
  */
 export function createOrderNumber(prefix = 'ABI'): string {
   let suffix = '';
@@ -28,19 +28,19 @@ export function createOrderNumber(prefix = 'ABI'): string {
   return `${prefix}-${suffix}`;
 }
 
-/** 256 Bit Zufall, base64url – der alleinige Schluessel fuer /bestellung/<token>. */
+/** 256 Bit Zufall, base64url – der alleinige Schlüssel für /bestellung/<token>. */
 export function createPublicToken(): string {
   return randomBytes(32).toString('base64url');
 }
 
-/** 256 Bit Zufall fuer das Session-Cookie. */
+/** 256 Bit Zufall für das Session-Cookie. */
 export function createSessionToken(): string {
   return randomBytes(32).toString('base64url');
 }
 
 /**
  * In der Datenbank liegt nur dieser Hash. Wer die Datenbank liest, kann daraus kein
- * gueltiges Cookie bauen. SHA-256 genuegt hier, weil das Token bereits 256 Bit Entropie
+ * gültiges Cookie bauen. SHA-256 genügt hier, weil das Token bereits 256 Bit Entropie
  * hat – ein langsames Passwort-Hashverfahren braucht es nur bei ratbaren Geheimnissen.
  */
 export function hashSessionToken(token: string): string {

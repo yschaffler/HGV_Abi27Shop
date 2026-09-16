@@ -4,8 +4,8 @@ import { z } from 'zod';
 /**
  * Zentrale, einmalig validierte Konfiguration.
  *
- * Bewusst *lazy*: `next build` laeuft im Docker-Image ohne Produktions-Secrets. Erst der
- * erste tatsaechliche Zugriff zur Laufzeit validiert. Damit scheitert ein falsch
+ * Bewusst *lazy*: `next build` läuft im Docker-Image ohne Produktions-Secrets. Erst der
+ * erste tatsächliche Zugriff zur Laufzeit validiert. Damit scheitert ein falsch
  * konfigurierter Container sofort beim Start (durch den Healthcheck), nicht erst bei der
  * ersten Bestellung – ohne dass der Build Secrets braucht.
  */
@@ -19,17 +19,17 @@ const baseSchema = z.object({
 
   DATABASE_URL: z.string().min(1, 'DATABASE_URL fehlt'),
 
-  /** Basis fuer Session-Cookies und die Verschluesselung der TOTP-Secrets. */
+  /** Basis für Session-Cookies und die Verschlüsselung der TOTP-Secrets. */
   AUTH_SECRET: z.string().min(32, 'AUTH_SECRET muss mindestens 32 Zeichen haben'),
 
-  /** Oeffentliche Basis-URL, z. B. https://abishop.example.de – ohne abschliessenden Slash. */
-  APP_URL: z.url('APP_URL muss eine vollstaendige URL sein'),
+  /** Oeffentliche Basis-URL, z. B. https://abishop.example.de – ohne abschließenden Slash. */
+  APP_URL: z.url('APP_URL muss eine vollständige URL sein'),
 
   STRIPE_SECRET_KEY: z.string().optional(),
   STRIPE_WEBHOOK_SECRET: z.string().optional(),
   /**
    * Leer lassen = Stripe entscheidet anhand der Dashboard-Einstellungen, welche
-   * Zahlungsarten (Karte, PayPal, ...) fuer das Konto und Land angeboten werden.
+   * Zahlungsarten (Karte, PayPal, ...) für das Konto und Land angeboten werden.
    */
   STRIPE_PAYMENT_METHOD_TYPES: z.string().optional(),
 
@@ -43,12 +43,12 @@ const baseSchema = z.object({
   SMTP_PASSWORD: z.string().optional(),
   SMTP_SECURE: booleanish.optional(),
 
-  /** Ablageort fuer Produktbilder. Im Container ein persistentes Volume. */
+  /** Ablageort für Produktbilder. Im Container ein persistentes Volume. */
   UPLOAD_DIR: z.string().default('./data/uploads'),
 
   /**
-   * Nur aktivieren, wenn die App tatsaechlich hinter einem Reverse Proxy laeuft, dem man
-   * vertraut. Sonst koennte jeder Client sein Rate Limit per X-Forwarded-For umgehen.
+   * Nur aktivieren, wenn die App tatsächlich hinter einem Reverse Proxy läuft, dem man
+   * vertraut. Sonst könnte jeder Client sein Rate Limit per X-Forwarded-For umgehen.
    */
   TRUST_PROXY_HEADERS: booleanish.default(false),
 
@@ -59,8 +59,8 @@ const schema = baseSchema.superRefine((value, ctx) => {
   if (value.NODE_ENV !== 'production') return;
 
   const requiredInProduction: Array<[keyof typeof value, string]> = [
-    ['STRIPE_SECRET_KEY', 'STRIPE_SECRET_KEY wird im Produktionsbetrieb benoetigt'],
-    ['STRIPE_WEBHOOK_SECRET', 'STRIPE_WEBHOOK_SECRET wird im Produktionsbetrieb benoetigt'],
+    ['STRIPE_SECRET_KEY', 'STRIPE_SECRET_KEY wird im Produktionsbetrieb benötigt'],
+    ['STRIPE_WEBHOOK_SECRET', 'STRIPE_WEBHOOK_SECRET wird im Produktionsbetrieb benötigt'],
   ];
 
   for (const [key, message] of requiredInProduction) {
@@ -70,7 +70,7 @@ const schema = baseSchema.superRefine((value, ctx) => {
   if (value.EMAIL_DRIVER === 'console') {
     ctx.addIssue({
       code: 'custom',
-      message: 'EMAIL_DRIVER "console" verschickt keine echten Mails und ist in Produktion unzulaessig',
+      message: 'EMAIL_DRIVER "console" verschickt keine echten Mails und ist in Produktion unzulässig',
       path: ['EMAIL_DRIVER'],
     });
   }
@@ -105,14 +105,14 @@ export function env(): Env {
     const problems = parsed.error.issues
       .map((issue) => `${issue.path.join('.') || '(root)'}: ${issue.message}`)
       .join('\n  ');
-    throw new Error(`Konfiguration unvollstaendig oder ungueltig:\n  ${problems}`);
+    throw new Error(`Konfiguration unvollständig oder ungültig:\n  ${problems}`);
   }
 
   cached = parsed.data;
   return cached;
 }
 
-/** Nur fuer Tests: erzwingt eine erneute Validierung. */
+/** Nur für Tests: erzwingt eine erneute Validierung. */
 export function resetEnvCache(): void {
   cached = null;
 }
@@ -121,7 +121,7 @@ export function isProduction(): boolean {
   return env().NODE_ENV === 'production';
 }
 
-/** Basis-URL ohne abschliessenden Slash, damit Pfade sauber angehaengt werden koennen. */
+/** Basis-URL ohne abschließenden Slash, damit Pfade sauber angehaengt werden können. */
 export function appUrl(path = ''): string {
   const base = env().APP_URL.replace(/\/+$/, '');
   if (!path) return base;

@@ -6,7 +6,7 @@ import { ARGON2_OPTIONS } from '@/lib/argon2-params';
 /**
  * Passwort-Hashing mit Argon2id (Parameter siehe lib/argon2-params.ts).
  *
- * Argon2 bringt den Salt selbst mit und schreibt saemtliche Parameter in den Hash-String –
+ * Argon2 bringt den Salt selbst mit und schreibt sämtliche Parameter in den Hash-String –
  * deshalb gibt es hier weder eine Salt-Spalte noch eine Parameter-Spalte in der Datenbank.
  */
 
@@ -19,26 +19,26 @@ export async function verifyPassword(hashed: string, plain: string): Promise<boo
     return await verify(hashed, plain);
   } catch {
     // Kaputter oder fremder Hash-String: als "passt nicht" behandeln, nie als Ausnahme
-    // nach aussen geben.
+    // nach außen geben.
     return false;
   }
 }
 
 /**
- * Passwortregeln fuer Admin-Konten. Laenge schlaegt Zeichenklassen-Akrobatik (NIST SP 800-63B),
+ * Passwortregeln für Admin-Konten. Länge schlägt Zeichenklassen-Akrobatik (NIST SP 800-63B),
  * deshalb ein hohes Minimum statt erzwungener Sonderzeichen.
  */
 export const passwordSchema = z
   .string()
   .min(12, 'Mindestens 12 Zeichen')
-  .max(200, 'Hoechstens 200 Zeichen')
+  .max(200, 'Höchstens 200 Zeichen')
   .refine((value) => value.trim().length >= 12, 'Mindestens 12 Zeichen ohne Leerraum am Rand');
 
 /**
- * Konstanter Zeitaufwand fuer unbekannte Benutzer.
+ * Konstanter Zeitaufwand für unbekannte Benutzer.
  *
  * Wenn keine E-Mail-Adresse passt, wird trotzdem eine echte Argon2-Verifikation gegen einen
- * Wegwerf-Hash gerechnet. Ohne das verraet die Antwortzeit, welche Adressen existieren
+ * Wegwerf-Hash gerechnet. Ohne das verrät die Antwortzeit, welche Adressen existieren
  * (User Enumeration). Der Wegwerf-Hash wird beim ersten Bedarf einmalig erzeugt, damit er
  * exakt dieselben Parameter hat wie echte Hashes.
  */

@@ -15,7 +15,7 @@ datasource db {
 // Enums
 // ---------------------------------------------------------------------------
 
-/// ADMIN darf alles. DISTRIBUTION darf ausschliesslich die Ausgabe bedienen.
+/// ADMIN darf alles. DISTRIBUTION darf ausschließlich die Ausgabe bedienen.
 enum Role {
   ADMIN
   DISTRIBUTION
@@ -60,11 +60,11 @@ model User {
   role         Role
   isActive     Boolean @default(true)
 
-  /// TOTP-Secret, AES-256-GCM-verschluesselt mit einem aus AUTH_SECRET abgeleiteten Key.
+  /// TOTP-Secret, AES-256-GCM-verschlüsselt mit einem aus AUTH_SECRET abgeleiteten Key.
   totpSecret    String?   @db.Text
   totpConfirmedAt DateTime?
 
-  /// Brute-Force-Schutz, ueberlebt einen Neustart der Anwendung.
+  /// Brute-Force-Schutz, überlebt einen Neustart der Anwendung.
   failedLoginAttempts Int       @default(0)
   lockedUntil         DateTime?
   lastLoginAt         DateTime?
@@ -82,12 +82,12 @@ model User {
   @@map("users")
 }
 
-/// Serverseitige Session. Die Primaerschluessel-Spalte enthaelt den SHA-256-Hash des
-/// Cookie-Tokens – wer die Datenbank liest, kann daraus keine gueltige Session bauen.
+/// Serverseitige Session. Die Primärschlüssel-Spalte enthält den SHA-256-Hash des
+/// Cookie-Tokens – wer die Datenbank liest, kann daraus keine gültige Session bauen.
 model Session {
   id         String   @id
   userId     String
-  /// Solange false, ist die Session nur fuer den 2FA-Schritt gueltig, sonst fuer nichts.
+  /// Solange false, ist die Session nur für den 2FA-Schritt gültig, sonst für nichts.
   totpVerified Boolean @default(false)
   expiresAt  DateTime
   createdAt  DateTime @default(now())
@@ -122,7 +122,7 @@ model Product {
   slug        String  @unique
   name        String
   description String? @db.Text
-  /// Kurztext fuer die Uebersichtskachel.
+  /// Kurztext für die Übersichtskachel.
   summary     String?
   imageId     String?
   active      Boolean @default(true)
@@ -139,15 +139,15 @@ model Product {
   @@map("products")
 }
 
-/// Eine konkret bestellbare Auspraegung mit eigenem Preis.
+/// Eine konkret bestellbare Ausprägung mit eigenem Preis.
 /// color und size sind NOT NULL mit Default '' – MySQL behandelt NULL in Unique-Indizes
-/// als verschieden, mit Leerstring greift die Eindeutigkeit tatsaechlich.
+/// als verschieden, mit Leerstring greift die Eindeutigkeit tatsächlich.
 model ProductVariant {
   id         String  @id @default(cuid())
   productId  String
   color      String  @default("")
   size       String  @default("")
-  /// Freitext fuer Varianten ohne Farbe/Groesse, z. B. "Standard" bei der Abi-Zeitung.
+  /// Freitext für Varianten ohne Farbe/Größe, z. B. "Standard" bei der Abi-Zeitung.
   label      String  @default("")
   priceCents Int
   active     Boolean @default(true)
@@ -173,7 +173,7 @@ model Order {
 
   /// Menschenlesbare Referenz, z. B. ABI-7F4K92. Dient NICHT als Zugriffsschutz.
   orderNumber String @unique
-  /// 256-Bit-Zufallstoken, alleiniger Schluessel fuer /bestellung/<token>.
+  /// 256-Bit-Zufallstoken, alleiniger Schlüssel für /bestellung/<token>.
   publicToken String @unique
 
   firstName String
@@ -210,13 +210,13 @@ model Order {
   @@map("orders")
 }
 
-/// Position mit vollstaendigem Preis-Snapshot: spaetere Preisaenderungen am Katalog
-/// veraendern bezahlte Bestellungen nicht.
+/// Position mit vollständigem Preis-Snapshot: spätere Preisänderungen am Katalog
+/// verändern bezahlte Bestellungen nicht.
 model OrderItem {
   id      String @id @default(cuid())
   orderId String
 
-  /// Restrict: eine Variante mit Bestellungen laesst sich nicht loeschen, nur deaktivieren.
+  /// Restrict: eine Variante mit Bestellungen lässt sich nicht löschen, nur deaktivieren.
   /// Damit bleibt die Sammelbestellung dauerhaft korrekt aggregierbar.
   variantId String
 
@@ -261,7 +261,7 @@ model Settings {
   orderEndAt   DateTime?
   closedNotice String?   @db.Text
 
-  /// Wird in der Bestaetigungsmail und auf der Bestellseite angezeigt.
+  /// Wird in der Bestätigungsmail und auf der Bestellseite angezeigt.
   pickupInfo String @db.Text
 
   /// Rechtstexte, vom Admin pflegbar, werden als Klartext gerendert (kein HTML).
@@ -297,8 +297,8 @@ model AuditLog {
   @@map("audit_logs")
 }
 
-/// Idempotenzschutz fuer Stripe-Webhooks. Der Primaerschluessel ist die Stripe-Event-ID;
-/// ein zweiter Zustellversuch laeuft in den Unique-Constraint und bleibt wirkungslos.
+/// Idempotenzschutz für Stripe-Webhooks. Der Primärschlüssel ist die Stripe-Event-ID;
+/// ein zweiter Zustellversuch läuft in den Unique-Constraint und bleibt wirkungslos.
 model StripeWebhookEvent {
   id          String   @id
   type        String
@@ -311,8 +311,8 @@ model StripeWebhookEvent {
   @@map("stripe_webhook_events")
 }
 
-/// Produktbilder. Die Datei liegt unter zufaelligem Namen auf einem Volume,
-/// ausgeliefert wird sie ausschliesslich ueber einen Route Handler mit festem Content-Type.
+/// Produktbilder. Die Datei liegt unter zufälligem Namen auf einem Volume,
+/// ausgeliefert wird sie ausschließlich über einen Route Handler mit festem Content-Type.
 model MediaAsset {
   id               String   @id @default(cuid())
   storageFilename  String   @unique

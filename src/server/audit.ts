@@ -3,9 +3,9 @@ import { prisma } from './db';
 import { logger } from './logger';
 
 /**
- * Protokoll fuer Aktionen, die Geld, Berechtigungen oder Warenausgabe betreffen.
+ * Protokoll für Aktionen, die Geld, Berechtigungen oder Warenausgabe betreffen.
  *
- * Datensparsam: Akteur, Aktion, betroffene Entitaet und eine kurze Zusammenfassung.
+ * Datensparsam: Akteur, Aktion, betroffene Entität und eine kurze Zusammenfassung.
  * Keine Request-Bodies, keine IP-Adressen, keine Kontaktdaten von Bestellern.
  */
 
@@ -56,8 +56,8 @@ export async function recordAudit(params: {
       },
     });
   } catch (error) {
-    // Ein fehlgeschlagenes Protokoll darf die eigentliche Aktion nicht ruecknehmen –
-    // es wird aber laut geloggt, weil eine Luecke im Audit-Log relevant ist.
+    // Ein fehlgeschlagenes Protokoll darf die eigentliche Aktion nicht zurücknehmen –
+    // es wird aber laut geloggt, weil eine Lücke im Audit-Log relevant ist.
     logger.error('Audit-Eintrag konnte nicht geschrieben werden', {
       action: params.action,
       entityType: params.entityType,

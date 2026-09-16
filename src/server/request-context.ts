@@ -3,12 +3,12 @@ import { headers } from 'next/headers';
 import { env } from './env';
 
 /**
- * Client-IP fuer das Rate Limiting.
+ * Client-IP für das Rate Limiting.
  *
  * X-Forwarded-For wird nur ausgewertet, wenn TRUST_PROXY_HEADERS gesetzt ist. Andernfalls
- * koennte jeder Client sein eigenes Limit durch einen gefaelschten Header aushebeln.
- * Ohne vertrauenswuerdigen Proxy faellt alles auf denselben Schluessel zurueck – das ist
- * strenger als noetig, aber niemals unsicherer.
+ * könnte jeder Client sein eigenes Limit durch einen gefälschten Header aushebeln.
+ * Ohne vertrauenswürdigen Proxy fällt alles auf denselben Schlüssel zurück – das ist
+ * strenger als nötig, aber niemals unsicherer.
  */
 export async function clientIp(): Promise<string> {
   if (!env().TRUST_PROXY_HEADERS) return 'direct';
@@ -23,8 +23,8 @@ export async function clientIp(): Promise<string> {
 }
 
 /**
- * Zusaetzlicher Origin-Check fuer Route Handler, die Zustand aendern.
- * Server Actions bringen diese Pruefung bereits mit; Route Handler nicht.
+ * Zusätzlicher Origin-Check für Route Handler, die Zustand ändern.
+ * Server Actions bringen diese Prüfung bereits mit; Route Handler nicht.
  */
 export async function isSameOriginRequest(): Promise<boolean> {
   const headerList = await headers();

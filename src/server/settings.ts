@@ -3,23 +3,23 @@ import { prisma } from './db';
 import type { SettingsModel } from '@/generated/prisma/models';
 
 /**
- * Die Einstellungen liegen in genau einer Zeile (id = 1). Ein Key-Value-Store waere
+ * Die Einstellungen liegen in genau einer Zeile (id = 1). Ein Key-Value-Store wäre
  * flexibler, aber untypisiert – bei einer Handvoll fester Felder ist das der schlechtere Tausch.
  */
 export const SETTINGS_ID = 1;
 
 const DEFAULT_PICKUP_INFO =
-  'Die Artikel werden gesammelt beim Hersteller bestellt und anschliessend in der Schule ' +
+  'Die Artikel werden gesammelt beim Hersteller bestellt und anschließend in der Schule ' +
   'an einem zentralen Ausgabepunkt verteilt. Es gibt keinen Versand an einzelne Personen. ' +
   'Den genauen Ausgabetermin geben wir rechtzeitig bekannt.';
 
-const PLACEHOLDER = '[Vor dem Livegang ausfuellen – siehe LEGAL_CHECKLIST.md]';
+const PLACEHOLDER = '[Vor dem Livegang ausfüllen – siehe LEGAL_CHECKLIST.md]';
 
 export async function getSettings(): Promise<SettingsModel> {
   const existing = await prisma.settings.findUnique({ where: { id: SETTINGS_ID } });
   if (existing) return existing;
 
-  // Beim allerersten Start einmalig anlegen. Gleichzeitige Starts fangen wir ueber upsert ab.
+  // Beim allerersten Start einmalig anlegen. Gleichzeitige Starts fangen wir über upsert ab.
   return prisma.settings.upsert({
     where: { id: SETTINGS_ID },
     update: {},

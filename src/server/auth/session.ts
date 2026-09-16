@@ -8,10 +8,10 @@ import type { Role } from '@/generated/prisma/enums';
 /**
  * Serverseitige Sessions.
  *
- * Das Cookie enthaelt ein zufaelliges 256-Bit-Token. In der Datenbank steht nur dessen
+ * Das Cookie enthält ein zufälliges 256-Bit-Token. In der Datenbank steht nur dessen
  * SHA-256-Hash – ein Datenbank-Leak liefert damit keine benutzbaren Sessions. Abmelden
- * loescht die Zeile, die Session ist danach sofort und serverseitig ungueltig (anders als
- * bei einem JWT, das man nicht zurueckrufen kann).
+ * löscht die Zeile, die Session ist danach sofort und serverseitig ungültig (anders als
+ * bei einem JWT, das man nicht zurückrufen kann).
  */
 
 export const SESSION_COOKIE = 'abishop_session';
@@ -38,7 +38,7 @@ function maxAgeMs(): number {
 function cookieOptions(expires: Date) {
   return {
     httpOnly: true,
-    // In der Entwicklung laeuft der Server auf http – dort wuerde ein Secure-Cookie nie ankommen.
+    // In der Entwicklung läuft der Server auf http – dort würde ein Secure-Cookie nie ankommen.
     secure: isProduction(),
     sameSite: 'lax' as const,
     path: '/',
@@ -82,7 +82,7 @@ const LAST_USED_REFRESH_MS = 5 * 60 * 1000;
 
 /**
  * Liest die Session inklusive Benutzer. Liefert auch Sessions, die den 2FA-Schritt noch nicht
- * abgeschlossen haben – Aufrufer muessen `totpVerified` auswerten. Fuer den Normalfall gibt es
+ * abgeschlossen haben – Aufrufer müssen `totpVerified` auswerten. Für den Normalfall gibt es
  * `getAuthenticatedUser()` in rbac.ts, das genau das bereits erledigt.
  */
 export async function getSessionContext(): Promise<SessionContext | null> {
@@ -103,7 +103,7 @@ export async function getSessionContext(): Promise<SessionContext | null> {
     return null;
   }
 
-  // Deaktivierte Konten verlieren ihren Zugang sofort, ohne dass jemand Cookies loeschen muss.
+  // Deaktivierte Konten verlieren ihren Zugang sofort, ohne dass jemand Cookies löschen muss.
   if (!session.user.isActive) {
     await prisma.session.deleteMany({ where: { userId: session.userId } });
     return null;
@@ -137,12 +137,12 @@ export async function destroyCurrentSession(): Promise<void> {
   cookieStore.delete(SESSION_COOKIE);
 }
 
-/** Nach Passwortwechsel oder Deaktivierung: alle Geraete abmelden. */
+/** Nach Passwortwechsel oder Deaktivierung: alle Geräte abmelden. */
 export async function destroyAllSessionsForUser(userId: string): Promise<void> {
   await prisma.session.deleteMany({ where: { userId } });
 }
 
-/** Aufraeumen abgelaufener Sessions; wird beim Login nebenbei mit erledigt. */
+/** Aufräumen abgelaufener Sessions; wird beim Login nebenbei mit erledigt. */
 export async function purgeExpiredSessions(): Promise<void> {
   await prisma.session.deleteMany({ where: { expiresAt: { lte: new Date() } } });
 }

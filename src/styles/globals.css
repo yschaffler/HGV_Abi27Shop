@@ -1,0 +1,107 @@
+@import 'tailwindcss';
+
+/*
+ * Bewusst keine Web-Fonts von externen Anbietern.
+ * Google Fonts würde bei jedem Seitenaufruf die IP-Adresse der Besucher an einen US-Dienst
+ * übertragen – das müsste in der Datenschutzerklärung stehen und ist für einen Schulshop
+ * unnötiger Aufwand. Systemschriften sind außerdem schneller.
+ *
+ * Die semantischen Farben stehen als Theme-Variablen in @theme. Dadurch erzeugt Tailwind
+ * daraus echte Utilities (bg-surface, text-muted, border-line ...) inklusive
+ * Opacity-Modifiern, und der Dark Mode braucht nur neue Werte für dieselben Variablen.
+ */
+@theme {
+  --font-sans:
+    system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+
+  --color-brand-50: oklch(0.97 0.014 275);
+  --color-brand-100: oklch(0.94 0.03 275);
+  --color-brand-200: oklch(0.88 0.06 275);
+  --color-brand-300: oklch(0.8 0.1 275);
+  --color-brand-400: oklch(0.7 0.15 275);
+  --color-brand-500: oklch(0.61 0.19 275);
+  --color-brand-600: oklch(0.53 0.2 275);
+  --color-brand-700: oklch(0.45 0.18 275);
+  --color-brand-800: oklch(0.38 0.14 275);
+  --color-brand-900: oklch(0.31 0.1 275);
+  --color-brand-950: oklch(0.21 0.07 275);
+
+  --color-surface: oklch(0.99 0.003 275);
+  --color-surface-raised: oklch(1 0 0);
+  --color-surface-muted: oklch(0.965 0.005 275);
+  --color-line: oklch(0.9 0.008 275);
+  --color-strong: oklch(0.21 0.02 275);
+  --color-normal: oklch(0.34 0.015 275);
+  --color-muted: oklch(0.52 0.015 275);
+}
+
+:root {
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-surface: oklch(0.19 0.015 275);
+    --color-surface-raised: oklch(0.235 0.018 275);
+    --color-surface-muted: oklch(0.28 0.02 275);
+    --color-line: oklch(0.36 0.02 275);
+    --color-strong: oklch(0.97 0.005 275);
+    --color-normal: oklch(0.89 0.008 275);
+    --color-muted: oklch(0.74 0.012 275);
+    color-scheme: dark;
+  }
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-surface text-normal font-sans antialiased;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply text-strong font-semibold tracking-tight;
+  }
+
+  /* Sichtbarer Fokus für Tastatur- und Screenreader-Bedienung. */
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-brand-500;
+    border-radius: 4px;
+  }
+}
+
+@layer components {
+  .surface-card {
+    @apply bg-surface-raised border border-line;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors;
+    @apply bg-brand-600 text-white hover:bg-brand-700;
+    @apply disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors;
+    @apply bg-surface-raised text-strong border border-line hover:bg-surface-muted;
+    @apply disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .field-label {
+    @apply text-strong mb-1.5 block text-sm font-medium;
+  }
+
+  .field-input {
+    @apply bg-surface-raised text-strong w-full rounded-lg border border-line px-3 py-2.5 text-base outline-none transition;
+    @apply focus:border-brand-500 focus:ring-3 focus:ring-brand-500/25;
+  }
+
+  .field-error {
+    @apply mt-1 text-sm font-medium text-red-600 dark:text-red-400;
+  }
+}

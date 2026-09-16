@@ -3,12 +3,12 @@ import { createCipheriv, createDecipheriv, hkdfSync, randomBytes } from 'node:cr
 import { env } from '../env';
 
 /**
- * AES-256-GCM fuer Geheimnisse, die wir im Klartext zurueckbrauchen – aktuell ausschliesslich
- * die TOTP-Secrets der Admins. Passwoerter werden NICHT verschluesselt, sondern mit Argon2id
+ * AES-256-GCM für Geheimnisse, die wir im Klartext zurückbrauchen – aktuell ausschließlich
+ * die TOTP-Secrets der Admins. Passwörter werden NICHT verschlüsselt, sondern mit Argon2id
  * gehasht (siehe server/auth/password.ts).
  *
- * Bewusst keine Eigenentwicklung: AES-GCM aus node:crypto, Schluessel per HKDF aus
- * AUTH_SECRET abgeleitet, Nonce aus dem CSPRNG, Authentication Tag wird geprueft.
+ * Bewusst keine Eigenentwicklung: AES-GCM aus node:crypto, Schlüssel per HKDF aus
+ * AUTH_SECRET abgeleitet, Nonce aus dem CSPRNG, Authentication Tag wird geprüft.
  */
 
 const KEY_LENGTH = 32;
@@ -25,7 +25,7 @@ function key(): Buffer {
   return cachedKey;
 }
 
-/** Nur fuer Tests, wenn AUTH_SECRET zwischen zwei Faellen wechselt. */
+/** Nur für Tests, wenn AUTH_SECRET zwischen zwei Fällen wechselt. */
 export function resetSecretboxKeyCache(): void {
   cachedKey = null;
 }

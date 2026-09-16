@@ -1,5 +1,5 @@
 /**
- * Geld wird durchgehend als ganzzahlige Cent-Betraege gerechnet.
+ * Geld wird durchgehend als ganzzahlige Cent-Beträge gerechnet.
  * Keine Gleitkommazahlen – 0.1 + 0.2 !== 0.3 hat in einem Shop nichts verloren.
  */
 
@@ -17,7 +17,7 @@ export function formatCents(cents: number): string {
 export function parseEuroInput(input: string): number {
   const normalized = input.trim().replace(/\s/g, '').replace(',', '.');
   if (!/^\d+(\.\d{1,2})?$/.test(normalized)) {
-    throw new Error('Ungueltiger Betrag');
+    throw new Error('Ungültiger Betrag');
   }
   return Math.round(Number.parseFloat(normalized) * 100);
 }
