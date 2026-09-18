@@ -1,0 +1,30 @@
+# Zeilenenden.
+#
+# Git fuer Windows wandelt mit der Voreinstellung core.autocrlf=true beim Auschecken
+# LF in CRLF um. Bei einem Shell-Skript ist das fatal: Aus "#!/bin/sh" wird der
+# Interpreter "/bin/sh\r", den es nicht gibt – Linux meldet dann
+# "no such file or directory", obwohl die Datei vorhanden ist.
+#
+# Diese Datei erzwingt LF fuer alles, was spaeter in einem Linux-Container laeuft,
+# unabhaengig davon, auf welchem Betriebssystem ausgecheckt wird.
+
+# Standard: Git entscheidet selbst, was Text ist, und normalisiert im Repository auf LF.
+* text=auto
+
+# Muss im Container mit LF ankommen.
+*.sh            text eol=lf
+Dockerfile      text eol=lf
+*.Dockerfile    text eol=lf
+docker/**       text eol=lf
+*.yml           text eol=lf
+*.yaml          text eol=lf
+
+# Binaerdateien nie anfassen.
+*.png           binary
+*.jpg           binary
+*.jpeg          binary
+*.webp          binary
+*.ico           binary
+*.woff          binary
+*.woff2         binary
+*.xlsx          binary

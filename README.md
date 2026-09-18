@@ -29,6 +29,7 @@ Ausgelegt auf etwa 160–300 Bestellungen. Das läuft in einem einzigen Containe
 - [Ausgabe am iPad](#ausgabe-am-ipad)
 - [Tests](#tests)
 - [Deployment](#deployment)
+- [Fehlersuche](#fehlersuche)
 - [Backups](#backups)
 - [Monitoring und Logs](#monitoring-und-logs)
 - [Vor dem Livegang](#vor-dem-livegang)
@@ -360,6 +361,52 @@ Weitere Punkte:
 * Produktbilder liegen im Volume `uploads`, die Datenbank in `db-data`.
 * Nach dem Umschalten von Test- auf Live-Schlüssel den Webhook im Live-Modus neu anlegen –
   das Signing Secret ist ein anderes.
+
+---
+
+## Fehlersuche
+
+### `exec /app/entrypoint.sh: no such file or directory`
+
+Der Container startet nicht, obwohl die Datei existiert. Ursache sind fast immer
+**CRLF-Zeilenenden**: Git für Windows wandelt mit der Voreinstellung
+`core.autocrlf=true` beim Auschecken LF in CRLF um. Der Kernel liest den Shebang dann als
+`/bin/sh\r`, findet diesen Interpreter nicht und meldet „no such file or directory" –
+gemeint ist der Interpreter, nicht das Skript.
+
+Das Projekt fängt das an zwei Stellen ab: `.gitattributes` erzwingt LF beim Auschecken, und
+das Dockerfile entfernt zusätzlich eventuelle CR-Zeichen vor dem Start. Neu bauen genügt:
+
+```bash
+git pull
+docker compose up -d --build
+```
+
+Falls es doch wieder auftritt, prüfen, was tatsächlich im Arbeitsverzeichnis liegt:
+
+```bash
+file docker/entrypoint.sh
+# gut:     POSIX shell script, ... executable
+# schlecht: ... with CRLF line terminators
+```
+
+Reparieren lässt es sich mit einem erzwungenen Neu-Auschecken:
+
+```bash
+git rm --cached -r .
+git reset --hard
+```
+
+### Bestellungen bleiben auf „Zahlung ausstehend"
+
+Der Stripe-Webhook kommt nicht an. Im Stripe-Dashboard unter *Entwickler → Webhooks* die
+Zustellversuche ansehen. Häufigste Ursachen: falsche URL, das Signing Secret stammt aus dem
+anderen Modus (Test statt Live), oder der Endpunkt ist von außen nicht erreichbar.
+
+### `Konfiguration unvollständig oder ungültig`
+
+Die Anwendung nennt beim Start die Namen der fehlenden oder ungültigen Variablen – niemals
+deren Werte. Abgleichen mit [`.env.example`](.env.example).
 
 ---
 

@@ -56,8 +56,18 @@ COPY --from=builder --chown=node:node /app/node_modules/prisma ./node_modules/pr
 COPY --from=builder --chown=node:node /app/node_modules/@prisma ./node_modules/@prisma
 COPY --from=builder --chown=node:node /app/node_modules/dotenv ./node_modules/dotenv
 
+# Das Startskript wird gegen die zwei haeufigsten Stolperfallen abgesichert:
+#
+#  1. CRLF-Zeilenenden. Wird das Repository unter Windows mit der Voreinstellung
+#     core.autocrlf=true ausgecheckt, landet das Skript mit CRLF im Build-Kontext.
+#     Der Kernel liest den Shebang dann als "/bin/sh\r" und meldet beim Start
+#     "no such file or directory", obwohl die Datei da ist. .gitattributes verhindert
+#     das bereits beim Auschecken; das sed hier faengt zusaetzlich ZIP-Downloads,
+#     Editoren und fremde Build-Kontexte ab.
+#  2. Fehlendes Ausfuehrbar-Bit, etwa bei einem Build-Kontext von einem
+#     Windows-Dateisystem.
 COPY --chown=node:node docker/entrypoint.sh /app/entrypoint.sh
-RUN chmod +x /app/entrypoint.sh
+RUN sed -i 's/\r$//' /app/entrypoint.sh && chmod +x /app/entrypoint.sh
 
 USER node
 EXPOSE 3000
@@ -67,5 +77,7 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=3 \
   CMD node -e "fetch('http://127.0.0.1:'+(process.env.PORT||3000)+'/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
 
-ENTRYPOINT ["/app/entrypoint.sh"]
+# Aufruf ueber /bin/sh statt direkt: damit haengt der Start weder am Shebang
+# noch am Ausfuehrbar-Bit der Datei.
+ENTRYPOINT ["/bin/sh", "/app/entrypoint.sh"]
 CMD ["node", "server.js"]
