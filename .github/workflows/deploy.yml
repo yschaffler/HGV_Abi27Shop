@@ -1,0 +1,149 @@
+name: Test und Image bauen
+
+# Bei jedem Push auf den Hauptzweig: erst pruefen, dann veroeffentlichen.
+# Ein Image entsteht nur, wenn Lint, Typen und alle Tests durchgelaufen sind – sonst
+# koennte der Server sich fehlerhaften Code automatisch ziehen.
+on:
+  push:
+    branches: ['main', 'claude/**']
+    tags: ['v*']
+  pull_request:
+    branches: ['main']
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_APP: ghcr.io/${{ github.repository_owner }}/abi-shop
+  IMAGE_MIGRATOR: ghcr.io/${{ github.repository_owner }}/abi-shop-migrator
+
+jobs:
+  test:
+    name: Lint, Typen und Tests
+    runs-on: ubuntu-latest
+
+    # Die Integrationstests laufen gegen ein echtes MySQL 8 – dieselbe Version wie in
+    # Produktion. Ohne das waere die Datenbankschicht nur theoretisch geprueft.
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: testroot
+          MYSQL_DATABASE: abishop_test
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -u root -ptestroot"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=30
+
+    env:
+      DATABASE_URL: mysql://root:testroot@127.0.0.1:3306/abishop_test
+      TEST_DATABASE_URL: mysql://root:testroot@127.0.0.1:3306/abishop_test
+      AUTH_SECRET: nur-fuer-ci-mindestens-32-zeichen-lang
+      APP_URL: http://localhost:3000
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Abhaengigkeiten installieren
+        run: npm ci
+
+      - name: Prisma-Client erzeugen
+        run: npx prisma generate
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typen pruefen
+        run: npm run typecheck
+
+      - name: Tests
+        run: npm test
+
+  build:
+    name: Images bauen und veroeffentlichen
+    needs: test
+    runs-on: ubuntu-latest
+    # Auf Pull Requests wird nur geprueft, nicht veroeffentlicht.
+    if: github.event_name != 'pull_request'
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: An der GitHub Container Registry anmelden
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          # Wird von GitHub automatisch bereitgestellt – es ist kein eigenes Secret noetig.
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Tags fuer das Anwendungs-Image bestimmen
+        id: meta-app
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE_APP }}
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=ref,event=branch
+            type=semver,pattern={{version}}
+            type=sha,format=short
+
+      - name: Anwendungs-Image bauen und pushen
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: runner
+          platforms: linux/amd64
+          push: true
+          tags: ${{ steps.meta-app.outputs.tags }}
+          labels: ${{ steps.meta-app.outputs.labels }}
+          cache-from: type=gha,scope=app
+          cache-to: type=gha,mode=max,scope=app
+
+      - name: Tags fuer das Migrations-Image bestimmen
+        id: meta-migrator
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE_MIGRATOR }}
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=ref,event=branch
+            type=semver,pattern={{version}}
+            type=sha,format=short
+
+      - name: Migrations-Image bauen und pushen
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: migrator
+          platforms: linux/amd64
+          push: true
+          tags: ${{ steps.meta-migrator.outputs.tags }}
+          labels: ${{ steps.meta-migrator.outputs.labels }}
+          cache-from: type=gha,scope=migrator
+          cache-to: type=gha,mode=max,scope=migrator
+
+      - name: Zusammenfassung
+        run: |
+          {
+            echo "### Veroeffentlichte Images"
+            echo ''
+            echo '```'
+            echo "${{ steps.meta-app.outputs.tags }}"
+            echo "${{ steps.meta-migrator.outputs.tags }}"
+            echo '```'
+            echo ''
+            echo 'Der vServer zieht sie beim naechsten Lauf des Timers automatisch.'
+          } >> "$GITHUB_STEP_SUMMARY"

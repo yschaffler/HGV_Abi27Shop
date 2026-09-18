@@ -1,0 +1,20 @@
+[Unit]
+Description=Abi-Shop: regelmäßig nach neuen Images sehen
+Documentation=https://github.com/yschaffler/HGV_Abi27Shop/blob/main/docs/DEPLOYMENT.md
+
+[Timer]
+# Nach dem Hochfahren einmal nachsehen, danach alle fünf Minuten.
+# Ein Lauf ohne neues Image kostet praktisch nichts und schreibt nichts ins Journal.
+OnBootSec=3min
+OnUnitActiveSec=5min
+
+# Kleine Streuung, damit nicht mehrere Server exakt gleichzeitig bei der Registry anfragen.
+RandomizedDelaySec=60
+
+# Verpasste Läufe (Server war aus) beim nächsten Start nachholen.
+Persistent=true
+
+Unit=abi-shop-update.service
+
+[Install]
+WantedBy=timers.target

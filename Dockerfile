@@ -8,9 +8,12 @@
 #
 # Das Laufzeit-Image enthaelt AUSSCHLIESSLICH den Server. Die Prisma-CLI liegt bewusst
 # nicht darin: Ihr Abhaengigkeitsbaum ist rund 250 MB gross und enthaelt unter anderem
-# Prisma Studio samt react-dom – Ballast, nur um Migrationen anzuwenden. Migrationen
-# laufen stattdessen als eigener Schritt mit dem builder-Stage, siehe docker-compose.yml
-# und den Abschnitt "Deployment" in der README.
+# Prisma Studio samt react-dom – Ballast, nur um Migrationen anzuwenden.
+#
+# Migrationen laufen deshalb in einem eigenen Schritt. Dafuer gibt es zwei Wege:
+#   - lokal: der builder-Stage (hat ohnehin alles), siehe docker-compose.yml
+#   - Produktion: der migrator-Stage weiter unten, der als eigenes Image veroeffentlicht
+#     wird, siehe docker-compose.prod.yml und docs/DEPLOYMENT.md
 # ---------------------------------------------------------------------------
 
 FROM node:22-bookworm-slim AS base
@@ -35,6 +38,34 @@ COPY . .
 # eingelesen (siehe src/server/env.ts). Deshalb muss hier nichts Geheimes ins Image.
 ENV NODE_ENV=production
 RUN npm run build
+
+# --- Migrationen -----------------------------------------------------------
+# Eigenes, schlankes Image nur fuer "prisma migrate deploy".
+#
+# Bewusst nicht "npm ci --omit=dev": Das wuerde saemtliche Laufzeitabhaengigkeiten der
+# Anwendung mitinstallieren (Next, React, Stripe ...), obwohl hier nur die CLI gebraucht
+# wird. Installiert wird deshalb gezielt die Prisma-CLI – in genau der Version, die auch
+# das Projekt verwendet. Die wird aus der package.json gelesen, damit beides beim
+# naechsten Prisma-Update nicht auseinanderlaeuft.
+FROM base AS migrator
+
+# Kein Versions-Check nach aussen und keine Telemetrie aus einem Migrationscontainer.
+ENV CHECKPOINT_DISABLE=1
+
+COPY package.json ./
+RUN PRISMA_VERSION="$(node -p "(require('./package.json').devDependencies.prisma || require('./package.json').dependencies.prisma).replace(/^[^0-9]*/, '')")" \
+ && npm install --no-save --no-audit --no-fund --omit=dev "prisma@${PRISMA_VERSION}" dotenv \
+ && npm cache clean --force
+
+# Zuletzt kopiert, weil sich Schema und Migrationen oefter aendern als die CLI-Version –
+# so bleibt die teure Installationsschicht im Cache.
+COPY prisma7.config.ts ./
+COPY prisma ./prisma
+
+USER node
+
+# Direkter Aufruf statt ueber npx: ein Prozess weniger und kein Suchpfad-Raten.
+CMD ["node", "node_modules/prisma/build/index.js", "migrate", "deploy"]
 
 # --- Laufzeit --------------------------------------------------------------
 FROM base AS runner

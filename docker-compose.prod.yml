@@ -1,0 +1,93 @@
+# Abi-Shop – Produktionsbetrieb auf dem vServer
+#
+# Nutzt fertige Images aus der GitHub Container Registry; hier wird nichts gebaut.
+# Der Ablauf eines Updates steht in deploy/update.sh, die vollstaendige Anleitung
+# in docs/DEPLOYMENT.md.
+#
+#   docker compose -f docker-compose.prod.yml up -d
+#
+# Erreichbar ist die App nur auf 127.0.0.1. Nach aussen geht es ausschliesslich ueber
+# nginx, der TLS terminiert – siehe deploy/nginx/abi.yschaffler.de.conf.
+
+services:
+  db:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-abishop}
+      MYSQL_USER: ${MYSQL_USER:-abishop}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?MYSQL_PASSWORD fehlt in .env}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?MYSQL_ROOT_PASSWORD fehlt in .env}
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - db-data:/var/lib/mysql
+    healthcheck:
+      test: ['CMD', 'mysqladmin', 'ping', '-h', '127.0.0.1', '-u', 'root', '-p${MYSQL_ROOT_PASSWORD}']
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 40s
+    # Bewusst kein Port nach aussen. Die Datenbank ist nur im Compose-Netz erreichbar.
+
+  # Wendet ausstehende Migrationen an und beendet sich.
+  #
+  # Das Profil sorgt dafuer, dass "up -d" diesen Dienst NICHT mitstartet. Er wird in
+  # deploy/update.sh ausdruecklich vor der App aufgerufen:
+  #
+  #   docker compose -f docker-compose.prod.yml run --rm migrate
+  #
+  # Das ist verlaesslicher als eine Startreihenfolge ueber depends_on, weil so bei jedem
+  # Update garantiert erst migriert und dann umgeschaltet wird. "migrate deploy" ist
+  # idempotent – gibt es nichts zu tun, passiert nichts.
+  migrate:
+    image: ${IMAGE_MIGRATOR:-ghcr.io/yschaffler/abi-shop-migrator}:${IMAGE_TAG:-latest}
+    profiles: ['migrate']
+    restart: 'no'
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: mysql://${MYSQL_USER:-abishop}:${MYSQL_PASSWORD}@db:3306/${MYSQL_DATABASE:-abishop}
+
+  app:
+    image: ${IMAGE_APP:-ghcr.io/yschaffler/abi-shop}:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: mysql://${MYSQL_USER:-abishop}:${MYSQL_PASSWORD}@db:3306/${MYSQL_DATABASE:-abishop}
+      APP_URL: ${APP_URL}
+      AUTH_SECRET: ${AUTH_SECRET}
+      SESSION_MAX_AGE_HOURS: ${SESSION_MAX_AGE_HOURS:-12}
+      # nginx steht davor und setzt X-Forwarded-For – nur deshalb steht hier true.
+      TRUST_PROXY_HEADERS: 'true'
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+      STRIPE_PAYMENT_METHOD_TYPES: ${STRIPE_PAYMENT_METHOD_TYPES:-}
+      EMAIL_DRIVER: ${EMAIL_DRIVER:-smtp}
+      EMAIL_FROM: ${EMAIL_FROM}
+      EMAIL_REPLY_TO: ${EMAIL_REPLY_TO:-}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_SECURE: ${SMTP_SECURE:-false}
+    ports:
+      # Nur an localhost. Alles von aussen laeuft ueber nginx.
+      - '127.0.0.1:${APP_PORT:-3000}:3000'
+    volumes:
+      - uploads:/app/data/uploads
+    logging:
+      # Ohne Begrenzung wachsen die JSON-Logs unbemerkt, bis die Platte voll ist.
+      driver: json-file
+      options:
+        max-size: '10m'
+        max-file: '5'
+
+volumes:
+  db-data:
+  uploads:

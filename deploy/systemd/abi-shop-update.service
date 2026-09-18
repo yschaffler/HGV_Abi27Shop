@@ -1,0 +1,27 @@
+[Unit]
+Description=Abi-Shop: neue Images ziehen, migrieren und deployen
+Documentation=https://github.com/yschaffler/HGV_Abi27Shop/blob/main/docs/DEPLOYMENT.md
+# Ohne Docker gibt es nichts zu tun.
+Requires=docker.service
+After=docker.service network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/abi-shop
+ExecStart=/opt/abi-shop/deploy/update.sh
+
+# Ein hängender Pull soll den Timer nicht dauerhaft blockieren.
+TimeoutStartSec=15min
+
+# Braucht Zugriff auf den Docker-Socket, läuft daher als root.
+User=root
+
+# Moderate Härtung. Weiter zu gehen (etwa ProtectSystem=strict) würde den
+# Docker-Socket-Zugriff und das Schreiben der Lock-Datei brechen.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectKernelTunables=true
+ProtectControlGroups=true
+
+[Install]
+WantedBy=multi-user.target

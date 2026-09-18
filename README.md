@@ -344,6 +344,11 @@ Datenbankname nicht „test“ enthält – sie leeren diese Datenbank bei jedem
 
 ## Deployment
 
+> **Produktivbetrieb auf einem eigenen Server:** Für das vollständige Setup mit nginx,
+> TLS, GitHub Actions und automatischen Updates gibt es eine eigene Schritt-für-Schritt-
+> Anleitung in [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md). Der Abschnitt hier beschreibt
+> die Grundlagen.
+
 **HTTPS** terminiert ein Reverse Proxy. Die App setzt HSTS und erwartet in Produktion, dass
 `APP_URL` mit `https://` beginnt. Beispiel mit Caddy:
 
