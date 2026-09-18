@@ -3,13 +3,14 @@
 # ---------------------------------------------------------------------------
 # Abi-Shop – Produktions-Image
 #
-# Bewusst auf "bookworm-slim" (glibc) statt Alpine (musl): @node-rs/argon2 und die
-# Prisma Schema Engine liefern fertige Binaries fuer debian-openssl-3.0.x. Mit Alpine
-# muesste beides nachgebaut werden – mehr Aufwand, mehr das schiefgehen kann.
+# Bewusst auf "bookworm-slim" (glibc) statt Alpine (musl): @node-rs/argon2 liefert fertige
+# Binaries fuer debian-openssl-3.0.x. Mit Alpine muesste das nachgebaut werden.
 #
-# Der Container bringt die Prisma-CLI mit und wendet beim Start ausstehende Migrationen an.
-# Das macht das Image groesser (rund 500 MB), aber das Hosten besteht dafuer aus genau einem
-# Schritt. Wer die Migrationen lieber selbst steuert, setzt RUN_MIGRATIONS=false.
+# Das Laufzeit-Image enthaelt AUSSCHLIESSLICH den Server. Die Prisma-CLI liegt bewusst
+# nicht darin: Ihr Abhaengigkeitsbaum ist rund 250 MB gross und enthaelt unter anderem
+# Prisma Studio samt react-dom – Ballast, nur um Migrationen anzuwenden. Migrationen
+# laufen stattdessen als eigener Schritt mit dem builder-Stage, siehe docker-compose.yml
+# und den Abschnitt "Deployment" in der README.
 # ---------------------------------------------------------------------------
 
 FROM node:22-bookworm-slim AS base
@@ -22,6 +23,10 @@ COPY package.json package-lock.json ./
 RUN npm ci
 
 # --- Build -----------------------------------------------------------------
+# Dieser Stage wird ausserdem direkt als Werkzeug-Image verwendet: fuer
+# "prisma migrate deploy", zum Anlegen des ersten Admins und fuer den Seed.
+# Er hat dafuer alles an Bord – Quellcode, Schema, Migrationen und die vollstaendigen
+# Abhaengigkeiten.
 FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
@@ -47,28 +52,6 @@ COPY --from=builder --chown=node:node /app/.next/standalone ./
 COPY --from=builder --chown=node:node /app/.next/static ./.next/static
 COPY --from=builder --chown=node:node /app/public ./public
 
-# Fuer "prisma migrate deploy" beim Start: Schema, Migrationen und die Prisma-CLI.
-# Prisma 7 liest die Datenbank-URL ausschliesslich aus der Config-Datei, deshalb muss
-# auch prisma7.config.ts (und das darin importierte dotenv) mit ins Image.
-COPY --from=builder --chown=node:node /app/prisma ./prisma
-COPY --from=builder --chown=node:node /app/prisma7.config.ts ./prisma7.config.ts
-COPY --from=builder --chown=node:node /app/node_modules/prisma ./node_modules/prisma
-COPY --from=builder --chown=node:node /app/node_modules/@prisma ./node_modules/@prisma
-COPY --from=builder --chown=node:node /app/node_modules/dotenv ./node_modules/dotenv
-
-# Das Startskript wird gegen die zwei haeufigsten Stolperfallen abgesichert:
-#
-#  1. CRLF-Zeilenenden. Wird das Repository unter Windows mit der Voreinstellung
-#     core.autocrlf=true ausgecheckt, landet das Skript mit CRLF im Build-Kontext.
-#     Der Kernel liest den Shebang dann als "/bin/sh\r" und meldet beim Start
-#     "no such file or directory", obwohl die Datei da ist. .gitattributes verhindert
-#     das bereits beim Auschecken; das sed hier faengt zusaetzlich ZIP-Downloads,
-#     Editoren und fremde Build-Kontexte ab.
-#  2. Fehlendes Ausfuehrbar-Bit, etwa bei einem Build-Kontext von einem
-#     Windows-Dateisystem.
-COPY --chown=node:node docker/entrypoint.sh /app/entrypoint.sh
-RUN sed -i 's/\r$//' /app/entrypoint.sh && chmod +x /app/entrypoint.sh
-
 USER node
 EXPOSE 3000
 
@@ -77,7 +60,6 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=3 \
   CMD node -e "fetch('http://127.0.0.1:'+(process.env.PORT||3000)+'/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
 
-# Aufruf ueber /bin/sh statt direkt: damit haengt der Start weder am Shebang
-# noch am Ausfuehrbar-Bit der Datei.
-ENTRYPOINT ["/bin/sh", "/app/entrypoint.sh"]
+# Kein Startskript: weniger bewegliche Teile, und damit auch keine Stolperfallen durch
+# Zeilenenden oder Dateirechte.
 CMD ["node", "server.js"]

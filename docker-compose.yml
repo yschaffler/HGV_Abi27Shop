@@ -31,6 +31,25 @@ services:
     # Kein Port nach aussen: Die Datenbank ist nur aus dem Compose-Netz erreichbar.
     # Fuer einen Blick von aussen voruebergehend "ports: ['127.0.0.1:3306:3306']" ergaenzen.
 
+  # Wendet ausstehende Migrationen an und beendet sich wieder. Laeuft vor der App und
+  # benutzt dafuer das builder-Stage, das die Prisma-CLI samt vollstaendigem
+  # Abhaengigkeitsbaum enthaelt. Das Laufzeit-Image bleibt dadurch frei davon.
+  #
+  # "migrate deploy" ist idempotent: Bei jedem Start laufen nur die Migrationen, die noch
+  # fehlen. Ist alles aktuell, passiert nichts.
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder
+    restart: 'no'
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: mysql://${MYSQL_USER:-abishop}:${MYSQL_PASSWORD}@db:3306/${MYSQL_DATABASE:-abishop}
+    command: ['npx', 'prisma', 'migrate', 'deploy']
+
   app:
     build:
       context: .
@@ -39,6 +58,10 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      # Die App startet erst, wenn die Migrationen erfolgreich durch sind. Sonst liefen die
+      # ersten Anfragen gegen ein veraltetes Schema.
+      migrate:
+        condition: service_completed_successfully
     environment:
       DATABASE_URL: mysql://${MYSQL_USER:-abishop}:${MYSQL_PASSWORD}@db:3306/${MYSQL_DATABASE:-abishop}
       APP_URL: ${APP_URL}
@@ -85,7 +108,6 @@ services:
       DATABASE_URL: mysql://${MYSQL_USER:-abishop}:${MYSQL_PASSWORD}@db:3306/${MYSQL_DATABASE:-abishop}
       AUTH_SECRET: ${AUTH_SECRET}
       APP_URL: ${APP_URL}
-    entrypoint: []
     command: ['npm', 'run', 'admin:create']
 
 volumes:

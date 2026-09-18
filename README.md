@@ -87,8 +87,11 @@ $EDITOR .env                  # mindestens AUTH_SECRET, MYSQL_PASSWORD, APP_URL 
 docker compose up -d --build
 ```
 
-Der Container wendet ausstehende Migrationen beim Start selbst an und startet danach den
-Server. Danach:
+`docker compose up` startet drei Dinge in dieser Reihenfolge: die Datenbank, einen
+einmaligen Migrationsschritt, und danach die App. Die App startet erst, wenn die
+Migrationen erfolgreich durch sind.
+
+Danach:
 
 ```bash
 docker compose run --rm tools npm run db:seed        # optional: Beispielprodukte
@@ -356,7 +359,9 @@ könnte jeder Client sein Limit über einen gefälschten Header umgehen.
 
 Weitere Punkte:
 
-* `docker compose up -d --build` nach jeder Änderung; Migrationen laufen beim Start mit.
+* `docker compose up -d --build` nach jeder Änderung. Der Dienst `migrate` wendet
+  ausstehende Migrationen an, bevor die App startet, und beendet sich dann wieder.
+  `migrate deploy` ist idempotent – ist alles aktuell, passiert nichts.
 * Der Container läuft als Nicht-Root und hat einen Healthcheck, der auch die Datenbank prüft.
 * Produktbilder liegen im Volume `uploads`, die Datenbank in `db-data`.
 * Nach dem Umschalten von Test- auf Live-Schlüssel den Webhook im Live-Modus neu anlegen –
@@ -366,31 +371,41 @@ Weitere Punkte:
 
 ## Fehlersuche
 
-### `exec /app/entrypoint.sh: no such file or directory`
+### `Cannot find module` beim Migrieren
 
-Der Container startet nicht, obwohl die Datei existiert. Ursache sind fast immer
-**CRLF-Zeilenenden**: Git für Windows wandelt mit der Voreinstellung
-`core.autocrlf=true` beim Auschecken LF in CRLF um. Der Kernel liest den Shebang dann als
-`/bin/sh\r`, findet diesen Interpreter nicht und meldet „no such file or directory" –
-gemeint ist der Interpreter, nicht das Skript.
-
-Das Projekt fängt das an zwei Stellen ab: `.gitattributes` erzwingt LF beim Auschecken, und
-das Dockerfile entfernt zusätzlich eventuelle CR-Zeichen vor dem Start. Neu bauen genügt:
+Tritt auf, wenn die Prisma-CLI aus einem unvollständigen Abhängigkeitsbaum gestartet wird.
+Migrationen laufen deshalb über den Dienst `migrate`, der das Builder-Image benutzt. Von
+Hand anstoßen:
 
 ```bash
-git pull
-docker compose up -d --build
+docker compose run --rm migrate
 ```
 
-Falls es doch wieder auftritt, prüfen, was tatsächlich im Arbeitsverzeichnis liegt:
+### Migrationen ohne Compose anwenden
+
+Wer das Laufzeit-Image einzeln betreibt – etwa auf einer PaaS – muss die Migrationen als
+eigenen Schritt fahren, weil die Prisma-CLI absichtlich nicht im Laufzeit-Image liegt:
 
 ```bash
-file docker/entrypoint.sh
-# gut:     POSIX shell script, ... executable
+docker build --target builder -t abishop-tools .
+docker run --rm -e DATABASE_URL="mysql://..." abishop-tools npx prisma migrate deploy
+```
+
+Auf Plattformen mit Release-Phase (Fly `release_command`, Heroku Release Phase, Kubernetes
+Init-Container) gehört genau dieser Befehl dorthin.
+
+### Zeilenenden unter Windows
+
+Das Image enthält bewusst kein Shell-Skript, damit CRLF-Zeilenenden erst gar kein Thema
+sind. `.gitattributes` erzwingt zusätzlich LF für Skripte, Dockerfile und Compose-Dateien.
+Falls doch einmal etwas seltsam scheitert:
+
+```bash
+file docker-compose.yml
 # schlecht: ... with CRLF line terminators
 ```
 
-Reparieren lässt es sich mit einem erzwungenen Neu-Auschecken:
+Erzwungenes Neu-Auschecken:
 
 ```bash
 git rm --cached -r .
