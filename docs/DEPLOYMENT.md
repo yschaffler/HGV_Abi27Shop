@@ -52,6 +52,12 @@ Server, und es muss kein SSH-Port für fremde IP-Bereiche offen sein.
 ## Voraussetzungen
 
 * vServer mit Debian 12 oder Ubuntu 22.04/24.04, root-Zugang
+* **Mindestens 2 GB RAM.** MySQL 8, der Next.js-Server und nginx laufen dauerhaft
+  parallel. Mit 1 GB oder weniger kommt es unter Last zuverlässig zum
+  Speicherdruck – der Kernel beendet dann meist den MySQL-Prozess, und die
+  Anwendung meldet daraufhin einen irreführenden `pool timeout`, statt eines
+  klaren Verbindungsfehlers (siehe [Fehlersuche](#fehlersuche)). Bei 1 GB RAM
+  ist eine Swap-Datei praktisch Pflicht, siehe unten.
 * Ein A-Record (und möglichst AAAA) für `abi.yschaffler.de` auf die Server-IP
 * Ports 80 und 443 offen
 * Das Repository liegt auf GitHub unter `yschaffler/HGV_Abi27Shop`
@@ -63,6 +69,27 @@ dig +short abi.yschaffler.de
 ```
 
 Solange hier nichts oder die falsche IP steht, kann certbot kein Zertifikat ausstellen.
+
+### Swap-Datei (empfohlen, bei ≤ 2 GB RAM praktisch Pflicht)
+
+Ohne Swap wird ein Prozess beim ersten Speicherengpass vom Kernel hart beendet –
+üblicherweise MySQL, weil es den größten zusammenhängenden Speicherblock hält. Mit
+Swap wird stattdessen erst langsamer, was für einen Shop mit Bestellzeitraum-Spitzen
+der deutlich harmlosere Fehlermodus ist.
+
+```bash
+fallocate -l 2G /swapfile
+chmod 600 /swapfile
+mkswap /swapfile
+swapon /swapfile
+echo '/swapfile none swap sw 0 0' >> /etc/fstab
+
+# Swap nur als Notreserve nutzen, nicht schon bei mittlerer Auslastung
+sysctl -w vm.swappiness=10
+echo 'vm.swappiness=10' >> /etc/sysctl.d/99-abi-shop.conf
+```
+
+Kontrolle: `free -h` zeigt danach eine Zeile `Swap:` mit dem angelegten Wert.
 
 ---
 
@@ -458,6 +485,77 @@ Skript zieht dann immer denselben Tag und stellt keine Änderung fest.
 ---
 
 ## Fehlersuche
+
+### `pool timeout: failed to retrieve a connection from pool`
+
+Die Anwendung meldet wiederholt Datenbankfehler wie:
+
+```
+Database error. Code: `45028`. Message: `pool timeout: failed to retrieve a
+connection from pool after 10017ms (pool connections: active=0 idle=0 limit=10)`
+```
+
+**Diese Meldung nennt nicht die eigentliche Ursache.** Der MariaDB-Treiber fängt jeden
+fehlgeschlagenen Verbindungsversuch ab und probiert es mit wachsendem Backoff bis zu
+zehn Sekunden lang erneut, bevor er diese generische Sammelmeldung wirft. Eine Ausnahme:
+Bei falschen Zugangsdaten (Errno 1045/1524/1698) wird sofort mit Klartext
+(„Access denied for user …") geworfen. Erscheint stattdessen `pool timeout`, sind die
+Zugangsdaten also korrekt – das Problem liegt auf Netzwerk- oder Prozessebene, meist
+weil MySQL nicht (mehr) erreichbar ist. Bei `active=0 idle=0` ist dabei keine einzige
+Verbindung zustande gekommen, nicht mal eine.
+
+Eingrenzen:
+
+```bash
+cd /opt/abi-shop
+
+# Läuft db und ist es "healthy"? Ein häufiger Neustart-Zähler ist ein Warnsignal.
+docker compose -f docker-compose.prod.yml ps
+
+# Neustarts, Crashes oder abgebrochene Verbindungen im MySQL-Log?
+docker compose -f docker-compose.prod.yml logs db --tail=80
+
+# Speicherdruck? Wurde ein Prozess vom Kernel beendet?
+free -h
+dmesg -T 2>/dev/null | grep -i "killed process" | tail -5
+
+# Direkter TCP-Test app -> db, unabhängig von Zugangsdaten und Prisma
+docker compose -f docker-compose.prod.yml exec app node -e "
+require('net').connect(3306,'db')
+  .on('connect', () => { console.log('TCP OK'); process.exit(0) })
+  .on('error', (e) => { console.log('TCP FEHLER:', e.code, e.message); process.exit(1) })
+"
+```
+
+Häufigste Ursachen, in der Praxis meist in dieser Reihenfolge:
+
+1. **Speicherdruck / OOM-Kill.** Auf vServern mit 1 GB RAM oder weniger wird MySQL
+   unter Last (z. B. Bestellansturm kurz vor Bestellschluss) häufig vom Kernel beendet.
+   `docker compose ps` zeigt dann viele Neustarts, `dmesg` einen `Killed process ...
+   (mysqld)`-Eintrag. Abhilfe: Swap-Datei einrichten (siehe
+   [Voraussetzungen](#voraussetzungen)) und wenn möglich mehr RAM. Eine Swap-Datei
+   macht MySQL unter Druck langsamer statt es abzuschießen – für einen Shop, der nur
+   während des Bestellzeitraums viel Last hat, der deutlich bessere Ausfallmodus.
+2. **`db` ist gerade neugestartet und noch nicht bereit**, etwa direkt nach einem
+   automatischen Update. `docker compose logs db` zeigt dann kürzlich erst
+   "ready for connections". In der Regel behebt sich das von selbst binnen Sekunden;
+   `depends_on: condition: service_healthy` verhindert nur, dass `app` startet,
+   *bevor* `db` bereit ist – ein Neustart von `db` *während* `app` bereits läuft ist
+   davon nicht abgedeckt.
+3. **Der TCP-Test schlägt fehl.** `ECONNREFUSED` heißt, MySQL läuft, nimmt aber
+   (noch) keine Verbindungen an. `ENOTFOUND` heißt, der Name `db` löst nicht auf –
+   dann sind `app` und `db` nicht im selben Docker-Netzwerk, meist weil eines der
+   beiden über ein abweichendes Compose-Kommando oder einen anderen Projektnamen
+   gestartet wurde. Kontrolle: `docker compose -f docker-compose.prod.yml config
+   --services` muss `db`, `migrate` und `app` auflisten, und beide Container müssen
+   im selben Netzwerk stehen (`docker network inspect abi-shop_default`).
+
+Nach der Behebung reicht ein Neustart der App, damit sie einen frischen Connection Pool
+aufbaut:
+
+```bash
+docker compose -f docker-compose.prod.yml restart app
+```
 
 ### Der Timer deployt nicht
 
