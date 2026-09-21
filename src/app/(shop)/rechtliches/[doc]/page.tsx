@@ -1,13 +1,18 @@
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
+import { Markdown } from '@/components/markdown';
+import { stripLeadingHeading } from '@/lib/markdown';
 import { getSettings } from '@/server/settings';
 
 /**
  * Rechtstexte.
  *
- * Die Inhalte pflegt der Admin im Adminbereich und sie werden hier als KLARTEXT gerendert.
- * React escaped den Inhalt automatisch – es gibt kein dangerouslySetInnerHTML, also auch
- * keine Möglichkeit, über die Einstellungen Skripte in den Shop zu bekommen.
+ * Die Inhalte pflegt der Admin im Adminbereich; sie dürfen Markdown enthalten, damit sich
+ * Überschriften, Listen und Links eines Impressums sauber gliedern lassen.
+ *
+ * Gerendert wird über react-markdown ohne rehype-raw: Es entstehen React-Elemente, kein
+ * HTML-String, und rohes HTML im Text bleibt Text. Es gibt weiterhin kein
+ * dangerouslySetInnerHTML – über die Einstellungen kommt also kein Skript in den Shop.
  *
  * Die Texte sind Platzhalter, bis sie jemand ausfüllt und rechtlich prüfen lässt.
  * Siehe LEGAL_CHECKLIST.md.
@@ -44,8 +49,9 @@ export default async function LegalPage({ params }: PageProps) {
   const content = settings[definition.field].trim();
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-10">
-      <h1 className="mb-6 text-2xl sm:text-3xl">{definition.title}</h1>
+    <div className="mx-auto max-w-2xl px-4 py-12 sm:py-16">
+      <p className="eyebrow text-brand-600 dark:text-brand-400">Rechtliches</p>
+      <h1 className="mt-3 mb-8 text-3xl sm:text-4xl">{definition.title}</h1>
 
       {content.length === 0 || content.startsWith('[Vor dem Livegang') ? (
         <div className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-100">
@@ -55,7 +61,7 @@ export default async function LegalPage({ params }: PageProps) {
           </p>
         </div>
       ) : (
-        <div className="text-normal whitespace-pre-line">{content}</div>
+        <Markdown>{stripLeadingHeading(content)}</Markdown>
       )}
     </div>
   );

@@ -60,6 +60,11 @@ Ein erheblicher Teil des Jahrgangs ist beim Bestellen noch nicht 18.
 Pflichtangaben abhängig von Punkt 1. Einzutragen unter *Admin → Einstellungen →
 Rechtstexte → Impressum*.
 
+Die Rechtstexte dürfen **Markdown** enthalten: `#`/`##` für Überschriften, `**fett**`, `-` für
+Aufzählungen, `[Text](https://…)` beziehungsweise `[Mail](mailto:…)` für Links. Einfache
+Zeilenumbrüche bleiben erhalten, eine Anschrift lässt sich also so eintippen, wie sie stehen
+soll. HTML wird bewusst nicht ausgewertet und erscheint als sichtbarer Text.
+
 - [ ] Name und Anschrift des Betreibers (bei Verein: vertretungsberechtigter Vorstand)
 - [ ] Kontakt: E-Mail-Adresse, die auch gelesen wird
 - [ ] Bei eingetragenem Verein: Registergericht und Registernummer
@@ -92,6 +97,11 @@ Serienproduktion – auch wenn sie nur für diesen Jahrgang läuft.
 
 - [ ] Preise inklusive Mehrwertsteuer angegeben?
 - [ ] Ist klar, dass keine Versandkosten anfallen und die Abholung in der Schule erfolgt?
+      (Der Checkout verlangt dafür eine eigene, verpflichtende Bestätigung: „Kein Versand.
+      Mir ist bekannt, dass der Hoodie in der Schule bei den Q-Sprechern abgeholt werden muss
+      und nicht verschickt wird.“ Sie wird serverseitig geprüft, nicht nur im Browser. Der
+      Text ist absichtlich nicht konfigurierbar – wer die Ausgabestelle ändert, muss ihn im
+      Code ändern, damit die Bestätigung nie etwas anderes zusagt als das, was passiert.)
 - [ ] Ist der Liefer- beziehungsweise Ausgabezeitpunkt benannt – zumindest ungefähr?
 - [ ] Ist der Bestellbutton korrekt beschriftet? (Der Shop verwendet „Zahlungspflichtig
       bestellen“.)

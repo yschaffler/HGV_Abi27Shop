@@ -67,6 +67,13 @@ export const checkoutSchema = z.object({
   items: cartSchema,
   /** Muss aktiv bestätigt werden; der Wert wird serverseitig geprüft, nicht nur im Browser. */
   acceptedTerms: z.literal(true, { error: 'Bitte bestätigen' }),
+  /**
+   * Bestätigung, dass es keinen Versand gibt und der Hoodie in der Schule bei den
+   * Q-Sprechern abgeholt wird. Steht absichtlich getrennt von acceptedTerms: Es ist der
+   * Punkt, an dem hinterher die meisten Rückfragen entstehen, und ein eigenes Häkchen
+   * lässt sich später auch einzeln nachweisen.
+   */
+  acceptedPickup: z.literal(true, { error: 'Bitte bestätigen' }),
 });
 
 export type CartLineInput = z.infer<typeof cartLineSchema>;

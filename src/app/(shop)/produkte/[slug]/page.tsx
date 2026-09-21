@@ -28,33 +28,37 @@ export default async function ProductPage({ params }: PageProps) {
   const prices = product.variants.map((variant) => variant.priceCents);
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8">
-      <Link href="/" className="text-muted mb-6 inline-block text-sm hover:underline">
-        ← Alle Artikel
+    <div className="mx-auto max-w-5xl px-4 py-10 sm:py-14">
+      <Link href="/" className="text-muted mb-8 inline-block text-sm hover:underline">
+        ← Zurück zum Shop
       </Link>
 
-      <div className="grid gap-8 md:grid-cols-2">
+      <div className="grid gap-10 md:grid-cols-2">
         <ProductImage
           imageId={product.imageId}
           alt={product.name}
-          className="surface-card aspect-4/3 w-full rounded-2xl object-cover"
+          className="surface-card aspect-4/5 w-full rounded-3xl object-cover"
         />
 
         <div>
-          <h1 className="text-2xl sm:text-3xl">{product.name}</h1>
-          <p className="text-strong mt-2 text-xl font-semibold">
+          <h1 className="text-3xl sm:text-4xl">{product.name}</h1>
+          <p className="text-strong mt-3 text-2xl font-semibold">
             {Math.min(...prices) === Math.max(...prices)
               ? formatCents(Math.min(...prices))
               : `${formatCents(Math.min(...prices))} – ${formatCents(Math.max(...prices))}`}
           </p>
 
           {product.description ? (
-            <p className="text-muted mt-4 whitespace-pre-line">{product.description}</p>
+            <p className="text-muted mt-5 whitespace-pre-line">{product.description}</p>
           ) : null}
 
-          <hr className="border-line my-6" />
+          <div className="rule-gold my-7" />
 
           <AddToCart variants={product.variants} disabled={!status.isOpen} />
+
+          <p className="text-muted mt-6 text-sm">
+            Kein Versand – Abholung in der Schule bei den Q-Sprechern.
+          </p>
         </div>
       </div>
     </div>

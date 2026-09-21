@@ -3,6 +3,10 @@
  *
  * Idempotent: mehrfaches Ausführen erzeugt keine Duplikate. Legt bewusst KEINEN
  * Admin-Benutzer an – dafür gibt es scripts/create-admin.ts mit einem echten Passwort.
+ *
+ * Es wird genau ein Produkt angelegt, weil der Shop auf genau einen Artikel ausgelegt ist.
+ * Das Datenmodell könnte mehr, aber die Startseite inszeniert den Hoodie – und die
+ * Entwicklungsdaten sollen zeigen, was am Ende auch live steht.
  */
 import 'dotenv/config';
 import { PrismaMariaDb } from '@prisma/adapter-mariadb';
@@ -13,7 +17,9 @@ if (!databaseUrl) throw new Error('DATABASE_URL fehlt');
 
 const prisma = new PrismaClient({ adapter: new PrismaMariaDb(databaseUrl) });
 
-const SIZES = ['S', 'M', 'L', 'XL', 'XXL'];
+const SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL'];
+const COLORS = ['Schwarz', 'Dunkelblau', 'Creme', 'Weiss'];
+const PRICE_CENTS = 4490;
 
 async function main(): Promise<void> {
   await prisma.settings.upsert({
@@ -21,14 +27,14 @@ async function main(): Promise<void> {
     update: {},
     create: {
       id: 1,
-      shopName: 'Abi-Shop 2027',
+      shopName: 'Abikropolis 2027',
       contactEmail: 'abi2027@example.de',
       orderStartAt: new Date('2026-09-20T10:00:00Z'),
       orderEndAt: new Date('2026-10-04T21:59:00Z'),
       pickupInfo:
-        'Die Artikel werden gesammelt beim Hersteller bestellt und anschließend in der Schule ' +
-        'an einem zentralen Ausgabepunkt verteilt. Es gibt keinen Versand. Den Ausgabetermin ' +
-        'geben wir rechtzeitig bekannt.',
+        'Die Hoodies werden nach dem Bestellschluss gesammelt beim Hersteller bestellt und ' +
+        'anschließend in der Schule bei den Q-Sprechern ausgegeben. Es gibt keinen Versand. ' +
+        'Den genauen Ausgabetermin geben wir rechtzeitig bekannt.',
       imprintText: '[Vor dem Livegang ausfüllen – siehe LEGAL_CHECKLIST.md]',
       privacyText: '[Vor dem Livegang ausfüllen – siehe LEGAL_CHECKLIST.md]',
       withdrawalText: '[Vor dem Livegang ausfüllen – siehe LEGAL_CHECKLIST.md]',
@@ -36,53 +42,43 @@ async function main(): Promise<void> {
     },
   });
 
-  const pullover = await prisma.product.upsert({
-    where: { slug: 'abipulli' },
+  const hoodie = await prisma.product.upsert({
+    where: { slug: 'abi-hoodie' },
     update: {},
     create: {
-      slug: 'abipulli',
-      name: 'Abipulli',
-      summary: 'Schwerer Hoodie mit Abi-Motiv und Namensliste auf dem Rücken.',
+      slug: 'abi-hoodie',
+      name: 'Abikropolis Hoodie 2027',
+      summary: 'Schwerer Hoodie mit dem Abikropolis-Motiv auf dem Rücken.',
       description:
-        'Unser Klassiker: dicker Baumwoll-Hoodie mit gesticktem Abi-Logo auf der Brust und ' +
-        'der Namensliste des Jahrgangs auf dem Rücken. Fällt normal aus.',
+        'Dicker, angerauter Baumwollmix im Unisex-Schnitt. Vorne der kleine Jahrgangsprint, ' +
+        'hinten großflächig das Abikropolis-Motiv mit der Jahreszahl 2027.\n\n' +
+        'Fällt normal aus. Wer es lockerer mag, nimmt eine Größe größer – umtauschen ist bei ' +
+        'einer Sammelbestellung nicht möglich.',
       sortOrder: 10,
     },
   });
 
-  const shirt = await prisma.product.upsert({
-    where: { slug: 'abi-shirt' },
-    update: {},
-    create: {
-      slug: 'abi-shirt',
-      name: 'Abi-Shirt',
-      summary: 'Leichtes T-Shirt im gleichen Design wie der Pulli.',
-      description: 'Klassisches T-Shirt aus Bio-Baumwolle, gleiches Motiv wie der Abipulli.',
-      sortOrder: 20,
-    },
+  const variants: Array<{
+    productId: string;
+    color: string;
+    size: string;
+    label: string;
+    priceCents: number;
+    sortOrder: number;
+  }> = [];
+
+  COLORS.forEach((color, colorIndex) => {
+    SIZES.forEach((size, sizeIndex) => {
+      variants.push({
+        productId: hoodie.id,
+        color,
+        size,
+        label: '',
+        priceCents: PRICE_CENTS,
+        sortOrder: colorIndex * 100 + sizeIndex,
+      });
+    });
   });
-
-  const newspaper = await prisma.product.upsert({
-    where: { slug: 'abi-zeitung' },
-    update: {},
-    create: {
-      slug: 'abi-zeitung',
-      name: 'Abi-Zeitung',
-      summary: 'Die gedruckte Abi-Zeitung des Jahrgangs.',
-      description: 'Rund 120 Seiten Steckbriefe, Umfragen, Lehrerzitate und Bilder. Vollfarbdruck.',
-      sortOrder: 30,
-    },
-  });
-
-  const variants: Array<{ productId: string; color: string; size: string; label: string; priceCents: number; sortOrder: number }> = [];
-
-  SIZES.forEach((size, index) => {
-    variants.push({ productId: pullover.id, color: 'Schwarz', size, label: '', priceCents: 3990, sortOrder: index });
-    variants.push({ productId: pullover.id, color: 'Bordeaux', size, label: '', priceCents: 3990, sortOrder: 10 + index });
-    variants.push({ productId: shirt.id, color: 'Schwarz', size, label: '', priceCents: 1990, sortOrder: index });
-  });
-
-  variants.push({ productId: newspaper.id, color: '', size: '', label: 'Standard', priceCents: 1500, sortOrder: 0 });
 
   for (const variant of variants) {
     await prisma.productVariant.upsert({

@@ -36,6 +36,8 @@ MySQL-Datenbank.
 | Zahlung | Stripe Checkout (hosted) + Webhooks | wie beauftragt; keine Zahlungsdaten im System |
 | Tests | Vitest 5 | schnell, natives ESM/TS, kein zusätzlicher Build |
 | Excel-Export | ExcelJS | siehe Abweichung 4 |
+| Rechtstexte | react-markdown + remark-gfm/-breaks | siehe Abweichung 7 |
+| Schriften | `@fontsource-variable/archivo` + `inter` | selbst ausgeliefert, siehe Abweichung 8 |
 | Passwörter | Argon2id (`@node-rs/argon2`) | OWASP-Empfehlung |
 | 2FA | TOTP nach RFC 6238 (`otplib`) | Standard, funktioniert mit jeder Authenticator-App |
 
@@ -83,6 +85,29 @@ nicht automatisch.
 
 **6. Geldbeträge als Integer-Cent.**
 Keine Floats, kein `Decimal`-Handling im Frontend. `3990` = 39,90 €. Stripe erwartet ohnehin Cent.
+
+**7. Rechtstexte als Markdown statt als reiner Text.**
+Ein Impressum besteht aus Überschriften, einer Anschrift, Aufzählungen und einer Mailadresse.
+Als unformatierter Fließtext ist das schwer lesbar und wirkt unseriös. Gerendert wird mit
+**react-markdown** (`src/components/markdown.tsx`), und zwar bewusst **ohne `rehype-raw`**:
+
+* react-markdown erzeugt **React-Elemente, keinen HTML-String** – es gibt weiterhin kein
+  `dangerouslySetInnerHTML` im Projekt.
+* Rohes HTML im Einstellungstext bleibt **Text**. Ein `<script>` im Impressum erscheint
+  sichtbar auf der Seite, statt zu laufen. Die Sicherheitseigenschaft der früheren
+  Klartextausgabe bleibt damit unverändert, nur die Formatierung kommt dazu.
+* Linkziele laufen zusätzlich durch eine eigene Allowlist (`src/lib/markdown.ts`):
+  `http:`, `https:`, `mailto:`, `tel:` und relative Pfade. Alles andere – insbesondere
+  `javascript:` und `data:` – wird zu reinem Text ohne Ziel. Getestet in
+  `tests/unit/markdown.test.ts`.
+* `remark-breaks` macht aus einfachen Zeilenumbrüchen auch Umbrüche in der Ausgabe, weil eine
+  Anschrift sonst zu einer einzigen Zeile zusammenläuft.
+
+**8. Schriften liegen im Projekt, nicht bei Google.**
+`Archivo` (Überschriften) und `Inter` (Fließtext) kommen als `@fontsource-variable`-Pakete aus
+dem eigenen Build. Google Fonts würde bei jedem Seitenaufruf die IP-Adresse der Besucher an
+einen US-Dienst übertragen – das müsste in die Datenschutzerklärung und ist für einen Schulshop
+unnötig.
 
 ---
 
@@ -193,12 +218,17 @@ enum OrderDistributionStatus { NOT_DISTRIBUTED  PARTIALLY_DISTRIBUTED  FULLY_DIS
 
 ### Öffentlich
 
+Die Startseite ist auf **einen** Artikel zugeschnitten: das erste aktive Produkt (niedrigster
+`sortOrder`) wird inszeniert und lässt sich dort direkt bestellen. Das Datenmodell erlaubt
+weiterhin mehrere Produkte – zusätzliche Artikel erscheinen unter "Weitere Artikel" und über
+`/produkte/[slug]`, statt unsichtbar zu werden.
+
 | Route | Inhalt |
 |---|---|
-| `/` | Produktübersicht, Status des Bestellzeitraums |
+| `/` | Landingpage für den Hoodie: Hero mit Countdown, Galerie, Variantenauswahl und "in den Warenkorb" direkt auf der Seite, Ablauf, FAQ |
 | `/produkte/[slug]` | Produktdetail, Variantenauswahl, in den Warenkorb |
 | `/warenkorb` | Positionen, serverseitig neu bepreist |
-| `/checkout` | Vorname, Nachname, E-Mail, Klasse → Stripe |
+| `/checkout` | Vorname, Nachname, E-Mail, Klasse, zwei Pflichtbestätigungen → Stripe |
 | `/bestellung/[token]` | Bestellstatus über Zufallstoken |
 | `/rechtliches/[doc]` | Impressum, Datenschutz, Widerruf, AGB |
 

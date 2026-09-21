@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useCart } from '@/components/use-cart';
+import { colorSwatch } from '@/lib/color-swatch';
 import { formatCents } from '@/lib/money';
 import { variantLabel } from '@/lib/variant-label';
 import { ORDER_LIMITS } from '@/lib/validation/order';
@@ -47,29 +48,45 @@ export function AddToCart({ variants, disabled }: { variants: PublicVariant[]; d
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       {colors.length > 0 ? (
         <fieldset>
-          <legend className="field-label">Farbe</legend>
+          <legend className="field-label">
+            Farbe{color ? <span className="text-muted font-normal"> · {color}</span> : null}
+          </legend>
           <div className="flex flex-wrap gap-2">
-            {colors.map((option) => (
-              <button
-                key={option}
-                type="button"
-                onClick={() => {
-                  setColor(option);
-                  setAdded(false);
-                }}
-                aria-pressed={color === option}
-                className={`rounded-lg border px-4 py-2 text-sm font-medium transition ${
-                  color === option
-                    ? 'border-brand-600 bg-brand-600 text-white'
-                    : 'border-line bg-surface-raised text-strong hover:bg-surface-muted'
-                }`}
-              >
-                {option}
-              </button>
-            ))}
+            {colors.map((option) => {
+              const swatch = colorSwatch(option);
+              const isActive = color === option;
+
+              return (
+                <button
+                  key={option}
+                  type="button"
+                  onClick={() => {
+                    setColor(option);
+                    setAdded(false);
+                  }}
+                  aria-pressed={isActive}
+                  className={`inline-flex items-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-semibold transition ${
+                    isActive
+                      ? 'border-brand-600 bg-brand-600 text-white'
+                      : 'border-line bg-surface-raised text-strong hover:border-brand-400'
+                  }`}
+                >
+                  {swatch ? (
+                    <span
+                      aria-hidden="true"
+                      className={`size-4 shrink-0 rounded-full border ${
+                        isActive ? 'border-white/50' : 'border-black/20'
+                      }`}
+                      style={{ backgroundColor: swatch }}
+                    />
+                  ) : null}
+                  {option}
+                </button>
+              );
+            })}
           </div>
         </fieldset>
       ) : null}
@@ -90,10 +107,10 @@ export function AddToCart({ variants, disabled }: { variants: PublicVariant[]; d
                     setAdded(false);
                   }}
                   aria-pressed={size === option}
-                  className={`min-w-14 rounded-lg border px-4 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-40 ${
+                  className={`min-w-14 rounded-lg border px-4 py-2.5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-40 ${
                     size === option && available
                       ? 'border-brand-600 bg-brand-600 text-white'
-                      : 'border-line bg-surface-raised text-strong hover:bg-surface-muted'
+                      : 'border-line bg-surface-raised text-strong hover:border-brand-400'
                   }`}
                 >
                   {option}
@@ -101,10 +118,13 @@ export function AddToCart({ variants, disabled }: { variants: PublicVariant[]; d
               );
             })}
           </div>
+          <p className="text-muted mt-2 text-xs">
+            Unisex-Schnitt, fällt normal aus. Umtausch ist bei einer Sammelbestellung nicht möglich.
+          </p>
         </fieldset>
       ) : null}
 
-      <div className="flex flex-wrap items-end gap-4">
+      <div className="border-line flex flex-wrap items-end gap-5 border-t pt-5">
         <div>
           <label htmlFor="quantity" className="field-label">
             Menge
@@ -126,7 +146,7 @@ export function AddToCart({ variants, disabled }: { variants: PublicVariant[]; d
           </select>
         </div>
 
-        <p className="text-strong pb-2.5 text-2xl font-semibold">
+        <p className="font-display text-strong pb-1.5 text-3xl font-extrabold tabular-nums">
           {selected ? formatCents(selected.priceCents * quantity) : '—'}
         </p>
       </div>
@@ -140,20 +160,20 @@ export function AddToCart({ variants, disabled }: { variants: PublicVariant[]; d
           type="button"
           onClick={handleAdd}
           disabled={!selected || disabled}
-          className="btn-primary h-12 px-6 text-base"
+          className="btn-primary h-13 flex-1 px-6 text-base sm:flex-none"
         >
           In den Warenkorb
         </button>
 
         {added ? (
-          <Link href="/warenkorb" className="btn-secondary h-12 px-5 text-base">
+          <Link href="/warenkorb" className="btn-secondary h-13 px-5 text-base">
             Zum Warenkorb
           </Link>
         ) : null}
       </div>
 
       {added && selected ? (
-        <p role="status" className="text-sm font-medium text-green-700 dark:text-green-400">
+        <p role="status" className="text-sm font-semibold text-green-700 dark:text-green-400">
           {quantity} × {variantLabel(selected)} wurde hinzugefügt.
         </p>
       ) : null}

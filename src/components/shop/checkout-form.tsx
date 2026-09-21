@@ -125,14 +125,20 @@ export function CheckoutForm({ pickupInfo }: { pickupInfo: string }) {
           {fieldErrors.className ? <p className="field-error">{fieldErrors.className}</p> : null}
         </div>
 
-        <div className="border-line rounded-lg border p-4">
+        {/*
+          Zwei getrennte Häkchen. Das zweite ist der Punkt, an dem erfahrungsgemäß die
+          meisten Rückfragen entstehen ("Wann kommt mein Paket?") – deshalb steht es nicht
+          im Kleingedruckten, sondern hervorgehoben und einzeln zu bestätigen.
+        */}
+        <div className="border-line space-y-4 rounded-xl border p-4">
           <label htmlFor="acceptedTerms" className="flex items-start gap-3 text-sm">
             <input
               id="acceptedTerms"
               name="acceptedTerms"
               type="checkbox"
               required
-              className="mt-0.5 size-4 shrink-0"
+              className="accent-brand-600 mt-0.5 size-4 shrink-0"
+              aria-invalid={Boolean(fieldErrors.acceptedTerms)}
             />
             <span>
               Ich habe die{' '}
@@ -143,6 +149,24 @@ export function CheckoutForm({ pickupInfo }: { pickupInfo: string }) {
             </span>
           </label>
           {fieldErrors.acceptedTerms ? <p className="field-error">{fieldErrors.acceptedTerms}</p> : null}
+        </div>
+
+        <div className="border-gold-500/60 bg-gold-500/10 rounded-xl border p-4">
+          <label htmlFor="acceptedPickup" className="flex items-start gap-3 text-sm">
+            <input
+              id="acceptedPickup"
+              name="acceptedPickup"
+              type="checkbox"
+              required
+              className="accent-brand-600 mt-0.5 size-4 shrink-0"
+              aria-invalid={Boolean(fieldErrors.acceptedPickup)}
+            />
+            <span>
+              <span className="text-strong font-semibold">Kein Versand.</span> Mir ist bekannt, dass der
+              Hoodie in der Schule bei den Q-Sprechern abgeholt werden muss und nicht verschickt wird.
+            </span>
+          </label>
+          {fieldErrors.acceptedPickup ? <p className="field-error">{fieldErrors.acceptedPickup}</p> : null}
         </div>
 
         <SubmitButton disabled={cart.lines.length === 0} />

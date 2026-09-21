@@ -12,8 +12,9 @@ export default async function CartPage() {
   const status = evaluateOrderWindow(window);
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8">
-      <h1 className="mb-6 text-2xl sm:text-3xl">Warenkorb</h1>
+    <div className="mx-auto max-w-5xl px-4 py-10 sm:py-14">
+      <p className="eyebrow text-brand-600 dark:text-brand-400">Schritt 1 von 2</p>
+      <h1 className="mt-3 mb-8 text-3xl sm:text-4xl">Warenkorb</h1>
 
       {!status.isOpen ? (
         <div className="mb-6">

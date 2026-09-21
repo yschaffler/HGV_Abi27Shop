@@ -241,6 +241,7 @@ describe('checkoutSchema', () => {
     className: '13B',
     items: [{ variantId: PULLOVER.id, quantity: 1 }],
     acceptedTerms: true as const,
+    acceptedPickup: true as const,
   };
 
   it('normalisiert die E-Mail-Adresse auf Kleinbuchstaben', () => {
@@ -263,6 +264,17 @@ describe('checkoutSchema', () => {
 
   it('verlangt die Bestaetigung der Bedingungen', () => {
     const parsed = checkoutSchema.safeParse({ ...VALID, acceptedTerms: false });
+    expect(parsed.success).toBe(false);
+  });
+
+  it('verlangt die Bestaetigung der Abholung bei den Q-Sprechern', () => {
+    const parsed = checkoutSchema.safeParse({ ...VALID, acceptedPickup: false });
+    expect(parsed.success).toBe(false);
+  });
+
+  it('lehnt eine Bestellung ohne Abhol-Haekchen ab, auch wenn das Feld ganz fehlt', () => {
+    const { acceptedPickup: _omitted, ...withoutPickup } = VALID;
+    const parsed = checkoutSchema.safeParse(withoutPickup);
     expect(parsed.success).toBe(false);
   });
 

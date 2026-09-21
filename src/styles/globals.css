@@ -1,38 +1,60 @@
 @import 'tailwindcss';
 
 /*
- * Bewusst keine Web-Fonts von externen Anbietern.
- * Google Fonts würde bei jedem Seitenaufruf die IP-Adresse der Besucher an einen US-Dienst
- * übertragen – das müsste in der Datenschutzerklärung stehen und ist für einen Schulshop
- * unnötiger Aufwand. Systemschriften sind außerdem schneller.
+ * Farben und Typografie sind aus dem Hoodie-Design abgeleitet – dem "Abikropolis"-Print
+ * mit der Statue: Olivgrün der Jahreszahl, Gold der Farbspritzer, das tiefe Schwarz des
+ * Schriftzugs und der Cremeton des Stoffs. Wer den Shop neben dem Pulli sieht, soll es
+ * als eine Sache erkennen.
  *
- * Die semantischen Farben stehen als Theme-Variablen in @theme. Dadurch erzeugt Tailwind
- * daraus echte Utilities (bg-surface, text-muted, border-line ...) inklusive
- * Opacity-Modifiern, und der Dark Mode braucht nur neue Werte für dieselben Variablen.
+ * Schriften liegen als Paket im Projekt und werden selbst ausgeliefert (siehe
+ * app/layout.tsx). Google Fonts würde bei jedem Aufruf die IP der Besucher an einen
+ * US-Dienst übertragen – das müsste in die Datenschutzerklärung und ist für einen
+ * Schulshop unnötig.
  */
 @theme {
   --font-sans:
-    system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+    'Inter Variable', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  /* Für Überschriften und alles, was plakativ sein soll. */
+  --font-display:
+    'Archivo Variable', 'Inter Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
 
-  --color-brand-50: oklch(0.97 0.014 275);
-  --color-brand-100: oklch(0.94 0.03 275);
-  --color-brand-200: oklch(0.88 0.06 275);
-  --color-brand-300: oklch(0.8 0.1 275);
-  --color-brand-400: oklch(0.7 0.15 275);
-  --color-brand-500: oklch(0.61 0.19 275);
-  --color-brand-600: oklch(0.53 0.2 275);
-  --color-brand-700: oklch(0.45 0.18 275);
-  --color-brand-800: oklch(0.38 0.14 275);
-  --color-brand-900: oklch(0.31 0.1 275);
-  --color-brand-950: oklch(0.21 0.07 275);
+  /* Olivgrün – die Jahreszahl auf dem Rücken. Trägt die Marke. */
+  --color-brand-50: oklch(0.966 0.012 120);
+  --color-brand-100: oklch(0.928 0.029 119);
+  --color-brand-200: oklch(0.858 0.058 118);
+  --color-brand-300: oklch(0.773 0.082 117);
+  --color-brand-400: oklch(0.687 0.096 116);
+  --color-brand-500: oklch(0.577 0.086 115);
+  --color-brand-600: oklch(0.487 0.073 115);
+  --color-brand-700: oklch(0.404 0.061 115);
+  --color-brand-800: oklch(0.334 0.049 115);
+  --color-brand-900: oklch(0.273 0.039 116);
+  --color-brand-950: oklch(0.186 0.027 117);
 
-  --color-surface: oklch(0.99 0.003 275);
+  /* Gold – die Farbspritzer im Print und die Schrift im Jahrgangslogo. Sparsam einsetzen. */
+  --color-gold-50: oklch(0.974 0.021 92);
+  --color-gold-100: oklch(0.937 0.055 91);
+  --color-gold-200: oklch(0.879 0.104 90);
+  --color-gold-300: oklch(0.816 0.135 87);
+  --color-gold-400: oklch(0.762 0.142 84);
+  --color-gold-500: oklch(0.706 0.132 82);
+  --color-gold-600: oklch(0.597 0.112 80);
+  --color-gold-700: oklch(0.492 0.091 78);
+  --color-gold-800: oklch(0.405 0.073 78);
+  --color-gold-900: oklch(0.341 0.059 79);
+
+  /* Heller Modus: Cremeton des Stoffs, warmes Schwarz statt kaltem Grau. */
+  --color-surface: oklch(0.973 0.006 90);
   --color-surface-raised: oklch(1 0 0);
-  --color-surface-muted: oklch(0.965 0.005 275);
-  --color-line: oklch(0.9 0.008 275);
-  --color-strong: oklch(0.21 0.02 275);
-  --color-normal: oklch(0.34 0.015 275);
-  --color-muted: oklch(0.52 0.015 275);
+  --color-surface-muted: oklch(0.941 0.009 91);
+  --color-line: oklch(0.879 0.012 92);
+  --color-strong: oklch(0.187 0.008 110);
+  --color-normal: oklch(0.361 0.009 106);
+  --color-muted: oklch(0.502 0.010 100);
+
+  /* Der schwarze Hoodie als Nachtansicht: warmes, leicht grünstichiges Schwarz. */
+  --color-night: oklch(0.171 0.008 130);
+  --color-night-raised: oklch(0.219 0.011 130);
 }
 
 :root {
@@ -41,13 +63,20 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --color-surface: oklch(0.19 0.015 275);
-    --color-surface-raised: oklch(0.235 0.018 275);
-    --color-surface-muted: oklch(0.28 0.02 275);
-    --color-line: oklch(0.36 0.02 275);
-    --color-strong: oklch(0.97 0.005 275);
-    --color-normal: oklch(0.89 0.008 275);
-    --color-muted: oklch(0.74 0.012 275);
+    --color-surface: oklch(0.171 0.008 130);
+    --color-surface-raised: oklch(0.219 0.011 130);
+    --color-surface-muted: oklch(0.262 0.013 129);
+    --color-line: oklch(0.336 0.016 128);
+    --color-strong: oklch(0.961 0.008 95);
+    --color-normal: oklch(0.878 0.011 97);
+    --color-muted: oklch(0.699 0.015 99);
+
+    /* Olive und Gold müssen auf dunklem Grund heller werden, sonst verschwinden sie. */
+    --color-brand-500: oklch(0.687 0.096 116);
+    --color-brand-600: oklch(0.627 0.092 115);
+    --color-gold-500: oklch(0.762 0.142 84);
+    --color-gold-600: oklch(0.706 0.132 82);
+
     color-scheme: dark;
   }
 }
@@ -55,6 +84,20 @@
 @layer base {
   html {
     -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+
+  /* Wer Bewegung reduziert haben möchte, bekommt keine weichen Sprünge. */
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 
   body {
@@ -65,13 +108,16 @@
   h2,
   h3,
   h4 {
-    @apply text-strong font-semibold tracking-tight;
+    @apply text-strong font-display font-extrabold tracking-tight;
   }
 
-  /* Sichtbarer Fokus für Tastatur- und Screenreader-Bedienung. */
   :focus-visible {
     @apply outline-2 outline-offset-2 outline-brand-500;
     border-radius: 4px;
+  }
+
+  ::selection {
+    @apply bg-brand-500/25;
   }
 }
 
@@ -80,16 +126,32 @@
     @apply bg-surface-raised border border-line;
   }
 
+  /*
+   * Die Schaltflächen sind bewusst kantig (rounded-lg statt rounded-full) und in
+   * Versalien gesetzt – das nimmt die Anmutung des Prints auf.
+   */
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors;
-    @apply bg-brand-600 text-white hover:bg-brand-700;
-    @apply disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-5 py-3 text-sm font-semibold transition;
+    @apply bg-brand-600 text-white hover:bg-brand-700 active:scale-[0.99];
+    @apply disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100;
   }
 
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors;
-    @apply bg-surface-raised text-strong border border-line hover:bg-surface-muted;
-    @apply disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-5 py-3 text-sm font-semibold transition;
+    @apply bg-surface-raised text-strong border border-line hover:bg-surface-muted active:scale-[0.99];
+    @apply disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100;
+  }
+
+  /* Für dunkle Flächen, etwa im Hero. */
+  .btn-on-dark {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-5 py-3 text-sm font-semibold transition;
+    @apply bg-gold-500 text-brand-950 hover:bg-gold-400 active:scale-[0.99];
+    @apply disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100;
+  }
+
+  /* Kleine Versalien-Auszeichnung, z. B. "Jahrgang 2027" oder Abschnittslabels. */
+  .eyebrow {
+    @apply font-display text-xs font-bold tracking-[0.22em] uppercase;
   }
 
   .field-label {
@@ -103,5 +165,17 @@
 
   .field-error {
     @apply mt-1 text-sm font-medium text-red-600 dark:text-red-400;
+  }
+
+  /* Dünner Trenner mit Goldakzent – greift die Farbspritzer des Prints auf. */
+  .rule-gold {
+    @apply h-px w-full;
+    background: linear-gradient(
+      to right,
+      transparent,
+      var(--color-gold-500) 20%,
+      var(--color-gold-500) 80%,
+      transparent
+    );
   }
 }

@@ -112,8 +112,16 @@ export function SettingsForm({ values }: { values: SettingsFormValues }) {
         <div>
           <h2 className="text-lg">Rechtstexte</h2>
           <p className="text-muted mt-1 text-sm">
-            Diese Texte werden als reiner Text ausgegeben (kein HTML). Vor dem Livegang ausfüllen
-            und rechtlich prüfen lassen – die offenen Punkte stehen in LEGAL_CHECKLIST.md.
+            Markdown ist erlaubt: <code className="bg-surface-muted rounded px-1">#</code> und{' '}
+            <code className="bg-surface-muted rounded px-1">##</code> für Überschriften,{' '}
+            <code className="bg-surface-muted rounded px-1">**fett**</code>,{' '}
+            <code className="bg-surface-muted rounded px-1">-</code> für Aufzählungen und{' '}
+            <code className="bg-surface-muted rounded px-1">[Text](https://…)</code> für Links.
+            HTML wird bewusst nicht ausgewertet und erscheint als Text.
+          </p>
+          <p className="text-muted mt-2 text-sm">
+            Vor dem Livegang ausfüllen und rechtlich prüfen lassen – die offenen Punkte stehen in
+            LEGAL_CHECKLIST.md.
           </p>
         </div>
 

@@ -17,6 +17,7 @@ const CUSTOMER = {
   email: 'max@example.de',
   className: '13B',
   acceptedTerms: true as const,
+  acceptedPickup: true as const,
 };
 
 describe('createPendingOrder – gueltige Bestellung', () => {

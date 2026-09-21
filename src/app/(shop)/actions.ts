@@ -90,7 +90,12 @@ export async function resolveCartAction(rawItems: unknown): Promise<CartViewStat
 export type CheckoutFormState = {
   status: 'idle' | 'error';
   message?: string;
-  fieldErrors?: Partial<Record<'firstName' | 'lastName' | 'email' | 'className' | 'acceptedTerms' | 'items', string>>;
+  fieldErrors?: Partial<
+    Record<
+      'firstName' | 'lastName' | 'email' | 'className' | 'acceptedTerms' | 'acceptedPickup' | 'items',
+      string
+    >
+  >;
 };
 
 const itemsFieldSchema = z
@@ -133,6 +138,7 @@ export async function submitCheckoutAction(
     email: formData.get('email'),
     className: formData.get('className'),
     acceptedTerms: formData.get('acceptedTerms') === 'on',
+    acceptedPickup: formData.get('acceptedPickup') === 'on',
     items: itemsRaw.data,
   });
 

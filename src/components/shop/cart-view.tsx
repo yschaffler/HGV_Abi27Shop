@@ -126,7 +126,7 @@ export function CartView({ orderingOpen }: { orderingOpen: boolean }) {
         )}
 
         <p className="text-muted mt-3 text-xs">
-          Kein Versand. Die Ausgabe erfolgt gesammelt in der Schule.
+          Kein Versand. Die Ausgabe erfolgt in der Schule bei den Q-Sprechern.
         </p>
       </aside>
     </div>
