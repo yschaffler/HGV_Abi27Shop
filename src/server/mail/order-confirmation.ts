@@ -140,7 +140,7 @@ export async function sendOrderConfirmation(orderId: string): Promise<void> {
       <p style="white-space:pre-line;margin:0 0 20px">${escapeHtml(settings.pickupInfo)}</p>
 
       <p style="margin:0 0 8px">
-        <a href="${escapeHtml(orderUrl)}" style="display:inline-block;background:#4f46e5;color:#ffffff;padding:11px 18px;border-radius:8px;text-decoration:none">
+        <a href="${escapeHtml(orderUrl)}" style="display:inline-block;background:#6e7d4d;color:#ffffff;padding:11px 18px;border-radius:8px;text-decoration:none">
           Bestellung ansehen
         </a>
       </p>

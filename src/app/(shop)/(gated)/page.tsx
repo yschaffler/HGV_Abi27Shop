@@ -145,7 +145,7 @@ export default async function ShopHomePage() {
               <Badge variant="gold" className="text-gold-200">
                 Sammelbestellung
               </Badge>
-              <span className="eyebrow text-white/50">Q13 · HG Vaterstetten</span>
+              <span className="eyebrow text-white/50">Q13 · HGV</span>
             </div>
 
             <h1 className="font-display mt-5 text-4xl leading-[1.05] font-extrabold tracking-tight text-white sm:text-6xl">

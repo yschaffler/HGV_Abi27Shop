@@ -3,8 +3,7 @@ import Link from 'next/link';
 const LEGAL_LINKS = [
   { href: '/rechtliches/impressum', label: 'Impressum' },
   { href: '/rechtliches/datenschutz', label: 'Datenschutz' },
-  { href: '/rechtliches/widerruf', label: 'Widerruf' },
-  { href: '/rechtliches/agb', label: 'AGB' },
+  { href: '/rechtliches/widerruf', label: 'Widerruf' }
 ];
 
 export function SiteFooter({ shopName, contactEmail }: { shopName: string; contactEmail: string }) {
