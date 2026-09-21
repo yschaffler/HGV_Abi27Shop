@@ -81,6 +81,11 @@ export const RATE_LIMITS = {
   distributionAction: { limit: 300, windowMs: 60 * 1000 },
   /** Bestätigungsmails je Empfänger. */
   email: { limit: 5, windowMs: 60 * 60 * 1000 },
+  /**
+   * Zugangscode je IP. Eng gesetzt: Ein kurzer, im Chat geteilter Code hat wenig
+   * Entropie, deshalb ist die Bremse hier der eigentliche Schutz.
+   */
+  accessCode: { limit: 10, windowMs: 10 * 60 * 1000 },
   /** Exporte – erzeugen Last auf der Datenbank. */
   export: { limit: 30, windowMs: 10 * 60 * 1000 },
 } as const satisfies Record<string, RateLimitRule>;

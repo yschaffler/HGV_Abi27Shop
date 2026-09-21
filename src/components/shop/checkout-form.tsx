@@ -3,7 +3,15 @@
 import { useActionState, useEffect, useState, useTransition } from 'react';
 import Link from 'next/link';
 import { useFormStatus } from 'react-dom';
+import { CircleAlertIcon, MapPinIcon, UsersIcon } from 'lucide-react';
 import { useCart } from '@/components/use-cart';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
 import { formatCents } from '@/lib/money';
 import {
   resolveCartAction,
@@ -18,9 +26,46 @@ function SubmitButton({ disabled }: { disabled: boolean }) {
   const { pending } = useFormStatus();
 
   return (
-    <button type="submit" disabled={disabled || pending} className="btn-primary h-12 w-full text-base">
+    <Button type="submit" size="xl" disabled={disabled || pending} className="w-full">
       {pending ? 'Weiterleitung zur Zahlung …' : 'Zahlungspflichtig bestellen'}
-    </button>
+    </Button>
+  );
+}
+
+/**
+ * Bestätigungsfeld.
+ *
+ * Radix-Checkbox statt <input type="checkbox">: Das native Feld lässt sich nicht zuverlässig
+ * gestalten. Radix rendert deshalb einen Button und schiebt ein verstecktes Eingabefeld
+ * daneben, das den Wert an das Formular weitergibt – auch bei einem klassischen POST ohne
+ * JavaScript im Spiel. Die Pflicht wird ohnehin serverseitig geprüft.
+ */
+function ConfirmationField({
+  id,
+  error,
+  children,
+  className,
+}: {
+  id: string;
+  error?: string | undefined;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={className}>
+      <div className="flex items-start gap-3">
+        <Checkbox id={id} name={id} required aria-invalid={Boolean(error)} className="mt-0.5" />
+        {/*
+          Label ist bei shadcn/ui ein Flex-Container – sinnvoll fuer "Icon + ein Wort",
+          hier falsch: Jedes Wort und jeder Link wuerde zu einer eigenen Spalte. Deshalb
+          zurueck auf normalen Textfluss.
+        */}
+        <Label htmlFor={id} className="text-muted-foreground block text-sm leading-relaxed font-normal">
+          {children}
+        </Label>
+      </div>
+      {error ? <p className="text-destructive mt-2 text-sm font-medium">{error}</p> : null}
+    </div>
   );
 }
 
@@ -35,16 +80,18 @@ export function CheckoutForm({ pickupInfo }: { pickupInfo: string }) {
     startTransition(async () => setCart(await resolveCartAction(items)));
   }, [items, ready]);
 
-  if (!ready || cart === null) return <p className="text-muted">Wird geladen …</p>;
+  if (!ready || cart === null) return <p className="text-muted-foreground">Wird geladen …</p>;
 
   if (!cart.ok || cart.lines.length === 0) {
     return (
-      <div className="surface-card rounded-2xl px-4 py-12 text-center">
-        <p className="text-strong text-lg font-semibold">Der Warenkorb ist leer</p>
-        <Link href="/" className="btn-primary mt-5">
-          Artikel ansehen
-        </Link>
-      </div>
+      <Card>
+        <CardContent className="py-12 text-center">
+          <p className="text-foreground text-lg font-semibold">Der Warenkorb ist leer</p>
+          <Button asChild className="mt-5">
+            <Link href="/">Zum Hoodie</Link>
+          </Button>
+        </CardContent>
+      </Card>
     );
   }
 
@@ -52,153 +99,191 @@ export function CheckoutForm({ pickupInfo }: { pickupInfo: string }) {
 
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_20rem]">
-      <form action={formAction} className="surface-card space-y-5 rounded-2xl p-5">
-        {/*
-          Der Warenkorb wird als IDs und Mengen mitgeschickt. Preise stehen hier bewusst nicht
-          drin – der Server berechnet sie neu aus der Datenbank.
-        */}
-        <input type="hidden" name="items" value={JSON.stringify(items)} />
+      <form action={formAction}>
+        <Card>
+          <CardContent className="space-y-6">
+            {/*
+              Der Warenkorb wird als IDs und Mengen mitgeschickt. Preise stehen hier bewusst
+              nicht drin – der Server berechnet sie neu aus der Datenbank.
+            */}
+            <input type="hidden" name="items" value={JSON.stringify(items)} />
 
-        {state.status === 'error' && state.message ? (
-          <p role="alert" className="rounded-lg bg-red-50 px-4 py-3 text-sm font-medium text-red-800 dark:bg-red-950 dark:text-red-200">
-            {state.message}
-          </p>
-        ) : null}
+            {state.status === 'error' && state.message ? (
+              <Alert variant="destructive">
+                <CircleAlertIcon aria-hidden="true" />
+                <AlertDescription>
+                  <p>{state.message}</p>
+                </AlertDescription>
+              </Alert>
+            ) : null}
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <label htmlFor="firstName" className="field-label">Vorname</label>
-            <input
-              id="firstName"
-              name="firstName"
-              required
-              maxLength={80}
-              autoComplete="given-name"
-              className="field-input"
-              aria-invalid={Boolean(fieldErrors.firstName)}
-            />
-            {fieldErrors.firstName ? <p className="field-error">{fieldErrors.firstName}</p> : null}
-          </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <Label htmlFor="firstName" className="mb-1.5">
+                  Vorname
+                </Label>
+                <Input
+                  id="firstName"
+                  name="firstName"
+                  required
+                  maxLength={80}
+                  autoComplete="given-name"
+                  aria-invalid={Boolean(fieldErrors.firstName)}
+                />
+                {fieldErrors.firstName ? (
+                  <p className="text-destructive mt-1 text-sm font-medium">{fieldErrors.firstName}</p>
+                ) : null}
+              </div>
 
-          <div>
-            <label htmlFor="lastName" className="field-label">Nachname</label>
-            <input
-              id="lastName"
-              name="lastName"
-              required
-              maxLength={80}
-              autoComplete="family-name"
-              className="field-input"
-              aria-invalid={Boolean(fieldErrors.lastName)}
-            />
-            {fieldErrors.lastName ? <p className="field-error">{fieldErrors.lastName}</p> : null}
-          </div>
-        </div>
+              <div>
+                <Label htmlFor="lastName" className="mb-1.5">
+                  Nachname
+                </Label>
+                <Input
+                  id="lastName"
+                  name="lastName"
+                  required
+                  maxLength={80}
+                  autoComplete="family-name"
+                  aria-invalid={Boolean(fieldErrors.lastName)}
+                />
+                {fieldErrors.lastName ? (
+                  <p className="text-destructive mt-1 text-sm font-medium">{fieldErrors.lastName}</p>
+                ) : null}
+              </div>
+            </div>
 
-        <div>
-          <label htmlFor="email" className="field-label">E-Mail-Adresse</label>
-          <input
-            id="email"
-            name="email"
-            type="email"
-            required
-            maxLength={180}
-            autoComplete="email"
-            className="field-input"
-            aria-invalid={Boolean(fieldErrors.email)}
-          />
-          <p className="text-muted mt-1 text-xs">Hierhin geht die Bestellbestätigung.</p>
-          {fieldErrors.email ? <p className="field-error">{fieldErrors.email}</p> : null}
-        </div>
+            <div>
+              <Label htmlFor="email" className="mb-1.5">
+                E-Mail-Adresse
+              </Label>
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                required
+                maxLength={180}
+                autoComplete="email"
+                aria-invalid={Boolean(fieldErrors.email)}
+              />
+              <p className="text-muted-foreground mt-1 text-xs">Hierhin geht die Bestellbestätigung.</p>
+              {fieldErrors.email ? (
+                <p className="text-destructive mt-1 text-sm font-medium">{fieldErrors.email}</p>
+              ) : null}
+            </div>
 
-        <div>
-          <label htmlFor="className" className="field-label">Klasse</label>
-          <input
-            id="className"
-            name="className"
-            required
-            maxLength={20}
-            placeholder="z. B. 13B"
-            className="field-input sm:max-w-40"
-            aria-invalid={Boolean(fieldErrors.className)}
-          />
-          {fieldErrors.className ? <p className="field-error">{fieldErrors.className}</p> : null}
-        </div>
+            <div>
+              <Label htmlFor="className" className="mb-1.5">
+                Kurs oder Klasse
+              </Label>
+              <Input
+                id="className"
+                name="className"
+                required
+                maxLength={20}
+                placeholder="z. B. Q13"
+                className="sm:max-w-40"
+                aria-invalid={Boolean(fieldErrors.className)}
+              />
+              <p className="text-muted-foreground mt-1 text-xs">
+                Hilft bei der Ausgabe, deinen Pulli schneller zu finden.
+              </p>
+              {fieldErrors.className ? (
+                <p className="text-destructive mt-1 text-sm font-medium">{fieldErrors.className}</p>
+              ) : null}
+            </div>
 
-        {/*
-          Zwei getrennte Häkchen. Das zweite ist der Punkt, an dem erfahrungsgemäß die
-          meisten Rückfragen entstehen ("Wann kommt mein Paket?") – deshalb steht es nicht
-          im Kleingedruckten, sondern hervorgehoben und einzeln zu bestätigen.
-        */}
-        <div className="border-line space-y-4 rounded-xl border p-4">
-          <label htmlFor="acceptedTerms" className="flex items-start gap-3 text-sm">
-            <input
+            <Separator />
+
+            {/*
+              Zwei getrennte Häkchen. Das zweite ist der Punkt, an dem erfahrungsgemäß die
+              meisten Rückfragen entstehen ("Wann kommt mein Paket?") – deshalb steht es nicht
+              im Kleingedruckten, sondern hervorgehoben und einzeln zu bestätigen.
+            */}
+            <ConfirmationField
               id="acceptedTerms"
-              name="acceptedTerms"
-              type="checkbox"
-              required
-              className="accent-brand-600 mt-0.5 size-4 shrink-0"
-              aria-invalid={Boolean(fieldErrors.acceptedTerms)}
-            />
-            <span>
+              error={fieldErrors.acceptedTerms}
+              className="border-border rounded-lg border p-4"
+            >
               Ich habe die{' '}
-              <Link href="/rechtliches/datenschutz" className="underline" target="_blank">Datenschutzhinweise</Link>,{' '}
-              die <Link href="/rechtliches/agb" className="underline" target="_blank">Bedingungen</Link> und die{' '}
-              <Link href="/rechtliches/widerruf" className="underline" target="_blank">Widerrufsinformationen</Link>{' '}
+              <Link href="/rechtliches/datenschutz" className="text-primary underline" target="_blank">
+                Datenschutzhinweise
+              </Link>
+              , die{' '}
+              <Link href="/rechtliches/agb" className="text-primary underline" target="_blank">
+                Bedingungen
+              </Link>{' '}
+              und die{' '}
+              <Link href="/rechtliches/widerruf" className="text-primary underline" target="_blank">
+                Widerrufsinformationen
+              </Link>{' '}
               gelesen und bestelle kostenpflichtig.
-            </span>
-          </label>
-          {fieldErrors.acceptedTerms ? <p className="field-error">{fieldErrors.acceptedTerms}</p> : null}
-        </div>
+            </ConfirmationField>
 
-        <div className="border-gold-500/60 bg-gold-500/10 rounded-xl border p-4">
-          <label htmlFor="acceptedPickup" className="flex items-start gap-3 text-sm">
-            <input
+            <ConfirmationField
               id="acceptedPickup"
-              name="acceptedPickup"
-              type="checkbox"
-              required
-              className="accent-brand-600 mt-0.5 size-4 shrink-0"
-              aria-invalid={Boolean(fieldErrors.acceptedPickup)}
-            />
-            <span>
-              <span className="text-strong font-semibold">Kein Versand.</span> Mir ist bekannt, dass der
-              Hoodie in der Schule bei den Q-Sprechern abgeholt werden muss und nicht verschickt wird.
-            </span>
-          </label>
-          {fieldErrors.acceptedPickup ? <p className="field-error">{fieldErrors.acceptedPickup}</p> : null}
-        </div>
+              error={fieldErrors.acceptedPickup}
+              className="border-gold-500/60 bg-gold-500/10 rounded-lg border p-4"
+            >
+              <span>
+                <span className="text-foreground font-semibold">
+                  Sammelbestellung, kein Versand.
+                </span>{' '}
+                Mir ist bekannt, dass der Hoodie gemeinsam mit dem gesamten Jahrgang bestellt und
+                in der Schule bei den Q-Sprechern abgeholt werden muss – er wird nicht verschickt.
+              </span>
+            </ConfirmationField>
 
-        <SubmitButton disabled={cart.lines.length === 0} />
+            <SubmitButton disabled={cart.lines.length === 0} />
 
-        <p className="text-muted text-xs">
-          Die Zahlung läuft über Stripe. Zahlungsdaten werden ausschließlich dort verarbeitet
-          und niemals in diesem Shop gespeichert.
-        </p>
+            <p className="text-muted-foreground text-xs">
+              Die Zahlung läuft über Stripe. Zahlungsdaten werden ausschließlich dort verarbeitet
+              und niemals in diesem Shop gespeichert.
+            </p>
+          </CardContent>
+        </Card>
       </form>
 
-      <aside className="surface-card h-fit rounded-2xl p-5 lg:sticky lg:top-20">
-        <h2 className="text-lg">Deine Bestellung</h2>
-        <ul className="border-line mt-4 space-y-3 border-b pb-4 text-sm">
-          {cart.lines.map((line) => (
-            <li key={line.variantId} className="flex justify-between gap-3">
-              <span>
-                <span className="text-strong font-medium">{line.quantity} × {line.productName}</span>
-                <br />
-                <span className="text-muted">{line.variantLabel}</span>
-              </span>
-              <span className="whitespace-nowrap">{formatCents(line.lineTotalCents)}</span>
-            </li>
-          ))}
-        </ul>
+      <aside className="h-fit lg:sticky lg:top-20">
+        <Card>
+          <CardHeader>
+            <CardTitle>Deine Bestellung</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-3 text-sm">
+              {cart.lines.map((line) => (
+                <li key={line.variantId} className="flex justify-between gap-3">
+                  <span>
+                    <span className="text-foreground font-medium">
+                      {line.quantity} × {line.productName}
+                    </span>
+                    <br />
+                    <span className="text-muted-foreground">{line.variantLabel}</span>
+                  </span>
+                  <span className="whitespace-nowrap tabular-nums">{formatCents(line.lineTotalCents)}</span>
+                </li>
+              ))}
+            </ul>
 
-        <p className="text-strong mt-4 flex justify-between text-base font-semibold">
-          <span>Gesamt</span>
-          <span>{formatCents(cart.totalCents)}</span>
-        </p>
+            <Separator className="my-4" />
 
-        <h3 className="text-strong mt-5 text-sm font-semibold">Abholung</h3>
-        <p className="text-muted mt-1 text-xs whitespace-pre-line">{pickupInfo}</p>
+            <p className="text-foreground flex justify-between text-base font-semibold">
+              <span>Gesamt</span>
+              <span className="tabular-nums">{formatCents(cart.totalCents)}</span>
+            </p>
+
+            <div className="text-muted-foreground mt-5 space-y-2 text-xs">
+              <p className="flex items-start gap-2">
+                <UsersIcon className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
+                Teil der Sammelbestellung der Q13.
+              </p>
+              <p className="flex items-start gap-2">
+                <MapPinIcon className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
+                <span className="whitespace-pre-line">{pickupInfo}</span>
+              </p>
+            </div>
+          </CardContent>
+        </Card>
       </aside>
     </div>
   );

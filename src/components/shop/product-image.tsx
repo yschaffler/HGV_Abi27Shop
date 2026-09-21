@@ -17,10 +17,10 @@ export function ProductImage({
   if (!imageId) {
     return (
       <div
-        className={`grid place-items-center bg-surface-muted ${className}`}
+        className={`grid place-items-center bg-muted ${className}`}
         aria-hidden="true"
       >
-        <svg viewBox="0 0 24 24" className="text-muted size-10" fill="none" stroke="currentColor" strokeWidth="1.3">
+        <svg viewBox="0 0 24 24" className="text-muted-foreground size-10" fill="none" stroke="currentColor" strokeWidth="1.3">
           <path strokeLinecap="round" strokeLinejoin="round" d="M4 16.5 8.5 12l3 3 3.5-3.5L20 16.5M4 5h16v14H4z" />
         </svg>
       </div>

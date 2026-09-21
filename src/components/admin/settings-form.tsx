@@ -44,7 +44,7 @@ function LegalField({
     <div>
       <label htmlFor={id} className="field-label">{label}</label>
       <textarea id={id} name={id} rows={8} maxLength={20000} defaultValue={defaultValue} className="field-input font-mono text-sm" />
-      <p className="text-muted mt-1 text-xs">{hint}</p>
+      <p className="text-muted-foreground mt-1 text-xs">{hint}</p>
     </div>
   );
 }
@@ -74,7 +74,7 @@ export function SettingsForm({ values }: { values: SettingsFormValues }) {
 
       <section className="surface-card space-y-4 rounded-xl p-5">
         <h2 className="text-lg">Bestellzeitraum</h2>
-        <p className="text-muted text-sm">
+        <p className="text-muted-foreground text-sm">
           Zeiten in deutscher Ortszeit (Europe/Berlin). Außerhalb dieses Zeitraums lehnt der
           Server neue Bestellungen ab – unabhängig davon, was im Browser noch offen ist.
         </p>
@@ -102,7 +102,7 @@ export function SettingsForm({ values }: { values: SettingsFormValues }) {
         <div>
           <label htmlFor="pickupInfo" className="field-label">Hinweis zur Ausgabe</label>
           <textarea id="pickupInfo" name="pickupInfo" rows={4} maxLength={2000} defaultValue={values.pickupInfo} className="field-input" />
-          <p className="text-muted mt-1 text-xs">
+          <p className="text-muted-foreground mt-1 text-xs">
             Erscheint im Shop, auf der Bestellseite und in der Bestätigungsmail.
           </p>
         </div>
@@ -111,15 +111,15 @@ export function SettingsForm({ values }: { values: SettingsFormValues }) {
       <section className="surface-card space-y-5 rounded-xl p-5">
         <div>
           <h2 className="text-lg">Rechtstexte</h2>
-          <p className="text-muted mt-1 text-sm">
-            Markdown ist erlaubt: <code className="bg-surface-muted rounded px-1">#</code> und{' '}
-            <code className="bg-surface-muted rounded px-1">##</code> für Überschriften,{' '}
-            <code className="bg-surface-muted rounded px-1">**fett**</code>,{' '}
-            <code className="bg-surface-muted rounded px-1">-</code> für Aufzählungen und{' '}
-            <code className="bg-surface-muted rounded px-1">[Text](https://…)</code> für Links.
+          <p className="text-muted-foreground mt-1 text-sm">
+            Markdown ist erlaubt: <code className="bg-muted rounded px-1">#</code> und{' '}
+            <code className="bg-muted rounded px-1">##</code> für Überschriften,{' '}
+            <code className="bg-muted rounded px-1">**fett**</code>,{' '}
+            <code className="bg-muted rounded px-1">-</code> für Aufzählungen und{' '}
+            <code className="bg-muted rounded px-1">[Text](https://…)</code> für Links.
             HTML wird bewusst nicht ausgewertet und erscheint als Text.
           </p>
-          <p className="text-muted mt-2 text-sm">
+          <p className="text-muted-foreground mt-2 text-sm">
             Vor dem Livegang ausfüllen und rechtlich prüfen lassen – die offenen Punkte stehen in
             LEGAL_CHECKLIST.md.
           </p>

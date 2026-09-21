@@ -2,7 +2,13 @@
 
 import { useEffect, useState, useTransition } from 'react';
 import Link from 'next/link';
+import { MapPinIcon, Trash2Icon, UsersIcon } from 'lucide-react';
 import { useCart } from '@/components/use-cart';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { NativeSelect } from '@/components/ui/native-select';
+import { Separator } from '@/components/ui/separator';
 import { formatCents } from '@/lib/money';
 import { ORDER_LIMITS } from '@/lib/validation/order';
 import { resolveCartAction, type CartViewState } from '@/app/(shop)/actions';
@@ -34,26 +40,30 @@ export function CartView({ orderingOpen }: { orderingOpen: boolean }) {
   }, [items, ready, remove]);
 
   if (!ready || (state === null && pending)) {
-    return <p className="text-muted">Warenkorb wird geladen …</p>;
+    return <p className="text-muted-foreground">Warenkorb wird geladen …</p>;
   }
 
   if (state && !state.ok) {
     return (
-      <div className="surface-card rounded-xl p-4">
-        <p className="text-red-700 dark:text-red-400">{state.message}</p>
-      </div>
+      <Alert variant="destructive">
+        <AlertDescription>
+          <p>{state.message}</p>
+        </AlertDescription>
+      </Alert>
     );
   }
 
   if (!state || state.lines.length === 0) {
     return (
-      <div className="surface-card rounded-2xl px-4 py-12 text-center">
-        <p className="text-strong text-lg font-semibold">Der Warenkorb ist leer</p>
-        <p className="text-muted mt-1">Such dir etwas aus – du kannst jederzeit zurück.</p>
-        <Link href="/" className="btn-primary mt-5">
-          Artikel ansehen
-        </Link>
-      </div>
+      <Card>
+        <CardContent className="py-12 text-center">
+          <p className="text-foreground text-lg font-semibold">Der Warenkorb ist leer</p>
+          <p className="text-muted-foreground mt-1">Such dir etwas aus – du kannst jederzeit zurück.</p>
+          <Button asChild className="mt-5">
+            <Link href="/">Zum Hoodie</Link>
+          </Button>
+        </CardContent>
+      </Card>
     );
   }
 
@@ -61,73 +71,103 @@ export function CartView({ orderingOpen }: { orderingOpen: boolean }) {
     <div className="grid gap-6 lg:grid-cols-[1fr_20rem]">
       <ul className="space-y-3">
         {state.lines.map((line) => (
-          <li key={line.variantId} className="surface-card flex flex-wrap items-center gap-4 rounded-xl p-4">
-            <div className="min-w-40 flex-1">
-              <p className="text-strong font-semibold">{line.productName}</p>
-              <p className="text-muted text-sm">{line.variantLabel}</p>
-              <p className="text-muted mt-1 text-sm">{formatCents(line.unitPriceCents)} je Stück</p>
-            </div>
+          <li key={line.variantId}>
+            <Card className="gap-0 py-4">
+              <CardContent className="flex flex-wrap items-center gap-4 px-4">
+                <div className="min-w-40 flex-1">
+                  <p className="text-foreground font-semibold">{line.productName}</p>
+                  <p className="text-muted-foreground text-sm">{line.variantLabel}</p>
+                  <p className="text-muted-foreground mt-1 text-sm">
+                    {formatCents(line.unitPriceCents)} je Stück
+                  </p>
+                </div>
 
-            <div className="flex items-center gap-3">
-              <label className="sr-only" htmlFor={`qty-${line.variantId}`}>
-                Menge für {line.productName}
-              </label>
-              <select
-                id={`qty-${line.variantId}`}
-                value={line.quantity}
-                onChange={(event) => setQuantity(line.variantId, Number(event.target.value))}
-                className="field-input w-20"
-              >
-                {Array.from({ length: ORDER_LIMITS.maxQuantityPerLine }, (_, index) => index + 1).map((value) => (
-                  <option key={value} value={value}>
-                    {value}
-                  </option>
-                ))}
-              </select>
+                <div className="flex items-center gap-3">
+                  <label className="sr-only" htmlFor={`qty-${line.variantId}`}>
+                    Menge für {line.productName}
+                  </label>
+                  <NativeSelect
+                    id={`qty-${line.variantId}`}
+                    value={line.quantity}
+                    onChange={(event) => setQuantity(line.variantId, Number(event.target.value))}
+                    className="w-20"
+                  >
+                    {Array.from({ length: ORDER_LIMITS.maxQuantityPerLine }, (_, index) => index + 1).map(
+                      (value) => (
+                        <option key={value} value={value}>
+                          {value}
+                        </option>
+                      ),
+                    )}
+                  </NativeSelect>
 
-              <p className="text-strong w-24 text-right font-semibold">{formatCents(line.lineTotalCents)}</p>
+                  <p className="text-foreground w-24 text-right font-semibold tabular-nums">
+                    {formatCents(line.lineTotalCents)}
+                  </p>
 
-              <button
-                type="button"
-                onClick={() => remove(line.variantId)}
-                className="text-muted rounded-lg p-2 hover:text-red-600"
-                aria-label={`${line.productName} entfernen`}
-              >
-                <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="1.8">
-                  <path strokeLinecap="round" d="M5 7h14M10 7V5h4v2M7 7l1 12h8l1-12" />
-                </svg>
-              </button>
-            </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => remove(line.variantId)}
+                    aria-label={`${line.productName} entfernen`}
+                    className="text-muted-foreground hover:text-destructive"
+                  >
+                    <Trash2Icon aria-hidden="true" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           </li>
         ))}
       </ul>
 
-      <aside className="surface-card h-fit rounded-2xl p-5 lg:sticky lg:top-20">
-        <h2 className="text-lg">Zusammenfassung</h2>
-        <dl className="mt-4 space-y-2 text-sm">
-          <div className="flex justify-between">
-            <dt className="text-muted">Artikel</dt>
-            <dd>{state.totalQuantity}</dd>
-          </div>
-          <div className="border-line text-strong flex justify-between border-t pt-3 text-base font-semibold">
-            <dt>Gesamt</dt>
-            <dd>{formatCents(state.totalCents)}</dd>
-          </div>
-        </dl>
+      <aside className="h-fit lg:sticky lg:top-20">
+        <Card>
+          <CardHeader>
+            <CardTitle>Zusammenfassung</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <dl className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <dt className="text-muted-foreground">Artikel</dt>
+                <dd className="tabular-nums">{state.totalQuantity}</dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="text-muted-foreground">Versand</dt>
+                <dd>entfällt</dd>
+              </div>
+            </dl>
 
-        {orderingOpen ? (
-          <Link href="/checkout" className="btn-primary mt-5 w-full">
-            Zur Kasse
-          </Link>
-        ) : (
-          <p className="text-muted mt-5 text-sm">
-            Außerhalb des Bestellzeitraums kann nicht bestellt werden.
-          </p>
-        )}
+            <Separator className="my-3" />
 
-        <p className="text-muted mt-3 text-xs">
-          Kein Versand. Die Ausgabe erfolgt in der Schule bei den Q-Sprechern.
-        </p>
+            <p className="text-foreground flex justify-between text-base font-semibold">
+              <span>Gesamt</span>
+              <span className="tabular-nums">{formatCents(state.totalCents)}</span>
+            </p>
+
+            {orderingOpen ? (
+              <Button asChild size="lg" className="mt-5 w-full">
+                <Link href="/checkout">Zur Kasse</Link>
+              </Button>
+            ) : (
+              <p className="text-muted-foreground mt-5 text-sm">
+                Außerhalb des Bestellzeitraums kann nicht bestellt werden.
+              </p>
+            )}
+
+            <div className="text-muted-foreground mt-4 space-y-2 text-xs">
+              <p className="flex items-start gap-2">
+                <UsersIcon className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
+                Teil der Sammelbestellung der Q13 – alle Pullis gehen gemeinsam zum Hersteller.
+              </p>
+              <p className="flex items-start gap-2">
+                <MapPinIcon className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
+                Kein Versand. Ausgabe in der Schule bei den Q-Sprechern.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
       </aside>
     </div>
   );

@@ -13,8 +13,12 @@ export default async function CartPage() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10 sm:py-14">
-      <p className="eyebrow text-brand-600 dark:text-brand-400">Schritt 1 von 2</p>
-      <h1 className="mt-3 mb-8 text-3xl sm:text-4xl">Warenkorb</h1>
+      <p className="eyebrow text-primary">Schritt 1 von 2</p>
+      <h1 className="mt-3 text-3xl sm:text-4xl">Warenkorb</h1>
+      <p className="text-muted-foreground mt-2 mb-8 max-w-xl text-sm">
+        Alles hier landet in der Sammelbestellung der Q13 und wird später in der Schule bei den
+        Q-Sprechern ausgegeben.
+      </p>
 
       {!status.isOpen ? (
         <div className="mb-6">

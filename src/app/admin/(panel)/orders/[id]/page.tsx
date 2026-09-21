@@ -27,7 +27,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
 
   return (
     <div className="space-y-5">
-      <Link href="/admin/orders" className="text-muted text-sm hover:underline">
+      <Link href="/admin/orders" className="text-muted-foreground text-sm hover:underline">
         ← Alle Bestellungen
       </Link>
 
@@ -43,28 +43,28 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
             <h2 className="text-lg">Positionen</h2>
             <ul className="mt-3 space-y-3">
               {order.items.map((item) => (
-                <li key={item.id} className="border-line flex flex-wrap items-start justify-between gap-3 border-b pb-3 last:border-0 last:pb-0">
+                <li key={item.id} className="border-border flex flex-wrap items-start justify-between gap-3 border-b pb-3 last:border-0 last:pb-0">
                   <div>
-                    <p className="text-strong font-medium">{item.quantity} × {item.productName}</p>
-                    <p className="text-muted text-sm">{item.variantLabel}</p>
+                    <p className="text-foreground font-medium">{item.quantity} × {item.productName}</p>
+                    <p className="text-muted-foreground text-sm">{item.variantLabel}</p>
                     <p className="mt-1 text-xs">
                       {item.distributionStatus === 'DISTRIBUTED' ? (
-                        <span className="font-semibold text-green-700 dark:text-green-400">
+                        <span className="text-success-fg font-semibold">
                           Ausgegeben
                           {item.distributedAt ? ` am ${DATE_FORMAT.format(item.distributedAt)}` : ''}
                           {item.distributedBy ? ` von ${item.distributedBy.name}` : ''}
                         </span>
                       ) : (
-                        <span className="text-muted">Noch nicht ausgegeben</span>
+                        <span className="text-muted-foreground">Noch nicht ausgegeben</span>
                       )}
                     </p>
                   </div>
-                  <p className="text-strong font-semibold tabular-nums">{formatCents(item.lineTotalCents)}</p>
+                  <p className="text-foreground font-semibold tabular-nums">{formatCents(item.lineTotalCents)}</p>
                 </li>
               ))}
             </ul>
 
-            <p className="text-strong border-line mt-4 flex justify-between border-t pt-4 font-semibold">
+            <p className="text-foreground border-border mt-4 flex justify-between border-t pt-4 font-semibold">
               <span>Gesamt</span>
               <span className="tabular-nums">{formatCents(order.totalCents)}</span>
             </p>
@@ -87,30 +87,30 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
             <h2 className="text-lg">Besteller</h2>
             <dl className="mt-3 space-y-2 text-sm">
               <div>
-                <dt className="text-muted">Name</dt>
-                <dd className="text-strong">{order.firstName} {order.lastName}</dd>
+                <dt className="text-muted-foreground">Name</dt>
+                <dd className="text-foreground">{order.firstName} {order.lastName}</dd>
               </div>
               <div>
-                <dt className="text-muted">Klasse</dt>
-                <dd className="text-strong">{order.className}</dd>
+                <dt className="text-muted-foreground">Klasse</dt>
+                <dd className="text-foreground">{order.className}</dd>
               </div>
               <div>
-                <dt className="text-muted">E-Mail</dt>
-                <dd className="text-strong break-all">{order.email}</dd>
+                <dt className="text-muted-foreground">E-Mail</dt>
+                <dd className="text-foreground break-all">{order.email}</dd>
               </div>
               <div>
-                <dt className="text-muted">Bestellt am</dt>
-                <dd className="text-strong">{DATE_FORMAT.format(order.createdAt)}</dd>
+                <dt className="text-muted-foreground">Bestellt am</dt>
+                <dd className="text-foreground">{DATE_FORMAT.format(order.createdAt)}</dd>
               </div>
               {order.paidAt ? (
                 <div>
-                  <dt className="text-muted">Bezahlt am</dt>
-                  <dd className="text-strong">{DATE_FORMAT.format(order.paidAt)}</dd>
+                  <dt className="text-muted-foreground">Bezahlt am</dt>
+                  <dd className="text-foreground">{DATE_FORMAT.format(order.paidAt)}</dd>
                 </div>
               ) : null}
               <div>
-                <dt className="text-muted">Bestätigungsmail</dt>
-                <dd className="text-strong">
+                <dt className="text-muted-foreground">Bestätigungsmail</dt>
+                <dd className="text-foreground">
                   {order.confirmationEmailSentAt ? DATE_FORMAT.format(order.confirmationEmailSentAt) : 'nicht versendet'}
                 </dd>
               </div>
@@ -121,23 +121,23 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
             <h2 className="text-lg">Zahlung</h2>
             <dl className="mt-3 space-y-2 text-sm">
               <div>
-                <dt className="text-muted">Stripe Checkout Session</dt>
-                <dd className="text-strong font-mono text-xs break-all">{order.stripeCheckoutSessionId ?? '—'}</dd>
+                <dt className="text-muted-foreground">Stripe Checkout Session</dt>
+                <dd className="text-foreground font-mono text-xs break-all">{order.stripeCheckoutSessionId ?? '—'}</dd>
               </div>
               <div>
-                <dt className="text-muted">Stripe Payment Intent</dt>
-                <dd className="text-strong font-mono text-xs break-all">{order.stripePaymentIntentId ?? '—'}</dd>
+                <dt className="text-muted-foreground">Stripe Payment Intent</dt>
+                <dd className="text-foreground font-mono text-xs break-all">{order.stripePaymentIntentId ?? '—'}</dd>
               </div>
             </dl>
-            <p className="text-muted mt-3 text-xs">
+            <p className="text-muted-foreground mt-3 text-xs">
               Es werden keinerlei Zahlungsdaten gespeichert – nur diese Referenzen zu Stripe.
             </p>
           </section>
 
           <section className="surface-card rounded-xl p-5">
             <h2 className="text-lg">Link für den Besteller</h2>
-            <p className="text-muted mt-2 text-xs break-all">{appUrl(`/bestellung/${order.publicToken}`)}</p>
-            <p className="text-muted mt-2 text-xs">
+            <p className="text-muted-foreground mt-2 text-xs break-all">{appUrl(`/bestellung/${order.publicToken}`)}</p>
+            <p className="text-muted-foreground mt-2 text-xs">
               Dieser Link ist das einzige Zugangsmerkmal zur Bestellung. Nur an den Besteller selbst weitergeben.
             </p>
           </section>

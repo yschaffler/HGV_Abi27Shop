@@ -14,11 +14,11 @@ export default function GlobalError({ error, reset }: { error: Error & { digest?
   return (
     <main className="mx-auto flex min-h-dvh max-w-lg flex-col items-center justify-center gap-4 px-4 text-center">
       <h1 className="text-2xl">Da ist etwas schiefgelaufen</h1>
-      <p className="text-muted">
+      <p className="text-muted-foreground">
         Der Vorgang konnte nicht abgeschlossen werden. Bitte versuche es noch einmal.
       </p>
       {error.digest ? (
-        <p className="text-muted text-sm">
+        <p className="text-muted-foreground text-sm">
           Fehlerkennung: <code className="font-mono">{error.digest}</code>
         </p>
       ) : null}

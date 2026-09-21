@@ -355,6 +355,29 @@ Anschließend unter *Admin → Einstellungen* ausfüllen: Shopname, Kontaktadres
 Bestellzeitraum, Abholhinweis und die Rechtstexte. Solange dort Platzhalter stehen, zeigt
 das Dashboard eine Warnung – siehe `LEGAL_CHECKLIST.md`.
 
+### Zugangscode setzen
+
+Der Bestellbereich kann hinter einem Zugangscode liegen, den ihr im Abichat verteilt. Am
+einfachsten geht das nach dem ersten Login unter *Admin → Einstellungen → Zugangscode*.
+
+Ohne Adminzugang – etwa bei der Erstinbetriebnahme – geht es auch über das Werkzeug-Image,
+genau wie beim Anlegen des Admins:
+
+```bash
+docker run --rm -it --network abi-shop_default \
+  --env-file <(grep -E '^(MYSQL_|AUTH_SECRET|APP_URL)' .env) \
+  -e DATABASE_URL="mysql://abishop:$(grep '^MYSQL_PASSWORD=' .env | cut -d= -f2- | tr -d '\"')@db:3306/abishop" \
+  abi-shop-tools npm run access:code -- ABI27
+```
+
+Gespeichert wird nur ein Argon2id-Hash; der Code lässt sich danach **nirgends mehr
+anzeigen**. Wer ihn vergisst, setzt einen neuen – das meldet zugleich alle bisher
+Freigeschalteten ab. Aufheben lässt sich die Schranke mit `-- --aus`.
+
+Ohne Code erreichbar bleiben Impressum, Datenschutz, Widerruf, AGB und
+`/bestellung/<token>`. Das ist Absicht: Rechtstexte dürfen nicht hinter einer Hürde liegen,
+und der Link aus der Bestätigungsmail soll immer funktionieren.
+
 ---
 
 ## 9. Stripe-Webhook eintragen

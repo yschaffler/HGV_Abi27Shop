@@ -301,6 +301,28 @@ Zwei Rollen:
 
 ---
 
+## Zugangscode fuer den Shop
+
+Der Bestellbereich kann hinter einem Zugangscode liegen, den ihr im Abichat verteilt:
+
+```bash
+npm run access:code -- ABI27       # Code setzen
+npm run access:code -- --aus       # Schranke wieder aufheben
+```
+
+Im laufenden Betrieb geht das auch unter *Admin → Einstellungen → Zugangscode*, samt
+Hinweistext fuer die Zugangsseite ("Den Code findet ihr im Abichat.").
+
+Gespeichert wird nur ein Argon2id-Hash. Der Code laesst sich danach **nirgends mehr
+anzeigen** – auch nicht im Adminbereich. Wer ihn vergisst, setzt einfach einen neuen; ein
+neuer Code meldet zugleich alle bisher Freigeschalteten ab.
+
+Nicht hinter der Schranke liegen Impressum, Datenschutzerklaerung, Widerruf und AGB
+(Rechtstexte muessen ohne Huerde erreichbar sein) sowie `/bestellung/<token>`, damit der
+Link aus der Bestaetigungsmail immer funktioniert.
+
+Was der Code leistet und was nicht, steht in [SECURITY.md](SECURITY.md), Abschnitt 10a.
+
 ## Ausgabe am iPad
 
 `/admin/distribution` ist eine eigene, reduzierte Ansicht ohne Admin-Navigation.

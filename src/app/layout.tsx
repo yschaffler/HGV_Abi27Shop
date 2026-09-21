@@ -18,8 +18,8 @@ export const viewport: Viewport = {
   initialScale: 1,
   // Kein maximumScale: Zoom darf nicht gesperrt werden, das wäre ein Barrierefreiheitsproblem.
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#f7f5ef' },
-    { media: '(prefers-color-scheme: dark)', color: '#1b1f19' },
+    { media: '(prefers-color-scheme: light)', color: '#f6f4ee' },
+    { media: '(prefers-color-scheme: dark)', color: '#1c1f1b' },
   ],
 };
 

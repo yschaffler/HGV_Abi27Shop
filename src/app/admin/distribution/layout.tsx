@@ -13,12 +13,12 @@ export default async function DistributionLayout({ children }: { children: React
   const user = await requireDistributionAccess();
 
   return (
-    <div className="bg-surface min-h-dvh">
-      <header className="border-line bg-surface-raised sticky top-0 z-20 border-b">
+    <div className="bg-background min-h-dvh">
+      <header className="border-border bg-card sticky top-0 z-20 border-b">
         <div className="mx-auto flex max-w-3xl items-center justify-between gap-4 px-4 py-3">
-          <h1 className="text-strong text-lg font-semibold">Ausgabe</h1>
+          <h1 className="text-foreground text-lg font-semibold">Ausgabe</h1>
           <div className="flex items-center gap-3">
-            <span className="text-muted hidden text-sm sm:inline">{user.name}</span>
+            <span className="text-muted-foreground hidden text-sm sm:inline">{user.name}</span>
             {user.role === 'ADMIN' ? (
               <Link href="/admin" className="btn-secondary h-9 px-3 text-sm">
                 Adminbereich

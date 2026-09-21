@@ -93,6 +93,18 @@ Serienproduktion – auch wenn sie nur für diesen Jahrgang läuft.
 - [ ] Kollidiert das Widerrufsrecht mit dem Bestellschluss? Der Bestellschluss ist nötig für
       die Sammelbestellung, ersetzt aber kein gesetzliches Widerrufsrecht.
 
+## 5a. Zugangscode und Erreichbarkeit der Pflichtangaben
+
+Der Shop kann hinter einem Zugangscode liegen (siehe README). Impressum, Datenschutz,
+Widerruf und AGB sind davon **bewusst ausgenommen** und ohne Code erreichbar – die
+Pflichtangaben muessen "leicht erkennbar, unmittelbar erreichbar und staendig verfuegbar"
+sein. Wer die Routen umbaut, darf diese Ausnahme nicht versehentlich entfernen.
+
+- [ ] Sind Impressum und Datenschutzerklaerung auch ohne Zugangscode aufrufbar? (Vor dem
+      Livegang einmal im privaten Fenster pruefen.)
+- [ ] Ist die Bestellseite `/bestellung/<token>` aus der Bestaetigungsmail ohne Code
+      erreichbar?
+
 ## 6. Verbraucherinformationen und Bestellprozess
 
 - [ ] Preise inklusive Mehrwertsteuer angegeben?
@@ -100,7 +112,7 @@ Serienproduktion – auch wenn sie nur für diesen Jahrgang läuft.
       (Der Checkout verlangt dafür eine eigene, verpflichtende Bestätigung: „Kein Versand.
       Mir ist bekannt, dass der Hoodie in der Schule bei den Q-Sprechern abgeholt werden muss
       und nicht verschickt wird.“ Sie wird serverseitig geprüft, nicht nur im Browser. Der
-      Text ist absichtlich nicht konfigurierbar – wer die Ausgabestelle ändert, muss ihn im
+      Text nennt ausdruecklich die Sammelbestellung und ist absichtlich nicht konfigurierbar – wer die Ausgabestelle ändert, muss ihn im
       Code ändern, damit die Bestätigung nie etwas anderes zusagt als das, was passiert.)
 - [ ] Ist der Liefer- beziehungsweise Ausgabezeitpunkt benannt – zumindest ungefähr?
 - [ ] Ist der Bestellbutton korrekt beschriftet? (Der Shop verwendet „Zahlungspflichtig

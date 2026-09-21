@@ -164,6 +164,42 @@ Stelle, die dafür anzufassen ist.
 vertrauenswürdigen Proxy fällt alles auf denselben Schlüssel zurück: strenger als nötig,
 aber niemals unsicherer.
 
+## 10a. Zugangscode fuer den Shop
+
+Der Bestellbereich laesst sich hinter einen Zugangscode legen (Adminbereich →
+Einstellungen, oder `npm run access:code -- ABI27`). Wichtig ist, ihn richtig einzuordnen:
+
+**Was er leistet.** Er haelt Fremde aus dem Shop, die zufaellig auf der Domain landen –
+Suchmaschinen, Eltern anderer Jahrgaenge, Langeweile. Fuer einen Shop, der sich an genau
+einen Jahrgang richtet, ist das der passende Schutzgrad.
+
+**Was er nicht leistet.** Er ist kein Zugriffsschutz fuer personenbezogene Daten. Ein Code,
+den 160 Leute im Abichat haben, ist kein Geheimnis. Wer eine fremde Bestellung sehen will,
+braucht weiterhin deren 256-Bit-Token (Abschnitt 3) – daran aendert der Code nichts, und
+darauf darf sich auch niemand verlassen.
+
+**Umsetzung.**
+
+* Gespeichert wird ausschliesslich ein **Argon2id-Hash** (`settings.accessCodeHash`). Der
+  Code steht nirgends im Klartext und laesst sich auch im Adminbereich nicht auslesen,
+  sondern nur ersetzen. Ein Datenbankabzug gibt ihn nicht preis.
+* Das Cookie ist **HMAC-SHA256-signiert** (Schluessel: `AUTH_SECRET`), `httpOnly`,
+  `sameSite=lax`, in Produktion `secure`, und laeuft nach 30 Tagen ab. Die Signatur wird
+  **vor** dem Inhalt geprueft; verglichen wird mit `timingSafeEqual`.
+* Im Cookie steht eine kurze, nicht umkehrbare Ableitung des aktuellen Code-Hashes. Wird der
+  Code gewechselt, sind damit **alle bestehenden Freischaltungen ungueltig** – genau das
+  erwartet man, wenn ein Code verbrannt ist.
+* **Rate Limit**: 10 Versuche je IP in 10 Minuten. Bei einem kurzen Code ist das der
+  eigentliche Schutz, nicht die Entropie.
+* Die Eingabe wird normalisiert (Leerzeichen raus, Grossbuchstaben) – an genau einer Stelle,
+  die sowohl beim Setzen als auch beim Pruefen benutzt wird.
+* Die Schranke sitzt im Layout der Routengruppe `app/(shop)/(gated)`. Wer dort eine Seite
+  ergaenzt, bekommt sie automatisch mit und kann sie nicht vergessen.
+
+**Bewusst ohne Schranke** bleiben: `/rechtliches/*` (Impressum und Datenschutzerklaerung
+muessen ohne Huerde erreichbar sein), `/bestellung/<token>` (dort ist der Token das
+Zugangsmerkmal), der Adminbereich mit eigener Anmeldung und der Stripe-Webhook.
+
 ## 11. Race Conditions
 
 Nirgends Lesen-Prüfen-Schreiben, überall bedingte Updates:

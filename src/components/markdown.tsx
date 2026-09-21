@@ -21,37 +21,37 @@ const COMPONENTS: Components = {
   h2: ({ children }) => <h3 className="mt-9 mb-3 text-xl first:mt-0">{children}</h3>,
   h3: ({ children }) => <h4 className="mt-7 mb-2 text-base first:mt-0">{children}</h4>,
   h4: ({ children }) => (
-    <p className="text-strong mt-6 mb-1 text-sm font-semibold first:mt-0">{children}</p>
+    <p className="text-foreground mt-6 mb-1 text-sm font-semibold first:mt-0">{children}</p>
   ),
   p: ({ children }) => <p className="my-3 leading-relaxed">{children}</p>,
   ul: ({ children }) => <ul className="my-3 list-disc space-y-1.5 pl-5">{children}</ul>,
   ol: ({ children }) => <ol className="my-3 list-decimal space-y-1.5 pl-5">{children}</ol>,
   li: ({ children }) => <li className="leading-relaxed">{children}</li>,
-  strong: ({ children }) => <strong className="text-strong font-semibold">{children}</strong>,
+  strong: ({ children }) => <strong className="text-foreground font-semibold">{children}</strong>,
   em: ({ children }) => <em className="italic">{children}</em>,
-  hr: () => <hr className="border-line my-8" />,
+  hr: () => <hr className="border-border my-8" />,
   blockquote: ({ children }) => (
-    <blockquote className="border-brand-500 text-muted my-4 border-l-2 pl-4 italic">{children}</blockquote>
+    <blockquote className="border-brand-500 text-muted-foreground my-4 border-l-2 pl-4 italic">{children}</blockquote>
   ),
   code: ({ children }) => (
-    <code className="bg-surface-muted rounded px-1.5 py-0.5 font-mono text-[0.85em]">{children}</code>
+    <code className="bg-muted rounded px-1.5 py-0.5 font-mono text-[0.85em]">{children}</code>
   ),
   pre: ({ children }) => (
-    <pre className="bg-surface-muted border-line my-4 overflow-x-auto rounded-lg border p-4 text-sm">
+    <pre className="bg-muted border-border my-4 overflow-x-auto rounded-lg border p-4 text-sm">
       {children}
     </pre>
   ),
   table: ({ children }) => (
     <div className="my-4 overflow-x-auto">
-      <table className="border-line w-full border-collapse border text-sm">{children}</table>
+      <table className="border-border w-full border-collapse border text-sm">{children}</table>
     </div>
   ),
   th: ({ children }) => (
-    <th className="border-line bg-surface-muted text-strong border px-3 py-2 text-left font-semibold">
+    <th className="border-border bg-muted text-foreground border px-3 py-2 text-left font-semibold">
       {children}
     </th>
   ),
-  td: ({ children }) => <td className="border-line border px-3 py-2 align-top">{children}</td>,
+  td: ({ children }) => <td className="border-border border px-3 py-2 align-top">{children}</td>,
   a: ({ href, children }) => {
     const target = safeHref(href);
     if (!target) return <span>{children}</span>;
@@ -71,7 +71,7 @@ const COMPONENTS: Components = {
 
 export function Markdown({ children }: { children: string }) {
   return (
-    <div className="text-normal">
+    <div className="text-foreground">
       {/*
         remark-breaks macht aus einem einfachen Zeilenumbruch auch einen Umbruch in der
         Ausgabe. In reinem Markdown würde eine mehrzeilige Anschrift sonst zu einer einzigen

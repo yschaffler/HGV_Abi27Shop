@@ -6,14 +6,14 @@ export function FormFeedback({ state, successMessage = 'Gespeichert.' }: { state
 
   if (state.status === 'ok') {
     return (
-      <p role="status" className="rounded-lg bg-green-50 px-3 py-2 text-sm font-medium text-green-800 dark:bg-green-950 dark:text-green-200">
+      <p role="status" className="bg-success-bg text-success-fg rounded-lg px-3 py-2 text-sm font-medium">
         {successMessage}
       </p>
     );
   }
 
   return (
-    <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm font-medium text-red-800 dark:bg-red-950 dark:text-red-200">
+    <p role="alert" className="bg-destructive/10 text-destructive rounded-lg px-3 py-2 text-sm font-medium">
       {state.message ?? 'Es ist ein Fehler aufgetreten.'}
     </p>
   );

@@ -74,7 +74,7 @@ export function ProductForm({ product }: { product?: ProductFormValues }) {
             placeholder="abipulli"
             className="field-input"
           />
-          <p className="text-muted mt-1 text-xs">Erscheint in der Adresse: /produkte/abipulli</p>
+          <p className="text-muted-foreground mt-1 text-xs">Erscheint in der Adresse: /produkte/abipulli</p>
         </div>
       </div>
 
@@ -111,7 +111,7 @@ export function ProductForm({ product }: { product?: ProductFormValues }) {
             accept="image/png,image/jpeg,image/webp"
             className="field-input py-2"
           />
-          <p className="text-muted mt-1 text-xs">
+          <p className="text-muted-foreground mt-1 text-xs">
             Leer lassen, um das vorhandene Bild zu behalten. Der Dateityp wird serverseitig am Inhalt geprüft.
           </p>
         </div>

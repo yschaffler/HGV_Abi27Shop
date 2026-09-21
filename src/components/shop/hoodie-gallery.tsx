@@ -29,7 +29,7 @@ export function HoodieGallery({ images }: { images: GalleryImage[] }) {
         Die Mockups stehen auf weißem Grund. Auf einer weißen Karte wären die Konturen des
         hellen Hoodies nicht zu erkennen – deshalb der leicht abgesetzte Hintergrund.
       */}
-      <div className="bg-surface-muted border-line grid aspect-4/5 w-full place-items-center overflow-hidden rounded-3xl border p-4">
+      <div className="bg-muted border-border grid aspect-4/5 w-full place-items-center overflow-hidden rounded-3xl border p-4">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           key={active.src}
@@ -53,7 +53,7 @@ export function HoodieGallery({ images }: { images: GalleryImage[] }) {
               className={`grid flex-1 place-items-center overflow-hidden rounded-xl border p-2 transition ${
                 index === activeIndex
                   ? 'border-brand-600 bg-brand-500/10'
-                  : 'border-line bg-surface-muted hover:border-brand-400'
+                  : 'border-border bg-muted hover:border-brand-400'
               }`}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -64,7 +64,7 @@ export function HoodieGallery({ images }: { images: GalleryImage[] }) {
                 className="aspect-4/5 w-full rounded-md object-contain"
                 decoding="async"
               />
-              <span className="text-muted mt-1 block text-[0.7rem] font-medium">{image.caption}</span>
+              <span className="text-muted-foreground mt-1 block text-[0.7rem] font-medium">{image.caption}</span>
             </button>
           ))}
         </div>

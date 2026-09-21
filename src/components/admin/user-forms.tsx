@@ -48,7 +48,7 @@ export function CreateUserForm() {
         </div>
       </div>
 
-      <p className="text-muted text-xs">
+      <p className="text-muted-foreground text-xs">
         Admin-Konten richten beim ersten Login zwingend einen zweiten Faktor ein.
         Ausgabe-Konten können das tun, müssen aber nicht – sie bedienen nur die Ausgabeliste.
       </p>

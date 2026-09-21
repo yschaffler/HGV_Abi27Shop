@@ -28,10 +28,10 @@ export function Disclosure({
 
   const toneClass =
     tone === 'muted'
-      ? 'text-muted text-xs'
+      ? 'text-muted-foreground text-xs'
       : tone === 'accent'
         ? 'text-sm font-medium text-brand-600'
-        : 'text-strong text-sm font-semibold';
+        : 'text-foreground text-sm font-semibold';
 
   return (
     <details open={open} onToggle={(event) => setOpen(event.currentTarget.open)}>

@@ -22,7 +22,7 @@ export default async function AdminDashboard() {
       <h1 className="text-2xl">Übersicht</h1>
 
       {legalPending ? (
-        <div className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-100">
+        <div className="border-gold-500/50 bg-gold-500/10 text-foreground rounded-xl border px-4 py-3 text-sm">
           <p className="font-semibold">Rechtstexte fehlen noch</p>
           <p className="mt-1">
             Impressum, Datenschutz, Widerruf oder AGB sind noch Platzhalter. Vor dem Livegang
@@ -32,13 +32,13 @@ export default async function AdminDashboard() {
         </div>
       ) : null}
 
-      <div className="rounded-xl border border-line px-4 py-3 text-sm">
-        <span className="text-muted">Bestellzeitraum: </span>
-        <span className="text-strong font-medium">
+      <div className="rounded-xl border border-border px-4 py-3 text-sm">
+        <span className="text-muted-foreground">Bestellzeitraum: </span>
+        <span className="text-foreground font-medium">
           {status.state === 'OPEN' ? 'geöffnet' : status.state === 'NOT_STARTED' ? 'noch nicht gestartet' : 'beendet'}
         </span>
-        {window.startAt ? <span className="text-muted"> · Start {formatBerlinDateTime(window.startAt)}</span> : null}
-        {window.endAt ? <span className="text-muted"> · Schluss {formatBerlinDateTime(window.endAt)}</span> : null}
+        {window.startAt ? <span className="text-muted-foreground"> · Start {formatBerlinDateTime(window.startAt)}</span> : null}
+        {window.endAt ? <span className="text-muted-foreground"> · Schluss {formatBerlinDateTime(window.endAt)}</span> : null}
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -53,7 +53,7 @@ export default async function AdminDashboard() {
       </div>
 
       {stats.pendingOrderCount > 0 ? (
-        <p className="text-muted text-sm">
+        <p className="text-muted-foreground text-sm">
           {stats.pendingOrderCount} Bestellung(en) sind angelegt, aber nicht bezahlt. Diese zählen
           nicht für die Sammelbestellung.
         </p>
@@ -68,13 +68,13 @@ export default async function AdminDashboard() {
         </div>
 
         {stats.topVariants.length === 0 ? (
-          <p className="text-muted mt-3 text-sm">Noch keine bezahlten Bestellungen.</p>
+          <p className="text-muted-foreground mt-3 text-sm">Noch keine bezahlten Bestellungen.</p>
         ) : (
           <ul className="mt-3 space-y-2">
             {stats.topVariants.map((variant) => (
               <li key={variant.label} className="flex items-center justify-between gap-4 text-sm">
-                <span className="text-normal truncate">{variant.label}</span>
-                <span className="text-strong font-semibold tabular-nums">{variant.quantity}</span>
+                <span className="text-foreground truncate">{variant.label}</span>
+                <span className="text-foreground font-semibold tabular-nums">{variant.quantity}</span>
               </li>
             ))}
           </ul>

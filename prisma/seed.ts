@@ -32,9 +32,11 @@ async function main(): Promise<void> {
       orderStartAt: new Date('2026-09-20T10:00:00Z'),
       orderEndAt: new Date('2026-10-04T21:59:00Z'),
       pickupInfo:
-        'Die Hoodies werden nach dem Bestellschluss gesammelt beim Hersteller bestellt und ' +
-        'anschließend in der Schule bei den Q-Sprechern ausgegeben. Es gibt keinen Versand. ' +
-        'Den genauen Ausgabetermin geben wir rechtzeitig bekannt.',
+        'Die gesamte Q13 bestellt gemeinsam: Nach dem Bestellschluss geht ein einziger Auftrag ' +
+        'zum Hersteller. Sobald die Lieferung da ist, werden die Hoodies in der Schule bei den ' +
+        'Q-Sprechern ausgegeben. Es gibt keinen Versand. Den genauen Ausgabetermin geben wir ' +
+        'rechtzeitig bekannt.',
+      accessHint: 'Den Code findet ihr im Abichat.',
       imprintText: '[Vor dem Livegang ausfüllen – siehe LEGAL_CHECKLIST.md]',
       privacyText: '[Vor dem Livegang ausfüllen – siehe LEGAL_CHECKLIST.md]',
       withdrawalText: '[Vor dem Livegang ausfüllen – siehe LEGAL_CHECKLIST.md]',
@@ -52,8 +54,8 @@ async function main(): Promise<void> {
       description:
         'Dicker, angerauter Baumwollmix im Unisex-Schnitt. Vorne der kleine Jahrgangsprint, ' +
         'hinten großflächig das Abikropolis-Motiv mit der Jahreszahl 2027.\n\n' +
-        'Fällt normal aus. Wer es lockerer mag, nimmt eine Größe größer – umtauschen ist bei ' +
-        'einer Sammelbestellung nicht möglich.',
+        'Die Q13 bestellt gemeinsam als Sammelbestellung. Der Hoodie fällt normal aus; wer es ' +
+        'lockerer mag, nimmt eine Größe größer – umtauschen ist danach nicht möglich.',
       sortOrder: 10,
     },
   });

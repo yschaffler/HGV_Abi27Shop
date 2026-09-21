@@ -34,18 +34,18 @@ export default async function StatisticsPage() {
         <h2 className="text-lg">Bestellungen je Klasse</h2>
 
         {stats.ordersByClass.length === 0 ? (
-          <p className="text-muted mt-3 text-sm">Noch keine bezahlten Bestellungen.</p>
+          <p className="text-muted-foreground mt-3 text-sm">Noch keine bezahlten Bestellungen.</p>
         ) : (
           <ul className="mt-4 space-y-3">
             {stats.ordersByClass.map((row) => (
               <li key={row.className}>
                 <div className="flex items-baseline justify-between gap-4 text-sm">
-                  <span className="text-strong font-medium">{row.className}</span>
-                  <span className="text-muted tabular-nums">
+                  <span className="text-foreground font-medium">{row.className}</span>
+                  <span className="text-muted-foreground tabular-nums">
                     {row.orders} · {formatCents(row.revenueCents)}
                   </span>
                 </div>
-                <div className="bg-surface-muted mt-1 h-2 overflow-hidden rounded-full">
+                <div className="bg-muted mt-1 h-2 overflow-hidden rounded-full">
                   <div
                     className="h-full rounded-full bg-brand-500"
                     style={{ width: `${(row.orders / maxClassOrders) * 100}%` }}
@@ -60,13 +60,13 @@ export default async function StatisticsPage() {
       <section className="surface-card rounded-xl p-5">
         <h2 className="text-lg">Meistbestellte Varianten</h2>
         {stats.topVariants.length === 0 ? (
-          <p className="text-muted mt-3 text-sm">Noch keine Daten.</p>
+          <p className="text-muted-foreground mt-3 text-sm">Noch keine Daten.</p>
         ) : (
           <ul className="mt-3 space-y-2">
             {stats.topVariants.map((variant) => (
               <li key={variant.label} className="flex items-center justify-between gap-4 text-sm">
-                <span className="text-normal truncate">{variant.label}</span>
-                <span className="text-strong font-semibold tabular-nums">{variant.quantity}</span>
+                <span className="text-foreground truncate">{variant.label}</span>
+                <span className="text-foreground font-semibold tabular-nums">{variant.quantity}</span>
               </li>
             ))}
           </ul>

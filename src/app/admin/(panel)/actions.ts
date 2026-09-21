@@ -21,6 +21,8 @@ import { logUnexpected } from '@/server/logger';
 import { storeProductImage } from '@/server/media';
 import { assertSameOrigin } from '@/server/request-context';
 import { SETTINGS_ID } from '@/server/settings';
+import { hashAccessCode } from '@/server/shop/access';
+import { accessHintSchema, newAccessCodeSchema } from '@/lib/validation/access';
 
 /**
  * Schreibende Aktionen des Adminbereichs.
@@ -414,6 +416,88 @@ export async function updateSettingsAction(_previous: ActionState, formData: For
     });
   } catch (error) {
     const errorId = logUnexpected('updateSettingsAction', error);
+    return fail(`Speichern fehlgeschlagen. (Kennung ${errorId})`);
+  }
+
+  revalidatePath('/admin/settings');
+  revalidatePath('/', 'layout');
+  return OK;
+}
+
+/**
+ * Zugangscode des Shops setzen oder aufheben.
+ *
+ * Bewusst eine eigene Aktion und nicht Teil des Einstellungsformulars: Dort wird bei jedem
+ * Speichern jedes Feld mitgeschickt. Ein leeres Codefeld muesste dann mal "unveraendert
+ * lassen" und mal "Schutz aufheben" bedeuten – eine Mehrdeutigkeit, die man bei einer
+ * Zugangsschranke nicht haben will.
+ *
+ * Gespeichert wird nur der Argon2id-Hash. Der Code selbst laesst sich danach nirgends mehr
+ * auslesen, auch nicht hier – wer ihn vergisst, setzt einen neuen.
+ */
+export async function updateAccessCodeAction(_previous: ActionState, formData: FormData): Promise<ActionState> {
+  const origin = await assertSameOrigin();
+  if (!origin.ok) return fail(origin.message);
+
+  const auth = await authorize(['ADMIN']);
+  if (!auth.ok) return fail(auth.error);
+
+  const parsed = newAccessCodeSchema.safeParse(formData.get('accessCode') ?? '');
+  if (!parsed.success) return fail(firstIssueMessage(parsed.error));
+
+  const hint = accessHintSchema.safeParse(formData.get('accessHint') ?? '');
+  if (!hint.success) return fail(firstIssueMessage(hint.error));
+
+  try {
+    await prisma.settings.update({
+      where: { id: SETTINGS_ID },
+      data: {
+        accessCodeHash: await hashAccessCode(parsed.data),
+        accessHint: hint.data || null,
+      },
+    });
+
+    await recordAudit({
+      actor: auth.user,
+      action: 'ACCESS_CODE_SET',
+      entityType: 'Settings',
+      entityId: String(SETTINGS_ID),
+      // Der Code selbst gehoert nicht ins Protokoll.
+      summary: 'Zugangscode fuer den Shop neu gesetzt. Bestehende Freischaltungen wurden ungueltig.',
+    });
+  } catch (error) {
+    const errorId = logUnexpected('updateAccessCodeAction', error);
+    return fail(`Speichern fehlgeschlagen. (Kennung ${errorId})`);
+  }
+
+  revalidatePath('/admin/settings');
+  revalidatePath('/', 'layout');
+  return OK;
+}
+
+/** Hebt die Zugangsschranke auf – der Shop ist danach oeffentlich erreichbar. */
+export async function clearAccessCodeAction(_previous: ActionState): Promise<ActionState> {
+  const origin = await assertSameOrigin();
+  if (!origin.ok) return fail(origin.message);
+
+  const auth = await authorize(['ADMIN']);
+  if (!auth.ok) return fail(auth.error);
+
+  try {
+    await prisma.settings.update({
+      where: { id: SETTINGS_ID },
+      data: { accessCodeHash: null },
+    });
+
+    await recordAudit({
+      actor: auth.user,
+      action: 'ACCESS_CODE_CLEARED',
+      entityType: 'Settings',
+      entityId: String(SETTINGS_ID),
+      summary: 'Zugangsschranke aufgehoben. Der Shop ist jetzt ohne Code erreichbar.',
+    });
+  } catch (error) {
+    const errorId = logUnexpected('clearAccessCodeAction', error);
     return fail(`Speichern fehlgeschlagen. (Kennung ${errorId})`);
   }
 

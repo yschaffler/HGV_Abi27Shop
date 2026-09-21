@@ -166,12 +166,12 @@ export function DistributionDesk() {
         </button>
 
         <header className="surface-card rounded-2xl p-5">
-          <p className="text-strong text-3xl font-bold">
+          <p className="text-foreground text-3xl font-bold">
             {order.firstName} {order.lastName}
           </p>
-          <p className="text-muted mt-1 text-xl">Klasse {order.className}</p>
-          <p className="text-muted mt-2 font-mono text-base">Bestellung {order.orderNumber}</p>
-          <p className="text-strong mt-3 text-lg font-semibold">
+          <p className="text-muted-foreground mt-1 text-xl">Klasse {order.className}</p>
+          <p className="text-muted-foreground mt-2 font-mono text-base">Bestellung {order.orderNumber}</p>
+          <p className="text-foreground mt-3 text-lg font-semibold">
             {distributed} von {order.items.length} Artikeln ausgegeben
           </p>
         </header>
@@ -204,17 +204,17 @@ export function DistributionDesk() {
                 className={`flex flex-wrap items-center justify-between gap-4 rounded-2xl border-2 p-4 ${
                   done
                     ? 'border-green-500 bg-green-50 dark:bg-green-950/40'
-                    : 'border-line bg-surface-raised'
+                    : 'border-border bg-card'
                 }`}
               >
                 <div className="min-w-40 flex-1">
-                  <p className="text-strong flex items-center gap-2 text-xl font-semibold">
-                    <span aria-hidden="true" className={done ? 'text-green-600' : 'text-muted'}>
+                  <p className="text-foreground flex items-center gap-2 text-xl font-semibold">
+                    <span aria-hidden="true" className={done ? 'text-green-600' : 'text-muted-foreground'}>
                       {done ? '✓' : '○'}
                     </span>
                     {item.quantity} × {item.productName}
                   </p>
-                  <p className="text-muted mt-0.5 ml-7 text-lg">{item.variantLabel}</p>
+                  <p className="text-muted-foreground mt-0.5 ml-7 text-lg">{item.variantLabel}</p>
                 </div>
 
                 {done ? (
@@ -253,7 +253,7 @@ export function DistributionDesk() {
   return (
     <div className="space-y-5">
       <div>
-        <label htmlFor="suche" className="text-strong mb-2 block text-lg font-semibold">
+        <label htmlFor="suche" className="text-foreground mb-2 block text-lg font-semibold">
           Name eingeben
         </label>
         <input
@@ -270,7 +270,7 @@ export function DistributionDesk() {
           placeholder="z. B. Max Mus"
           className="field-input h-16 text-2xl"
         />
-        <p className="text-muted mt-2 text-sm">
+        <p className="text-muted-foreground mt-2 text-sm">
           Vorname, Nachname oder Bestellnummer. Es werden nur bezahlte Bestellungen gefunden.
         </p>
       </div>
@@ -282,7 +282,7 @@ export function DistributionDesk() {
       ) : null}
 
       {query.trim().length >= 2 && !searching && visibleHits.length === 0 ? (
-        <p className="text-muted surface-card rounded-2xl px-4 py-8 text-center text-lg">
+        <p className="text-muted-foreground surface-card rounded-2xl px-4 py-8 text-center text-lg">
           Keine bezahlte Bestellung gefunden.
         </p>
       ) : null}
@@ -297,13 +297,13 @@ export function DistributionDesk() {
                 type="button"
                 onClick={() => selectOrder(hit.id)}
                 disabled={pending}
-                className="border-line bg-surface-raised hover:bg-surface-muted flex w-full items-center justify-between gap-4 rounded-2xl border-2 p-5 text-left transition"
+                className="border-border bg-card hover:bg-muted flex w-full items-center justify-between gap-4 rounded-2xl border-2 p-5 text-left transition"
               >
                 <span>
-                  <span className="text-strong block text-2xl font-semibold">
+                  <span className="text-foreground block text-2xl font-semibold">
                     {hit.firstName} {hit.lastName}
                   </span>
-                  <span className="text-muted mt-0.5 block text-lg">
+                  <span className="text-muted-foreground mt-0.5 block text-lg">
                     Klasse {hit.className} · {hit.orderNumber}
                   </span>
                 </span>
@@ -312,7 +312,7 @@ export function DistributionDesk() {
                   className={`shrink-0 rounded-full px-3 py-1.5 text-base font-bold ${
                     complete
                       ? 'bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-200'
-                      : 'bg-surface-muted text-normal'
+                      : 'bg-muted text-foreground'
                   }`}
                 >
                   {hit.distributedCount}/{hit.itemCount}

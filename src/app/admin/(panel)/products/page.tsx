@@ -25,7 +25,7 @@ export default async function ProductsPage() {
     <div className="space-y-6">
       <h1 className="text-2xl">Produkte</h1>
 
-      <p className="text-muted text-sm">
+      <p className="text-muted-foreground text-sm">
         Produkte und Varianten werden nicht gelöscht, sondern deaktiviert. Damit bleiben bereits
         aufgegebene Bestellungen und die Sammelbestellung dauerhaft korrekt auswertbar.
       </p>
@@ -42,20 +42,20 @@ export default async function ProductsPage() {
             <ProductImage
               imageId={product.imageId}
               alt={product.name}
-              className="border-line size-20 shrink-0 rounded-lg border object-cover"
+              className="border-border size-20 shrink-0 rounded-lg border object-cover"
             />
 
             <div className="min-w-48 flex-1">
               <h2 className="text-lg">
                 {product.name}{' '}
                 {!product.active ? (
-                  <span className="bg-surface-muted text-muted ml-1 rounded-full px-2 py-0.5 align-middle text-xs font-semibold">
+                  <span className="bg-muted text-muted-foreground ml-1 rounded-full px-2 py-0.5 align-middle text-xs font-semibold">
                     inaktiv
                   </span>
                 ) : null}
               </h2>
-              <p className="text-muted text-sm">/produkte/{product.slug}</p>
-              <p className="text-muted mt-1 text-sm">
+              <p className="text-muted-foreground text-sm">/produkte/{product.slug}</p>
+              <p className="text-muted-foreground mt-1 text-sm">
                 {product.variants.length} Variante(n),{' '}
                 {product.variants.filter((variant) => variant.active).length} davon bestellbar
               </p>
@@ -79,20 +79,20 @@ export default async function ProductsPage() {
             </Disclosure>
           </div>
 
-          <h3 className="text-strong mt-5 text-sm font-semibold">Varianten</h3>
+          <h3 className="text-foreground mt-5 text-sm font-semibold">Varianten</h3>
 
           {product.variants.length === 0 ? (
-            <p className="text-muted mt-2 text-sm">Noch keine Varianten. Ohne Variante ist das Produkt nicht bestellbar.</p>
+            <p className="text-muted-foreground mt-2 text-sm">Noch keine Varianten. Ohne Variante ist das Produkt nicht bestellbar.</p>
           ) : (
             <ul className="mt-2 space-y-2">
               {product.variants.map((variant) => (
-                <li key={variant.id} className="border-line rounded-lg border p-3">
+                <li key={variant.id} className="border-border rounded-lg border p-3">
                   <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
-                    <span className="text-strong font-medium">
+                    <span className="text-foreground font-medium">
                       {variantLabel(variant)}
-                      {!variant.active ? <span className="text-muted font-normal"> · inaktiv</span> : null}
+                      {!variant.active ? <span className="text-muted-foreground font-normal"> · inaktiv</span> : null}
                     </span>
-                    <span className="text-muted">
+                    <span className="text-muted-foreground">
                       {formatCents(variant.priceCents)}
                       {variant._count.items > 0 ? ` · ${variant._count.items}× bestellt` : ''}
                     </span>

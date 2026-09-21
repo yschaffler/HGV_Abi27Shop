@@ -270,7 +270,13 @@ model Settings {
   /// Wird in der Bestätigungsmail und auf der Bestellseite angezeigt.
   pickupInfo String @db.Text
 
-  /// Rechtstexte, vom Admin pflegbar, werden als Klartext gerendert (kein HTML).
+  /// Argon2id-Hash des Zugangscodes fuer den Shop. NULL = Shop ist oeffentlich.
+  /// Der Code selbst wird nie gespeichert; er laesst sich nur neu setzen, nicht auslesen.
+  accessCodeHash String? @db.Text
+  /// Wird auf der Zugangsseite angezeigt, z. B. "Den Code findet ihr im Abichat".
+  accessHint     String? @db.Text
+
+  /// Rechtstexte, vom Admin pflegbar, duerfen Markdown enthalten (kein HTML).
   imprintText    String @db.Text
   privacyText    String @db.Text
   withdrawalText String @db.Text

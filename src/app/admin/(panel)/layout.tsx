@@ -18,19 +18,19 @@ export default async function AdminPanelLayout({ children }: { children: React.R
 
   return (
     <div className="min-h-dvh">
-      <header className="border-line bg-surface-raised border-b">
+      <header className="border-border bg-card border-b">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3">
           <div className="flex items-center gap-3">
-            <Link href="/admin" className="text-strong font-semibold">
+            <Link href="/admin" className="text-foreground font-semibold">
               Adminbereich
             </Link>
-            <Link href="/" className="text-muted text-sm hover:underline">
+            <Link href="/" className="text-muted-foreground text-sm hover:underline">
               Shop ansehen
             </Link>
           </div>
 
           <div className="flex items-center gap-3">
-            <span className="text-muted hidden text-sm sm:inline">{user.name}</span>
+            <span className="text-muted-foreground hidden text-sm sm:inline">{user.name}</span>
             <LogoutButton />
           </div>
         </div>

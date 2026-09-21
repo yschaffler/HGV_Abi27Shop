@@ -38,7 +38,7 @@ export default async function UsersPage() {
 
       <div className="surface-card overflow-x-auto rounded-xl">
         <table className="w-full min-w-[52rem] text-sm">
-          <thead className="border-line text-muted border-b text-left">
+          <thead className="border-border text-muted-foreground border-b text-left">
             <tr>
               <th className="px-4 py-3 font-medium">Name</th>
               <th className="px-4 py-3 font-medium">Rolle</th>
@@ -50,31 +50,31 @@ export default async function UsersPage() {
           </thead>
           <tbody>
             {users.map((user) => (
-              <tr key={user.id} className="border-line border-b last:border-0">
+              <tr key={user.id} className="border-border border-b last:border-0">
                 <td className="px-4 py-3">
-                  <p className="text-strong font-medium">{user.name}</p>
-                  <p className="text-muted text-xs break-all">{user.email}</p>
+                  <p className="text-foreground font-medium">{user.name}</p>
+                  <p className="text-muted-foreground text-xs break-all">{user.email}</p>
                 </td>
                 <td className="px-4 py-3">{ROLE_LABEL[user.role] ?? user.role}</td>
                 <td className="px-4 py-3">
                   {user.totpConfirmedAt ? (
-                    <span className="font-medium text-green-700 dark:text-green-400">aktiv</span>
+                    <span className="text-success-fg font-medium">aktiv</span>
                   ) : (
-                    <span className="text-muted">nicht eingerichtet</span>
+                    <span className="text-muted-foreground">nicht eingerichtet</span>
                   )}
                 </td>
-                <td className="text-muted px-4 py-3 whitespace-nowrap">
+                <td className="text-muted-foreground px-4 py-3 whitespace-nowrap">
                   {user.lastLoginAt ? DATE_FORMAT.format(user.lastLoginAt) : 'nie'}
                 </td>
                 <td className="px-4 py-3">
                   {!user.isActive ? (
-                    <span className="text-muted">deaktiviert</span>
+                    <span className="text-muted-foreground">deaktiviert</span>
                   ) : user.lockedUntil && user.lockedUntil > new Date() ? (
-                    <span className="font-medium text-amber-700 dark:text-amber-400">gesperrt</span>
+                    <span className="text-gold-700 dark:text-gold-300 font-medium">gesperrt</span>
                   ) : (
-                    <span className="font-medium text-green-700 dark:text-green-400">aktiv</span>
+                    <span className="text-success-fg font-medium">aktiv</span>
                   )}
-                  <p className="text-muted text-xs">{user._count.sessions} offene Session(s)</p>
+                  <p className="text-muted-foreground text-xs">{user._count.sessions} offene Session(s)</p>
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex flex-wrap gap-2">

@@ -1,19 +1,22 @@
 'use client';
 
 import Link from 'next/link';
+import { ShoppingCartIcon } from 'lucide-react';
 import { useCart } from '@/components/use-cart';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 
 export function SiteHeader({ shopName }: { shopName: string }) {
   const { count, ready } = useCart();
 
   return (
-    <header className="border-line bg-surface/80 sticky top-0 z-30 border-b backdrop-blur-md">
+    <header className="border-border bg-background/80 sticky top-0 z-30 border-b backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4">
-        <Link href="/" className="group flex min-w-0 items-center gap-3">
+        <Link href="/" className="flex min-w-0 items-center gap-3">
           {/*
-            Zwei Dateien statt eines CSS-Filters: Der Schriftzug ist schwarz, "ABI 2027"
-            ist gold. Ein Filter würde entweder das Schwarz sichtbar machen und das Gold
-            zerstören oder umgekehrt.
+            Zwei Dateien statt eines CSS-Filters: Der Schriftzug ist schwarz, "ABI 2027" ist
+            gold. Ein Filter würde entweder das Schwarz sichtbar machen und das Gold zerstören
+            oder umgekehrt.
           */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
@@ -34,33 +37,27 @@ export function SiteHeader({ shopName }: { shopName: string }) {
             className="hidden h-9 w-auto shrink-0 dark:block"
           />
           <span className="min-w-0">
-            <span className="font-display text-strong block truncate text-base leading-tight font-extrabold tracking-tight">
+            <span className="font-display text-foreground block truncate text-base leading-tight font-extrabold tracking-tight">
               {shopName}
             </span>
-            <span className="text-muted hidden text-[0.7rem] font-semibold tracking-[0.18em] uppercase sm:block">
-              Jahrgang 2027
+            <span className="text-muted-foreground hidden text-[0.7rem] font-semibold tracking-[0.18em] uppercase sm:block">
+              Sammelbestellung Q13
             </span>
           </span>
         </Link>
 
-        <Link
-          href="/warenkorb"
-          className="btn-secondary relative h-10 px-3"
-          aria-label={`Warenkorb${ready && count > 0 ? `, ${count} Artikel` : ''}`}
-        >
-          <svg aria-hidden="true" viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="1.8">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M2.5 3h2l2.2 11.3a1.5 1.5 0 0 0 1.5 1.2h8.9a1.5 1.5 0 0 0 1.5-1.2L20 7H5.2" />
-            <circle cx="9" cy="20" r="1.4" />
-            <circle cx="17.5" cy="20" r="1.4" />
-          </svg>
-          <span className="hidden sm:inline">Warenkorb</span>
-          {/* Erst nach dem Lesen des localStorage anzeigen, sonst blitzt eine falsche Zahl auf. */}
-          {ready && count > 0 ? (
-            <span className="bg-brand-600 absolute -top-1.5 -right-1.5 grid size-5 place-items-center rounded-full text-[11px] font-bold text-white">
-              {count > 99 ? '99+' : count}
-            </span>
-          ) : null}
-        </Link>
+        <Button asChild variant="outline" className="relative">
+          <Link href="/warenkorb" aria-label={`Warenkorb${ready && count > 0 ? `, ${count} Artikel` : ''}`}>
+            <ShoppingCartIcon aria-hidden="true" />
+            <span className="hidden sm:inline">Warenkorb</span>
+            {/* Erst nach dem Lesen des localStorage anzeigen, sonst blitzt eine falsche Zahl auf. */}
+            {ready && count > 0 ? (
+              <Badge className="absolute -top-2 -right-2 size-5 justify-center rounded-full px-0 text-[11px] tabular-nums">
+                {count > 99 ? '99+' : count}
+              </Badge>
+            ) : null}
+          </Link>
+        </Button>
       </div>
     </header>
   );

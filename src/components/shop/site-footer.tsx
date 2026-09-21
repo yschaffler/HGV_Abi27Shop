@@ -17,11 +17,15 @@ export function SiteFooter({ shopName, contactEmail }: { shopName: string; conta
             <img src="/img/logo-dark.png" alt="" aria-hidden="true" width={375} height={217} className="h-11 w-auto" />
             <p className="font-display mt-4 text-base font-extrabold tracking-tight text-white">{shopName}</p>
             <p className="mt-2 text-sm">
-              Kein Versand: Alle Bestellungen werden gesammelt beim Hersteller aufgegeben und in
-              der Schule bei den Q-Sprechern ausgegeben.
+              Sammelbestellung der Q13 am Humboldt-Gymnasium Vaterstetten. Kein Versand: Alle
+              Bestellungen gehen gemeinsam zum Hersteller und werden in der Schule bei den
+              Q-Sprechern ausgegeben.
             </p>
             {contactEmail ? (
-              <a href={`mailto:${contactEmail}`} className="mt-3 inline-block text-sm text-white underline underline-offset-4">
+              <a
+                href={`mailto:${contactEmail}`}
+                className="mt-3 inline-block text-sm text-white underline underline-offset-4"
+              >
                 {contactEmail}
               </a>
             ) : null}

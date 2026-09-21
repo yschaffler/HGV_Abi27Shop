@@ -71,7 +71,7 @@ export default async function OrdersPage({
     <div className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl">Bestellungen</h1>
-        <p className="text-muted text-sm">{total} Treffer</p>
+        <p className="text-muted-foreground text-sm">{total} Treffer</p>
       </div>
 
       {/* Filter als GET-Formular: funktioniert ohne JavaScript und ist teil- und lesbar in der URL. */}
@@ -128,11 +128,11 @@ export default async function OrdersPage({
       </form>
 
       {orders.length === 0 ? (
-        <p className="text-muted surface-card rounded-xl px-4 py-10 text-center">Keine Bestellungen gefunden.</p>
+        <p className="text-muted-foreground surface-card rounded-xl px-4 py-10 text-center">Keine Bestellungen gefunden.</p>
       ) : (
         <div className="surface-card overflow-x-auto rounded-xl">
           <table className="w-full min-w-[56rem] text-sm">
-            <thead className="border-line text-muted border-b text-left">
+            <thead className="border-border text-muted-foreground border-b text-left">
               <tr>
                 <th className="px-4 py-3 font-medium">Bestellung</th>
                 <th className="px-4 py-3 font-medium">Name</th>
@@ -145,13 +145,13 @@ export default async function OrdersPage({
             </thead>
             <tbody>
               {orders.map((order) => (
-                <tr key={order.id} className="border-line border-b last:border-0">
+                <tr key={order.id} className="border-border border-b last:border-0">
                   <td className="px-4 py-3">
                     <Link href={`/admin/orders/${order.id}`} className="font-mono font-medium text-brand-600 hover:underline">
                       {order.orderNumber}
                     </Link>
                   </td>
-                  <td className="text-strong px-4 py-3">{order.lastName}, {order.firstName}</td>
+                  <td className="text-foreground px-4 py-3">{order.lastName}, {order.firstName}</td>
                   <td className="px-4 py-3">{order.className}</td>
                   <td className="px-4 py-3 tabular-nums">{order._count.items}</td>
                   <td className="px-4 py-3 text-right tabular-nums">{formatCents(order.totalCents)}</td>
@@ -161,7 +161,7 @@ export default async function OrdersPage({
                       {order.paymentStatus === 'PAID' ? <DistributionStatusBadge status={order.distributionStatus} /> : null}
                     </div>
                   </td>
-                  <td className="text-muted px-4 py-3 whitespace-nowrap">{DATE_FORMAT.format(order.createdAt)}</td>
+                  <td className="text-muted-foreground px-4 py-3 whitespace-nowrap">{DATE_FORMAT.format(order.createdAt)}</td>
                 </tr>
               ))}
             </tbody>
@@ -176,7 +176,7 @@ export default async function OrdersPage({
           ) : (
             <span />
           )}
-          <p className="text-muted text-sm">Seite {page} von {pageCount}</p>
+          <p className="text-muted-foreground text-sm">Seite {page} von {pageCount}</p>
           {page < pageCount ? (
             <Link href={pageHref(page + 1)} className="btn-secondary">Weiter</Link>
           ) : (

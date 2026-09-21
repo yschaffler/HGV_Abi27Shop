@@ -56,7 +56,7 @@ export function OrderStatusForm({
               <option key={status} value={status}>{PAYMENT_LABEL[status]}</option>
             ))}
           </select>
-          <p className="text-muted mt-1 text-xs">
+          <p className="text-muted-foreground mt-1 text-xs">
             Im Normalfall setzt das der Stripe-Webhook. Manuelle Änderungen landen im Protokoll.
           </p>
         </div>

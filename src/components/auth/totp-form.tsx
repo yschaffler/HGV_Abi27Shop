@@ -32,7 +32,7 @@ export function TotpForm({ mode }: { mode: 'totp' | 'recovery' }) {
     <form action={formAction} className="surface-card space-y-4 rounded-2xl p-6">
       <div>
         <h1 className="text-xl">Zweiter Faktor</h1>
-        <p className="text-muted mt-1 text-sm">
+        <p className="text-muted-foreground mt-1 text-sm">
           {useRecovery
             ? 'Gib einen deiner Notfallcodes ein. Jeder Code funktioniert nur einmal.'
             : 'Gib den sechsstelligen Code aus deiner Authenticator-App ein.'}
@@ -40,7 +40,7 @@ export function TotpForm({ mode }: { mode: 'totp' | 'recovery' }) {
       </div>
 
       {state.status === 'error' && state.message ? (
-        <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm font-medium text-red-800 dark:bg-red-950 dark:text-red-200">
+        <p role="alert" className="bg-destructive/10 text-destructive rounded-lg px-3 py-2 text-sm font-medium">
           {state.message}
         </p>
       ) : null}
@@ -67,7 +67,7 @@ export function TotpForm({ mode }: { mode: 'totp' | 'recovery' }) {
 
       <Link
         href={useRecovery ? '/login/zwei-faktor' : '/login/zwei-faktor?modus=notfallcode'}
-        className="text-muted block text-center text-sm hover:underline"
+        className="text-muted-foreground block text-center text-sm hover:underline"
       >
         {useRecovery ? 'Doch die Authenticator-App verwenden' : 'Authenticator nicht zur Hand? Notfallcode verwenden'}
       </Link>

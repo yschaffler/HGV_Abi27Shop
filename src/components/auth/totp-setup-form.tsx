@@ -38,14 +38,14 @@ export function TotpSetupForm({
     <form action={formAction} className="surface-card space-y-5 rounded-2xl p-6">
       <div>
         <h1 className="text-xl">Zwei-Faktor einrichten</h1>
-        <p className="text-muted mt-1 text-sm">
+        <p className="text-muted-foreground mt-1 text-sm">
           Für Admin-Konten ist ein zweiter Faktor Pflicht.
         </p>
       </div>
 
       <section>
-        <h2 className="text-strong text-sm font-semibold">1. QR-Code scannen</h2>
-        <p className="text-muted mt-1 text-sm">
+        <h2 className="text-foreground text-sm font-semibold">1. QR-Code scannen</h2>
+        <p className="text-muted-foreground mt-1 text-sm">
           Mit einer Authenticator-App, zum Beispiel Aegis, 2FAS oder Google Authenticator.
         </p>
 
@@ -57,26 +57,26 @@ export function TotpSetupForm({
           className="mx-auto mt-3 size-48 rounded-lg bg-white p-2"
         />
 
-        <details className="text-muted mt-2 text-sm">
+        <details className="text-muted-foreground mt-2 text-sm">
           <summary className="cursor-pointer">Kamera geht nicht? Schlüssel manuell eingeben</summary>
           <code className="mt-2 block font-mono text-xs break-all">{manualKey}</code>
         </details>
       </section>
 
       <section>
-        <h2 className="text-strong text-sm font-semibold">2. Notfallcodes sichern</h2>
-        <p className="text-muted mt-1 text-sm">
+        <h2 className="text-foreground text-sm font-semibold">2. Notfallcodes sichern</h2>
+        <p className="text-muted-foreground mt-1 text-sm">
           Damit kommst du auch ohne Handy wieder rein. Jeder Code funktioniert genau einmal.
           Ausdrucken oder abschreiben und sicher aufbewahren.
         </p>
 
-        <ul className="bg-surface-muted mt-3 grid grid-cols-2 gap-2 rounded-lg p-3 font-mono text-sm">
+        <ul className="bg-muted mt-3 grid grid-cols-2 gap-2 rounded-lg p-3 font-mono text-sm">
           {recoveryCodes.map((code) => (
             <li key={code}>{code}</li>
           ))}
         </ul>
 
-        <p className="text-muted mt-2 text-xs">
+        <p className="text-muted-foreground mt-2 text-xs">
           Nach dem Abschluss der Einrichtung lassen sich diese Codes nicht erneut anzeigen –
           gespeichert bleiben dann nur noch Prüfsummen.
         </p>
@@ -93,10 +93,10 @@ export function TotpSetupForm({
       </section>
 
       <section>
-        <h2 className="text-strong text-sm font-semibold">3. Code aus der App eingeben</h2>
+        <h2 className="text-foreground text-sm font-semibold">3. Code aus der App eingeben</h2>
 
         {state.status === 'error' && state.message ? (
-          <p role="alert" className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-sm font-medium text-red-800 dark:bg-red-950 dark:text-red-200">
+          <p role="alert" className="mt-2 bg-destructive/10 text-destructive rounded-lg px-3 py-2 text-sm font-medium">
             {state.message}
           </p>
         ) : null}

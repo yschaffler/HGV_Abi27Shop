@@ -1,9 +1,28 @@
 import Link from 'next/link';
+import {
+  CalendarX2Icon,
+  HandCoinsIcon,
+  MapPinIcon,
+  PackageIcon,
+  RulerIcon,
+  ShirtIcon,
+  UsersIcon,
+} from 'lucide-react';
 import { AddToCart } from '@/components/shop/add-to-cart';
 import { HoodieGallery, type GalleryImage } from '@/components/shop/hoodie-gallery';
 import { OrderCountdown } from '@/components/shop/order-countdown';
 import { OrderWindowBanner } from '@/components/shop/order-window-banner';
 import { ProductImage } from '@/components/shop/product-image';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatCents } from '@/lib/money';
 import { listPublicProducts } from '@/server/shop/catalog';
 import { evaluateOrderWindow, formatBerlinDateTime } from '@/server/shop/order-window';
@@ -13,9 +32,9 @@ import { getOrderWindow, getSettings } from '@/server/settings';
 export const dynamic = 'force-dynamic';
 
 /**
- * Die Startseite ist auf genau einen Artikel ausgelegt: den Abi-Hoodie. Das erste aktive
- * Produkt (niedrigster sortOrder) wird als Hauptartikel inszeniert und lässt sich direkt
- * hier bestellen – ohne Umweg über eine Produktliste.
+ * Die Startseite ist auf genau einen Artikel ausgelegt: den Abi-Hoodie der Q13. Das erste
+ * aktive Produkt (niedrigster sortOrder) wird als Hauptartikel inszeniert und lässt sich
+ * direkt hier bestellen – ohne Umweg über eine Produktliste.
  *
  * Das Datenmodell erlaubt weiterhin mehrere Produkte. Falls jemand im Adminbereich noch
  * etwas anlegt, erscheint es weiter unten als zusätzlicher Artikel, statt unsichtbar zu
@@ -30,28 +49,52 @@ const GALLERY: GalleryImage[] = [
 
 const HIGHLIGHTS = [
   {
+    icon: ShirtIcon,
     title: 'Schwerer Stoff',
     text: 'Dicker, angerauter Baumwollmix. Kein dünner Werbeartikel, sondern ein Pulli, den man auch nach dem Abi noch trägt.',
   },
   {
+    icon: PackageIcon,
     title: 'Print über den ganzen Rücken',
     text: 'Das Abikropolis-Motiv mit der Jahreszahl 2027 – großflächig gedruckt, nicht aufgebügelt.',
   },
   {
+    icon: RulerIcon,
     title: 'Unisex-Schnitt',
     text: 'Fällt normal aus. Wer es lockerer mag, nimmt eine Größe größer – umtauschen geht bei einer Sammelbestellung nicht.',
   },
   {
-    title: 'Eine Sammelbestellung',
-    text: 'Alles geht in einem Rutsch zum Hersteller. Deshalb gibt es einen festen Bestellschluss und danach keine Nachbestellung.',
+    icon: UsersIcon,
+    title: 'Ein Jahrgang, eine Bestellung',
+    text: 'Die ganze Q13 bestellt gemeinsam. Deshalb gibt es einen festen Bestellschluss und danach keine Nachbestellung.',
+  },
+];
+
+const STEPS = [
+  { step: '1', title: 'Aussuchen', text: 'Farbe und Größe wählen und in den Warenkorb legen.' },
+  { step: '2', title: 'Bezahlen', text: 'Direkt beim Bestellen online bezahlen. Danach kommt die Bestätigung per E-Mail.' },
+  {
+    step: '3',
+    title: 'Sammelbestellung',
+    text: 'Nach dem Bestellschluss geht alles in einem Auftrag zum Hersteller.',
+  },
+  {
+    step: '4',
+    title: 'Abholen',
+    text: 'Ausgabe in der Schule bei den Q-Sprechern. Es wird nichts verschickt.',
   },
 ];
 
 const FAQ = [
   {
+    question: 'Was heißt hier Sammelbestellung?',
+    answer:
+      'Die gesamte Q13 bestellt als ein einziger Auftrag beim Hersteller. Das macht den Pulli für alle günstiger, bedeutet aber auch: Es gibt einen festen Bestellschluss, alle Größen gehen gemeinsam raus, und einzelne Änderungen sind danach nicht mehr möglich.',
+  },
+  {
     question: 'Wird der Hoodie verschickt?',
     answer:
-      'Nein. Es gibt keinen Versand. Der gesamte Jahrgang bestellt gemeinsam, und die Ausgabe findet in der Schule bei den Q-Sprechern statt.',
+      'Nein. Es gibt keinen Versand. Die Ausgabe findet in der Schule bei den Q-Sprechern statt, sobald die Lieferung da ist.',
   },
   {
     question: 'Kann ich nach dem Bestellschluss noch bestellen?',
@@ -92,21 +135,27 @@ export default async function ShopHomePage() {
         {/* Dezenter Lichtschein hinter dem Print, damit das Motiv nicht im Schwarz versinkt. */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute -top-24 right-0 size-[34rem] rounded-full opacity-25 blur-3xl"
+          className="pointer-events-none absolute -top-24 right-0 size-[34rem] rounded-full opacity-[0.14] blur-3xl"
           style={{ background: 'radial-gradient(closest-side, var(--color-brand-500), transparent)' }}
         />
 
         <div className="relative mx-auto grid max-w-6xl items-center gap-10 px-4 py-14 sm:py-20 md:grid-cols-2 md:gap-6">
           <div>
-            <p className="eyebrow text-gold-400">Abikropolis · Jahrgang 2027</p>
-            <h1 className="font-display mt-4 text-4xl leading-[1.05] font-extrabold tracking-tight text-white sm:text-6xl">
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge variant="gold" className="text-gold-200">
+                Sammelbestellung
+              </Badge>
+              <span className="eyebrow text-white/50">Q13 · HG Vaterstetten</span>
+            </div>
+
+            <h1 className="font-display mt-5 text-4xl leading-[1.05] font-extrabold tracking-tight text-white sm:text-6xl">
               Der Hoodie
               <br />
               zum Abi.
             </h1>
             <p className="mt-5 max-w-md text-base text-white/70">
-              Ein Pulli, ein Print, ein Jahrgang. Jetzt bestellen und online bezahlen – abgeholt
-              wird in der Schule bei den Q-Sprechern.
+              Ein Pulli, ein Print, ein Jahrgang. Die Q13 bestellt gemeinsam – du bezahlst online
+              und holst deinen Hoodie in der Schule bei den Q-Sprechern ab.
             </p>
 
             {featured ? (
@@ -115,24 +164,19 @@ export default async function ShopHomePage() {
                   {formatCents(featured.minPriceCents)}
                 </span>
                 {featured.minPriceCents !== featured.maxPriceCents ? (
-                  <span className="text-sm text-white/50">
-                    bis {formatCents(featured.maxPriceCents)}
-                  </span>
+                  <span className="text-sm text-white/50">bis {formatCents(featured.maxPriceCents)}</span>
                 ) : null}
-                <span className="text-sm text-white/50">inkl. MwSt.</span>
+                <span className="text-sm text-white/50">inkl. MwSt., kein Versand</span>
               </p>
             ) : null}
 
             <div className="mt-8 flex flex-wrap items-center gap-3">
-              <a href="#bestellen" className="btn-on-dark h-12 px-7 text-base">
-                {status.isOpen ? 'Jetzt bestellen' : 'Zum Artikel'}
-              </a>
-              <a
-                href="#ablauf"
-                className="inline-flex h-12 items-center rounded-lg px-5 text-sm font-semibold text-white/80 transition hover:text-white"
-              >
-                So läuft es ab
-              </a>
+              <Button asChild variant="gold" size="xl">
+                <a href="#bestellen">{status.isOpen ? 'Jetzt bestellen' : 'Zum Artikel'}</a>
+              </Button>
+              <Button asChild variant="ghost" size="xl" className="text-white/80 hover:bg-white/10 hover:text-white">
+                <a href="#ablauf">So läuft es ab</a>
+              </Button>
             </div>
 
             {status.isOpen && status.endAt ? (
@@ -151,7 +195,7 @@ export default async function ShopHomePage() {
               Hintergrund. Auf dem dunklen Hero wirkt das nur dann nicht wie ein Fehler,
               wenn es bewusst als gerahmtes Poster auftritt – deshalb Rahmen und Schatten.
             */}
-            <div className="ring-gold-500/30 w-full max-w-md rounded-2xl p-2 shadow-2xl ring-1">
+            <div className="ring-gold-500/25 w-full max-w-md rounded-2xl p-2 shadow-lg ring-1">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/img/print-back.webp"
@@ -167,6 +211,37 @@ export default async function ShopHomePage() {
         </div>
       </section>
 
+      {/* ------------------------------------------- Was eine Sammelbestellung heisst */}
+      <section className="border-border border-b bg-muted/40">
+        <div className="mx-auto grid max-w-6xl gap-6 px-4 py-8 sm:grid-cols-3">
+          {[
+            {
+              icon: UsersIcon,
+              title: 'Ein Auftrag für alle',
+              text: 'Die ganze Q13 bestellt zusammen beim Hersteller.',
+            },
+            {
+              icon: CalendarX2Icon,
+              title: 'Fester Bestellschluss',
+              text: 'Danach keine Nachbestellung und kein Umtausch.',
+            },
+            {
+              icon: MapPinIcon,
+              title: 'Abholung in der Schule',
+              text: 'Ausgabe bei den Q-Sprechern, kein Versand.',
+            },
+          ].map((item) => (
+            <div key={item.title} className="flex items-start gap-3">
+              <item.icon className="text-primary mt-0.5 size-5 shrink-0" aria-hidden="true" />
+              <div>
+                <p className="text-foreground text-sm font-semibold">{item.title}</p>
+                <p className="text-muted-foreground mt-0.5 text-sm">{item.text}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* -------------------------------------------------- Bestellen (Artikel) */}
       <section id="bestellen" className="mx-auto max-w-6xl scroll-mt-20 px-4 py-14 sm:py-20">
         <div className="mb-8">
@@ -174,37 +249,36 @@ export default async function ShopHomePage() {
         </div>
 
         {!featured ? (
-          <p className="text-muted surface-card rounded-2xl px-4 py-12 text-center">
-            Aktuell ist kein Artikel verfügbar.
-          </p>
+          <Card>
+            <CardContent className="text-muted-foreground py-12 text-center">
+              Aktuell ist kein Artikel verfügbar.
+            </CardContent>
+          </Card>
         ) : (
           <div className="grid gap-10 md:grid-cols-2 md:gap-12">
             <HoodieGallery images={GALLERY} />
 
             <div className="md:pt-2">
-              <p className="eyebrow text-brand-600 dark:text-brand-400">Abi-Hoodie 2027</p>
+              <Badge variant="gold">Sammelbestellung der Q13</Badge>
               <h2 className="mt-3 text-3xl sm:text-4xl">{featured.name}</h2>
-              <p className="text-strong mt-3 text-2xl font-semibold">
+              <p className="text-foreground mt-3 text-2xl font-semibold">
                 {featured.minPriceCents === featured.maxPriceCents
                   ? formatCents(featured.minPriceCents)
                   : `${formatCents(featured.minPriceCents)} – ${formatCents(featured.maxPriceCents)}`}
               </p>
 
               {featured.description ? (
-                <p className="text-muted mt-5 whitespace-pre-line">{featured.description}</p>
+                <p className="text-muted-foreground mt-5 whitespace-pre-line">{featured.description}</p>
               ) : featured.summary ? (
-                <p className="text-muted mt-5">{featured.summary}</p>
+                <p className="text-muted-foreground mt-5">{featured.summary}</p>
               ) : null}
 
               <div className="rule-gold my-7" />
 
               <AddToCart variants={featured.variants} disabled={!status.isOpen} />
 
-              <p className="text-muted mt-6 flex items-start gap-2 text-sm">
-                <svg aria-hidden="true" viewBox="0 0 24 24" className="mt-0.5 size-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.8">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 21s7-4.6 7-10a7 7 0 1 0-14 0c0 5.4 7 10 7 10Z" />
-                  <circle cx="12" cy="11" r="2.5" />
-                </svg>
+              <p className="text-muted-foreground mt-6 flex items-start gap-2 text-sm">
+                <MapPinIcon className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
                 Kein Versand – Abholung in der Schule bei den Q-Sprechern.
               </p>
             </div>
@@ -213,80 +287,82 @@ export default async function ShopHomePage() {
       </section>
 
       {/* ------------------------------------------------------------ Highlights */}
-      <section className="bg-surface-muted border-line border-y">
+      <section className="border-border border-y bg-muted/40">
         <div className="mx-auto max-w-6xl px-4 py-14 sm:py-20">
-          <p className="eyebrow text-brand-600 dark:text-brand-400">Das Produkt</p>
+          <p className="eyebrow text-primary">Das Produkt</p>
           <h2 className="mt-3 text-2xl sm:text-3xl">Worauf es beim Pulli ankommt</h2>
 
-          <ul className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {HIGHLIGHTS.map((item) => (
-              <li key={item.title} className="surface-card rounded-2xl p-5">
-                <h3 className="text-base">{item.title}</h3>
-                <p className="text-muted mt-2 text-sm">{item.text}</p>
-              </li>
+              <Card key={item.title} className="gap-3 py-5">
+                <CardHeader className="px-5">
+                  <item.icon className="text-primary size-5" aria-hidden="true" />
+                  <CardTitle className="mt-2 text-base">{item.title}</CardTitle>
+                </CardHeader>
+                <CardContent className="text-muted-foreground px-5 text-sm">{item.text}</CardContent>
+              </Card>
             ))}
-          </ul>
+          </div>
         </div>
       </section>
 
       {/* ---------------------------------------------------------------- Ablauf */}
       <section id="ablauf" className="mx-auto max-w-6xl scroll-mt-20 px-4 py-14 sm:py-20">
-        <p className="eyebrow text-brand-600 dark:text-brand-400">Ablauf</p>
+        <p className="eyebrow text-primary">Ablauf</p>
         <h2 className="mt-3 text-2xl sm:text-3xl">Von der Bestellung bis zum Pulli</h2>
 
         <ol className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {[
-            ['1', 'Aussuchen', 'Farbe und Größe wählen und in den Warenkorb legen.'],
-            ['2', 'Bezahlen', 'Direkt beim Bestellen online bezahlen. Danach kommt die Bestätigung per E-Mail.'],
-            ['3', 'Sammelbestellung', 'Nach dem Bestellschluss geht alles gemeinsam zum Hersteller.'],
-            ['4', 'Abholen', 'Ausgabe in der Schule bei den Q-Sprechern. Es wird nichts verschickt.'],
-          ].map(([step, title, text]) => (
-            <li key={step} className="border-line relative border-t pt-5">
-              <span className="bg-brand-600 font-display absolute -top-4 grid size-8 place-items-center rounded-lg text-sm font-extrabold text-white">
-                {step}
+          {STEPS.map((item) => (
+            <li key={item.step} className="border-border relative border-t pt-5">
+              <span className="bg-primary text-primary-foreground font-display absolute -top-4 grid size-8 place-items-center rounded-lg text-sm font-extrabold">
+                {item.step}
               </span>
-              <h3 className="mt-3 text-base">{title}</h3>
-              <p className="text-muted mt-1.5 text-sm">{text}</p>
+              <h3 className="mt-3 text-base">{item.title}</h3>
+              <p className="text-muted-foreground mt-1.5 text-sm">{item.text}</p>
             </li>
           ))}
         </ol>
 
         {settings.pickupInfo ? (
-          <div className="border-gold-500/50 bg-gold-500/10 mt-10 rounded-2xl border p-5 sm:p-6">
-            <h3 className="text-base">Abholung</h3>
-            <p className="text-normal mt-2 text-sm whitespace-pre-line">{settings.pickupInfo}</p>
-          </div>
+          <Alert variant="warning" className="mt-10">
+            <HandCoinsIcon aria-hidden="true" />
+            <AlertTitle>Abholung</AlertTitle>
+            <AlertDescription>
+              <p className="whitespace-pre-line">{settings.pickupInfo}</p>
+            </AlertDescription>
+          </Alert>
         ) : null}
       </section>
 
       {/* ------------------------------------------------- Weitere Artikel (falls) */}
       {otherProducts.length > 0 ? (
-        <section className="bg-surface-muted border-line border-y">
+        <section className="border-border border-y bg-muted/40">
           <div className="mx-auto max-w-6xl px-4 py-14">
-            <p className="eyebrow text-brand-600 dark:text-brand-400">Außerdem</p>
+            <p className="eyebrow text-primary">Außerdem</p>
             <h2 className="mt-3 text-2xl">Weitere Artikel</h2>
 
             <ul className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {otherProducts.map((product) => (
                 <li key={product.id}>
-                  <Link
-                    href={`/produkte/${product.slug}`}
-                    className="surface-card group block h-full overflow-hidden rounded-2xl transition hover:shadow-lg"
-                  >
-                    <ProductImage
-                      imageId={product.imageId}
-                      alt={product.name}
-                      className="aspect-4/3 w-full object-cover"
-                    />
-                    <div className="p-4">
-                      <h3 className="group-hover:text-brand-600 text-lg">{product.name}</h3>
-                      {product.summary ? <p className="text-muted mt-1 text-sm">{product.summary}</p> : null}
-                      <p className="text-strong mt-3 font-semibold">
-                        {product.minPriceCents === product.maxPriceCents
-                          ? formatCents(product.minPriceCents)
-                          : `ab ${formatCents(product.minPriceCents)}`}
-                      </p>
-                    </div>
+                  <Link href={`/produkte/${product.slug}`} className="group block h-full">
+                    <Card className="h-full gap-0 overflow-hidden py-0 transition group-hover:shadow-md">
+                      <ProductImage
+                        imageId={product.imageId}
+                        alt={product.name}
+                        className="aspect-4/3 w-full object-cover"
+                      />
+                      <CardContent className="p-4">
+                        <h3 className="group-hover:text-primary text-lg">{product.name}</h3>
+                        {product.summary ? (
+                          <p className="text-muted-foreground mt-1 text-sm">{product.summary}</p>
+                        ) : null}
+                        <p className="text-foreground mt-3 font-semibold">
+                          {product.minPriceCents === product.maxPriceCents
+                            ? formatCents(product.minPriceCents)
+                            : `ab ${formatCents(product.minPriceCents)}`}
+                        </p>
+                      </CardContent>
+                    </Card>
                   </Link>
                 </li>
               ))}
@@ -297,30 +373,17 @@ export default async function ShopHomePage() {
 
       {/* ------------------------------------------------------------------- FAQ */}
       <section className="mx-auto max-w-3xl px-4 py-14 sm:py-20">
-        <p className="eyebrow text-brand-600 dark:text-brand-400">Fragen</p>
+        <p className="eyebrow text-primary">Fragen</p>
         <h2 className="mt-3 text-2xl sm:text-3xl">Häufig gefragt</h2>
 
-        {/* <details> statt eigener Akkordeon-Logik: funktioniert auch ohne JavaScript. */}
-        <div className="mt-8 space-y-3">
-          {FAQ.map((entry) => (
-            <details key={entry.question} className="surface-card group rounded-xl px-5 py-4">
-              <summary className="text-strong flex cursor-pointer list-none items-center justify-between gap-4 font-semibold">
-                {entry.question}
-                <svg
-                  aria-hidden="true"
-                  viewBox="0 0 24 24"
-                  className="text-muted size-5 shrink-0 transition group-open:rotate-45"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <path strokeLinecap="round" d="M12 5v14M5 12h14" />
-                </svg>
-              </summary>
-              <p className="text-muted mt-3 text-sm">{entry.answer}</p>
-            </details>
+        <Accordion type="single" collapsible className="mt-6 w-full">
+          {FAQ.map((entry, index) => (
+            <AccordionItem key={entry.question} value={`faq-${index}`}>
+              <AccordionTrigger>{entry.question}</AccordionTrigger>
+              <AccordionContent>{entry.answer}</AccordionContent>
+            </AccordionItem>
           ))}
-        </div>
+        </Accordion>
       </section>
     </div>
   );

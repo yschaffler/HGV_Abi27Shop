@@ -1,6 +1,8 @@
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
+import { CircleAlertIcon } from 'lucide-react';
 import { Markdown } from '@/components/markdown';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { stripLeadingHeading } from '@/lib/markdown';
 import { getSettings } from '@/server/settings';
 
@@ -50,16 +52,17 @@ export default async function LegalPage({ params }: PageProps) {
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-12 sm:py-16">
-      <p className="eyebrow text-brand-600 dark:text-brand-400">Rechtliches</p>
+      <p className="eyebrow text-primary">Rechtliches</p>
       <h1 className="mt-3 mb-8 text-3xl sm:text-4xl">{definition.title}</h1>
 
       {content.length === 0 || content.startsWith('[Vor dem Livegang') ? (
-        <div className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-100">
-          <p className="font-semibold">Dieser Text ist noch nicht hinterlegt.</p>
-          <p className="mt-1">
-            Er muss vor dem Livegang im Adminbereich ausgefüllt und rechtlich geprüft werden.
-          </p>
-        </div>
+        <Alert variant="warning">
+          <CircleAlertIcon aria-hidden="true" />
+          <AlertTitle>Dieser Text ist noch nicht hinterlegt.</AlertTitle>
+          <AlertDescription>
+            <p>Er muss vor dem Livegang im Adminbereich ausgefüllt und rechtlich geprüft werden.</p>
+          </AlertDescription>
+        </Alert>
       ) : (
         <Markdown>{stripLeadingHeading(content)}</Markdown>
       )}

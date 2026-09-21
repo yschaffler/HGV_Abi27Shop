@@ -1,6 +1,11 @@
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
+import { CircleCheckIcon, CircleAlertIcon, LoaderCircleIcon, MapPinIcon } from 'lucide-react';
 import { DistributionStatusBadge, PaymentStatusBadge } from '@/components/shop/order-status-badge';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
 import { OrderPageEffects } from '@/components/shop/order-page-effects';
 import { formatCents } from '@/lib/money';
 import { publicTokenSchema } from '@/lib/validation/order';
@@ -42,7 +47,7 @@ export default async function OrderPage({ params, searchParams }: PageProps) {
     return (
       <div className="mx-auto max-w-2xl px-4 py-16 text-center">
         <h1 className="text-2xl">Zu viele Anfragen</h1>
-        <p className="text-muted mt-2">Bitte versuche es in ein paar Minuten noch einmal.</p>
+        <p className="text-muted-foreground mt-2">Bitte versuche es in ein paar Minuten noch einmal.</p>
       </div>
     );
   }
@@ -55,38 +60,48 @@ export default async function OrderPage({ params, searchParams }: PageProps) {
   const cancelled = query['zahlung'] === 'abgebrochen';
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-8">
+    <div className="mx-auto max-w-3xl px-4 py-10 sm:py-14">
       <OrderPageEffects paid={order.paymentStatus === 'PAID'} awaitingPayment={awaitingPayment} />
 
       {awaitingPayment ? (
-        <div className="mb-6 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-100">
-          <p className="font-semibold">Zahlung wird bestätigt …</p>
-          <p className="mt-1">
-            Das dauert normalerweise nur wenige Sekunden. Die Seite aktualisiert sich automatisch.
-            Der Status wird ausschließlich von unserem Zahlungsdienstleister bestätigt.
-          </p>
-        </div>
+        <Alert variant="warning" className="mb-6">
+          <LoaderCircleIcon aria-hidden="true" />
+          <AlertTitle>Zahlung wird bestätigt …</AlertTitle>
+          <AlertDescription>
+            <p>
+              Das dauert normalerweise nur wenige Sekunden. Die Seite aktualisiert sich
+              automatisch. Der Status wird ausschließlich von unserem Zahlungsdienstleister
+              bestätigt.
+            </p>
+          </AlertDescription>
+        </Alert>
       ) : null}
 
       {cancelled && order.paymentStatus === 'PENDING' ? (
-        <div className="mb-6 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-100">
-          <p className="font-semibold">Zahlung abgebrochen</p>
-          <p className="mt-1">
-            Die Bestellung ist gespeichert, aber noch nicht bezahlt. Bitte lege sie neu an, wenn du sie
-            doch möchtest.
-          </p>
-        </div>
+        <Alert variant="warning" className="mb-6">
+          <CircleAlertIcon aria-hidden="true" />
+          <AlertTitle>Zahlung abgebrochen</AlertTitle>
+          <AlertDescription>
+            <p>
+              Die Bestellung ist gespeichert, aber noch nicht bezahlt. Bitte lege sie neu an, wenn
+              du sie doch möchtest.
+            </p>
+          </AlertDescription>
+        </Alert>
       ) : null}
 
       {order.paymentStatus === 'PAID' ? (
-        <div className="mb-6 rounded-xl border border-green-300 bg-green-50 px-4 py-3 text-sm text-green-900 dark:border-green-700 dark:bg-green-950 dark:text-green-100">
-          <p className="font-semibold">Zahlung eingegangen – vielen Dank!</p>
-          <p className="mt-1">Eine Bestellbestätigung ist an {order.email} unterwegs.</p>
-        </div>
+        <Alert variant="info" className="mb-6">
+          <CircleCheckIcon aria-hidden="true" />
+          <AlertTitle>Zahlung eingegangen – vielen Dank!</AlertTitle>
+          <AlertDescription>
+            <p>Eine Bestellbestätigung ist an {order.email} unterwegs.</p>
+          </AlertDescription>
+        </Alert>
       ) : null}
 
       <header className="mb-6">
-        <p className="text-muted text-sm">Bestellnummer</p>
+        <p className="text-muted-foreground text-sm">Bestellnummer</p>
         <h1 className="font-mono text-2xl tracking-wide sm:text-3xl">{order.orderNumber}</h1>
         <div className="mt-3 flex flex-wrap gap-2">
           <PaymentStatusBadge status={order.paymentStatus} />
@@ -94,61 +109,84 @@ export default async function OrderPage({ params, searchParams }: PageProps) {
         </div>
       </header>
 
-      <section className="surface-card rounded-2xl p-5">
-        <h2 className="text-lg">Bestelldaten</h2>
-        <dl className="mt-3 grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2">
+      <Card>
+        <CardHeader>
+          <CardTitle>Bestelldaten</CardTitle>
+        </CardHeader>
+        <CardContent>
+        <dl className="grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2">
           <div>
-            <dt className="text-muted">Name</dt>
-            <dd className="text-strong">{order.firstName} {order.lastName}</dd>
+            <dt className="text-muted-foreground">Name</dt>
+            <dd className="text-foreground">{order.firstName} {order.lastName}</dd>
           </div>
           <div>
-            <dt className="text-muted">Klasse</dt>
-            <dd className="text-strong">{order.className}</dd>
+            <dt className="text-muted-foreground">Kurs oder Klasse</dt>
+            <dd className="text-foreground">{order.className}</dd>
           </div>
           <div>
-            <dt className="text-muted">E-Mail</dt>
-            <dd className="text-strong break-all">{order.email}</dd>
+            <dt className="text-muted-foreground">E-Mail</dt>
+            <dd className="text-foreground break-all">{order.email}</dd>
           </div>
           <div>
-            <dt className="text-muted">Bestellt am</dt>
-            <dd className="text-strong">
+            <dt className="text-muted-foreground">Bestellt am</dt>
+            <dd className="text-foreground">
               {new Intl.DateTimeFormat('de-DE', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Europe/Berlin' }).format(order.createdAt)} Uhr
             </dd>
           </div>
         </dl>
-      </section>
+        </CardContent>
+      </Card>
 
-      <section className="surface-card mt-4 rounded-2xl p-5">
-        <h2 className="text-lg">Artikel</h2>
-        <ul className="mt-3 space-y-3">
+      <Card className="mt-4">
+        <CardHeader>
+          <CardTitle>Artikel</CardTitle>
+        </CardHeader>
+        <CardContent>
+        <ul className="space-y-3">
           {order.items.map((item) => (
-            <li key={item.id} className="border-line flex flex-wrap justify-between gap-3 border-b pb-3 last:border-0 last:pb-0">
+            <li key={item.id} className="border-border flex flex-wrap justify-between gap-3 border-b pb-3 last:border-0 last:pb-0">
               <div>
-                <p className="text-strong font-medium">
+                <p className="text-foreground font-medium">
                   {item.quantity} × {item.productName}
                 </p>
-                <p className="text-muted text-sm">{item.variantLabel}</p>
+                <p className="text-muted-foreground text-sm">{item.variantLabel}</p>
                 {item.distributionStatus === 'DISTRIBUTED' ? (
-                  <p className="mt-1 text-xs font-semibold text-green-700 dark:text-green-400">Ausgegeben</p>
+                  <Badge variant="success" className="mt-1.5">
+                    Ausgegeben
+                  </Badge>
                 ) : null}
               </div>
-              <p className="text-strong font-semibold">{formatCents(item.lineTotalCents)}</p>
+              <p className="text-foreground font-semibold">{formatCents(item.lineTotalCents)}</p>
             </li>
           ))}
         </ul>
 
-        <p className="text-strong border-line mt-4 flex justify-between border-t pt-4 text-base font-semibold">
+        <Separator className="my-4" />
+
+        <p className="text-foreground flex justify-between text-base font-semibold">
           <span>Gesamt</span>
-          <span>{formatCents(order.totalCents)}</span>
+          <span className="tabular-nums">{formatCents(order.totalCents)}</span>
         </p>
-      </section>
+        </CardContent>
+      </Card>
 
-      <section className="surface-card mt-4 rounded-2xl p-5">
-        <h2 className="text-lg">Abholung</h2>
-        <p className="text-muted mt-2 text-sm whitespace-pre-line">{settings.pickupInfo}</p>
-      </section>
+      <Card className="mt-4">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <MapPinIcon className="size-4" aria-hidden="true" />
+            Abholung
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-muted-foreground text-sm whitespace-pre-line">{settings.pickupInfo}</p>
+          <p className="text-muted-foreground mt-3 text-sm">
+            Dein Pulli ist Teil der Sammelbestellung der Q13. Ausgegeben wird erst, wenn die
+            gesamte Lieferung da ist.
+          </p>
+        </CardContent>
+      </Card>
 
-      <p className="text-muted mt-6 text-xs">
+      <p className="text-muted-foreground mt-6 text-xs">
         Der Link zu dieser Seite ist persönlich. Wer ihn hat, sieht deine Bestellung – bitte nicht weitergeben.
       </p>
     </div>

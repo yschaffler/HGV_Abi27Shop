@@ -35,17 +35,17 @@ export default async function AuditPage() {
     <div className="space-y-5">
       <div>
         <h1 className="text-2xl">Protokoll</h1>
-        <p className="text-muted mt-1 text-sm">
+        <p className="text-muted-foreground mt-1 text-sm">
           Die letzten 200 sicherheits- und geldrelevanten Aktionen.
         </p>
       </div>
 
       {entries.length === 0 ? (
-        <p className="text-muted surface-card rounded-xl px-4 py-10 text-center">Noch keine Einträge.</p>
+        <p className="text-muted-foreground surface-card rounded-xl px-4 py-10 text-center">Noch keine Einträge.</p>
       ) : (
         <div className="surface-card overflow-x-auto rounded-xl">
           <table className="w-full min-w-[48rem] text-sm">
-            <thead className="border-line text-muted border-b text-left">
+            <thead className="border-border text-muted-foreground border-b text-left">
               <tr>
                 <th className="px-4 py-3 font-medium">Zeit</th>
                 <th className="px-4 py-3 font-medium">Akteur</th>
@@ -55,10 +55,10 @@ export default async function AuditPage() {
             </thead>
             <tbody>
               {entries.map((entry) => (
-                <tr key={entry.id} className="border-line border-b last:border-0">
-                  <td className="text-muted px-4 py-2.5 whitespace-nowrap">{DATE_FORMAT.format(entry.createdAt)}</td>
+                <tr key={entry.id} className="border-border border-b last:border-0">
+                  <td className="text-muted-foreground px-4 py-2.5 whitespace-nowrap">{DATE_FORMAT.format(entry.createdAt)}</td>
                   <td className="px-4 py-2.5 break-all">{entry.actorEmail}</td>
-                  <td className="text-strong px-4 py-2.5 font-mono text-xs">{entry.action}</td>
+                  <td className="text-foreground px-4 py-2.5 font-mono text-xs">{entry.action}</td>
                   <td className="px-4 py-2.5">{entry.summary}</td>
                 </tr>
               ))}

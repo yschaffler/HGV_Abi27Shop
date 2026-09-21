@@ -2,7 +2,13 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
+import { CheckIcon, ShoppingCartIcon } from 'lucide-react';
 import { useCart } from '@/components/use-cart';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { NativeSelect } from '@/components/ui/native-select';
+import { Separator } from '@/components/ui/separator';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { colorSwatch } from '@/lib/color-swatch';
 import { formatCents } from '@/lib/money';
 import { variantLabel } from '@/lib/variant-label';
@@ -12,10 +18,9 @@ import type { PublicVariant } from '@/server/shop/catalog';
 /**
  * Variantenauswahl und "In den Warenkorb".
  *
- * Bewusst generisch: Das Modell erlaubt beliebige Kombinationen aus Farbe, Größe und
- * einer freien Bezeichnung. Die Auswahl zeigt nur die Dimensionen an, die das jeweilige
- * Produkt tatsächlich hat – ein Produkt ohne Farben (z. B. die Abi-Zeitung) bekommt keine
- * leere Farbauswahl.
+ * Bewusst generisch: Das Modell erlaubt beliebige Kombinationen aus Farbe, Größe und einer
+ * freien Bezeichnung. Die Auswahl zeigt nur die Dimensionen an, die das jeweilige Produkt
+ * tatsächlich hat.
  *
  * Es wird ausschließlich die Varianten-ID in den Warenkorb gelegt. Der Preis daneben ist
  * reine Anzeige; verbindlich ist immer der Preis, den der Server aus der Datenbank liest.
@@ -50,136 +55,134 @@ export function AddToCart({ variants, disabled }: { variants: PublicVariant[]; d
   return (
     <div className="space-y-6">
       {colors.length > 0 ? (
-        <fieldset>
-          <legend className="field-label">
-            Farbe{color ? <span className="text-muted font-normal"> · {color}</span> : null}
-          </legend>
-          <div className="flex flex-wrap gap-2">
+        <div>
+          <Label className="mb-2.5">
+            Farbe
+            {color ? <span className="text-muted-foreground font-normal">· {color}</span> : null}
+          </Label>
+          {/*
+            ToggleGroup statt Auswahlliste: Alle Farben sind auf einen Blick sichtbar, und
+            "type=single" sorgt dafür, dass immer genau eine ausgewählt bleibt.
+          */}
+          <ToggleGroup
+            type="single"
+            value={color}
+            onValueChange={(value) => {
+              if (!value) return;
+              setColor(value);
+              setAdded(false);
+            }}
+          >
             {colors.map((option) => {
               const swatch = colorSwatch(option);
-              const isActive = color === option;
-
               return (
-                <button
-                  key={option}
-                  type="button"
-                  onClick={() => {
-                    setColor(option);
-                    setAdded(false);
-                  }}
-                  aria-pressed={isActive}
-                  className={`inline-flex items-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-semibold transition ${
-                    isActive
-                      ? 'border-brand-600 bg-brand-600 text-white'
-                      : 'border-line bg-surface-raised text-strong hover:border-brand-400'
-                  }`}
-                >
+                <ToggleGroupItem key={option} value={option} aria-label={`Farbe ${option}`}>
                   {swatch ? (
                     <span
                       aria-hidden="true"
-                      className={`size-4 shrink-0 rounded-full border ${
-                        isActive ? 'border-white/50' : 'border-black/20'
-                      }`}
+                      className="size-4 shrink-0 rounded-full border border-black/25 [[data-state=on]_&]:border-white/60"
                       style={{ backgroundColor: swatch }}
                     />
                   ) : null}
                   {option}
-                </button>
+                </ToggleGroupItem>
               );
             })}
-          </div>
-        </fieldset>
+          </ToggleGroup>
+        </div>
       ) : null}
 
       {sizes.length > 0 ? (
-        <fieldset>
-          <legend className="field-label">Größe</legend>
-          <div className="flex flex-wrap gap-2">
-            {sizes.map((option) => {
-              const available = sizeAvailable(option);
-              return (
-                <button
-                  key={option}
-                  type="button"
-                  disabled={!available}
-                  onClick={() => {
-                    setSize(option);
-                    setAdded(false);
-                  }}
-                  aria-pressed={size === option}
-                  className={`min-w-14 rounded-lg border px-4 py-2.5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-40 ${
-                    size === option && available
-                      ? 'border-brand-600 bg-brand-600 text-white'
-                      : 'border-line bg-surface-raised text-strong hover:border-brand-400'
-                  }`}
-                >
-                  {option}
-                </button>
-              );
-            })}
-          </div>
-          <p className="text-muted mt-2 text-xs">
-            Unisex-Schnitt, fällt normal aus. Umtausch ist bei einer Sammelbestellung nicht möglich.
+        <div>
+          <Label className="mb-2.5">Größe</Label>
+          <ToggleGroup
+            type="single"
+            value={size}
+            onValueChange={(value) => {
+              if (!value) return;
+              setSize(value);
+              setAdded(false);
+            }}
+          >
+            {sizes.map((option) => (
+              <ToggleGroupItem
+                key={option}
+                value={option}
+                size="lg"
+                disabled={!sizeAvailable(option)}
+                aria-label={`Größe ${option}`}
+              >
+                {option}
+              </ToggleGroupItem>
+            ))}
+          </ToggleGroup>
+          <p className="text-muted-foreground mt-2 text-xs">
+            Unisex-Schnitt, fällt normal aus. Weil alles in einer Sammelbestellung läuft, ist
+            ein Umtausch später nicht möglich.
           </p>
-        </fieldset>
+        </div>
       ) : null}
 
-      <div className="border-line flex flex-wrap items-end gap-5 border-t pt-5">
-        <div>
-          <label htmlFor="quantity" className="field-label">
+      <Separator />
+
+      <div className="flex flex-wrap items-end gap-5">
+        <div className="w-24">
+          <Label htmlFor="quantity" className="mb-1.5">
             Menge
-          </label>
-          <select
+          </Label>
+          <NativeSelect
             id="quantity"
             value={quantity}
             onChange={(event) => {
               setQuantity(Number(event.target.value));
               setAdded(false);
             }}
-            className="field-input w-24"
           >
             {Array.from({ length: ORDER_LIMITS.maxQuantityPerLine }, (_, index) => index + 1).map((value) => (
               <option key={value} value={value}>
                 {value}
               </option>
             ))}
-          </select>
+          </NativeSelect>
         </div>
 
-        <p className="font-display text-strong pb-1.5 text-3xl font-extrabold tabular-nums">
+        <p className="font-display text-foreground pb-1.5 text-3xl font-extrabold tabular-nums">
           {selected ? formatCents(selected.priceCents * quantity) : '—'}
         </p>
       </div>
 
       {!selected ? (
-        <p className="text-muted text-sm">Diese Kombination ist nicht verfügbar.</p>
+        <p className="text-muted-foreground text-sm">Diese Kombination ist nicht verfügbar.</p>
       ) : null}
 
       <div className="flex flex-wrap items-center gap-3">
-        <button
+        <Button
           type="button"
+          size="xl"
           onClick={handleAdd}
           disabled={!selected || disabled}
-          className="btn-primary h-13 flex-1 px-6 text-base sm:flex-none"
+          className="flex-1 sm:flex-none"
         >
+          <ShoppingCartIcon aria-hidden="true" />
           In den Warenkorb
-        </button>
+        </Button>
 
         {added ? (
-          <Link href="/warenkorb" className="btn-secondary h-13 px-5 text-base">
-            Zum Warenkorb
-          </Link>
+          <Button asChild variant="outline" size="xl">
+            <Link href="/warenkorb">Zum Warenkorb</Link>
+          </Button>
         ) : null}
       </div>
 
       {added && selected ? (
-        <p role="status" className="text-sm font-semibold text-green-700 dark:text-green-400">
+        <p role="status" className="text-primary flex items-center gap-2 text-sm font-semibold">
+          <CheckIcon className="size-4" aria-hidden="true" />
           {quantity} × {variantLabel(selected)} wurde hinzugefügt.
         </p>
       ) : null}
 
       {disabled ? (
-        <p className="text-muted text-sm">
+        <p className="text-muted-foreground text-sm">
           Außerhalb des Bestellzeitraums können keine Artikel bestellt werden.
         </p>
       ) : null}

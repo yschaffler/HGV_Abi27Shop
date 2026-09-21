@@ -32,6 +32,7 @@ MySQL-Datenbank.
 | Sprache | TypeScript, `strict: true` | wie beauftragt |
 | ORM/DB | Prisma 7 + MySQL 8 | wie beauftragt |
 | Styling | Tailwind CSS 4 | wie beauftragt |
+| Komponenten | shadcn/ui (Radix + CVA) | siehe Abweichung 9 |
 | Validierung | Zod 4 | wie beauftragt |
 | Zahlung | Stripe Checkout (hosted) + Webhooks | wie beauftragt; keine Zahlungsdaten im System |
 | Tests | Vitest 5 | schnell, natives ESM/TS, kein zusätzlicher Build |
@@ -102,6 +103,41 @@ Als unformatierter Fließtext ist das schwer lesbar und wirkt unseriös. Gerende
   `tests/unit/markdown.test.ts`.
 * `remark-breaks` macht aus einfachen Zeilenumbrüchen auch Umbrüche in der Ausgabe, weil eine
   Anschrift sonst zu einer einzigen Zeile zusammenläuft.
+
+**9. Oberflaeche auf shadcn/ui statt handgeschriebener Klassen.**
+Button, Card, Input, Label, Checkbox, Badge, Separator, Accordion, ToggleGroup und Alert
+liegen als Quelltext unter `src/components/ui` – das ist das Modell von shadcn/ui: Die
+Komponenten werden ins Projekt kopiert, nicht als Paket eingebunden. Der Gewinn ist nicht
+das Aussehen, sondern das Verhalten: Radix bringt Tastaturbedienung, Fokusverwaltung und
+ARIA-Rollen mit, die man sonst selbst nachbauen und dabei uebersehen wuerde.
+
+Die Farbmarken heissen wie bei shadcn (`--background`, `--primary`, `--muted` …), die Werte
+kommen aber aus dem Hoodie und sind bewusst **matt** gehalten: niedrige Chroma-Werte, kein
+Glanz. Ein bedruckter Baumwollpulli leuchtet nicht.
+
+Zwei Abweichungen von der Vorlage, jeweils zugunsten der Bedienbarkeit:
+
+* Statt der Radix-Auswahlliste gibt es `NativeSelect` auf Basis von `<select>`. Fuer eine
+  Menge von 1 bis 10 oeffnet das auf dem Telefon die Systemauswahl, funktioniert ohne
+  JavaScript und faellt nicht aus dem Layout.
+* Der Dunkelmodus laeuft ueber `prefers-color-scheme` statt ueber eine `.dark`-Klasse. Das
+  ist die Systemeinstellung des Besuchers, braucht kein JavaScript, kein Cookie und
+  flackert beim ersten Rendern nicht.
+
+Die aelteren Utility-Klassen (`btn-primary`, `field-input`, `surface-card` …) bleiben als
+Kompatibilitaetsschicht in `globals.css` erhalten, weil sie an ueber 150 Stellen im
+Adminbereich und in der Ausgabeansicht stehen. Sie greifen jetzt auf dieselben Marken zu wie
+die Komponenten und sehen deshalb identisch aus. Neuer Code verwendet die Komponenten direkt.
+
+**10. Zugangscode fuer den Bestellbereich.**
+Der Shop richtet sich an einen Jahrgang, nicht an die Allgemeinheit. Ein im Abichat
+verteilter Code (z. B. `ABI27`) haelt Fremde draussen. Gespeichert wird nur ein
+Argon2id-Hash; das Cookie ist HMAC-signiert und wird beim Codewechsel ungueltig. Details und
+die Grenzen dieses Schutzes stehen in SECURITY.md, Abschnitt 10a.
+
+Die Schranke sitzt im Layout der Routengruppe `app/(shop)/(gated)` und damit **strukturell**:
+Wer dort eine Seite ergaenzt, bekommt sie automatisch mit. Rechtstexte und die Bestellseite
+mit Token liegen ausserhalb dieser Gruppe und bleiben ohne Code erreichbar.
 
 **8. Schriften liegen im Projekt, nicht bei Google.**
 `Archivo` (Überschriften) und `Inter` (Fließtext) kommen als `@fontsource-variable`-Pakete aus
@@ -218,6 +254,11 @@ enum OrderDistributionStatus { NOT_DISTRIBUTED  PARTIALLY_DISTRIBUTED  FULLY_DIS
 
 ### Öffentlich
 
+Die Routen `/`, `/produkte/[slug]`, `/warenkorb` und `/checkout` liegen in der Gruppe
+`(gated)` und damit hinter dem Zugangscode. `/rechtliches/*`, `/bestellung/[token]` und
+`/zugang` liegen ausserhalb: Rechtstexte muessen ohne Huerde erreichbar sein, und der Link
+aus der Bestaetigungsmail soll immer funktionieren.
+
 Die Startseite ist auf **einen** Artikel zugeschnitten: das erste aktive Produkt (niedrigster
 `sortOrder`) wird inszeniert und lässt sich dort direkt bestellen. Das Datenmodell erlaubt
 weiterhin mehrere Produkte – zusätzliche Artikel erscheinen unter "Weitere Artikel" und über
@@ -231,6 +272,7 @@ weiterhin mehrere Produkte – zusätzliche Artikel erscheinen unter "Weitere Ar
 | `/checkout` | Vorname, Nachname, E-Mail, Klasse, zwei Pflichtbestätigungen → Stripe |
 | `/bestellung/[token]` | Bestellstatus über Zufallstoken |
 | `/rechtliches/[doc]` | Impressum, Datenschutz, Widerruf, AGB |
+| `/zugang` | Eingabe des Zugangscodes, falls einer gesetzt ist |
 
 ### Mutationen: Server Actions statt REST
 

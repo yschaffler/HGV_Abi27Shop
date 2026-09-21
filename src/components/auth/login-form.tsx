@@ -22,17 +22,17 @@ export function LoginForm({ redirectTo, notice }: { redirectTo: string; notice: 
     <form action={formAction} className="surface-card space-y-4 rounded-2xl p-6">
       <div>
         <h1 className="text-xl">Anmeldung</h1>
-        <p className="text-muted mt-1 text-sm">Nur für Team und Ausgabe.</p>
+        <p className="text-muted-foreground mt-1 text-sm">Nur für Team und Ausgabe.</p>
       </div>
 
       {notice ? (
-        <p role="alert" className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:bg-amber-950 dark:text-amber-100">
+        <p role="alert" className="bg-gold-500/15 text-foreground rounded-lg px-3 py-2 text-sm">
           {notice}
         </p>
       ) : null}
 
       {state.status === 'error' && state.message ? (
-        <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm font-medium text-red-800 dark:bg-red-950 dark:text-red-200">
+        <p role="alert" className="bg-destructive/10 text-destructive rounded-lg px-3 py-2 text-sm font-medium">
           {state.message}
         </p>
       ) : null}
