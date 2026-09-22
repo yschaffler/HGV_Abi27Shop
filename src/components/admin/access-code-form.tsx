@@ -78,7 +78,6 @@ export function AccessCodeForm({ active, hint }: { active: boolean; hint: string
                 maxLength={64}
                 autoComplete="off"
                 spellCheck={false}
-                placeholder="z. B. ABI27"
               />
               <p className="text-muted-foreground mt-1 text-xs">
                 Groß- und Kleinschreibung sowie Leerzeichen spielen keine Rolle.

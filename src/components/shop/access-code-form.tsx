@@ -38,7 +38,6 @@ export function AccessCodeForm({ hint }: { hint: string | null }) {
           autoComplete="off"
           autoCapitalize="characters"
           spellCheck={false}
-          placeholder="z. B. ABI27"
           aria-invalid={state.status === 'error'}
           aria-describedby={state.status === 'error' ? 'code-fehler' : hint ? 'code-hinweis' : undefined}
           className="h-12 border-white/20 bg-white/5 text-center text-lg tracking-[0.3em] text-white uppercase placeholder:tracking-normal placeholder:text-white/30 focus-visible:border-white/40 focus-visible:ring-white/20"
