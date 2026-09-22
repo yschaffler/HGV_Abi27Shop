@@ -12,7 +12,6 @@ export const ORDER_DISTRIBUTION_STATUSES = ['NOT_DISTRIBUTED', 'PARTIALLY_DISTRI
 
 export const orderFilterSchema = z.object({
   suche: z.string().trim().max(80).optional(),
-  klasse: z.string().trim().max(20).optional(),
   zahlung: z.enum(PAYMENT_STATUSES).optional(),
   sammelbestellung: z.enum(FULFILLMENT_STATUSES).optional(),
   ausgabe: z.enum(ORDER_DISTRIBUTION_STATUSES).optional(),

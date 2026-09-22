@@ -26,6 +26,10 @@ export type CheckoutSessionResult = {
   sessionId: string;
 };
 
+export type ResumeResult =
+  | { ok: true; url: string }
+  | { ok: false; code: 'NOT_PENDING' | 'ALREADY_PAID' | 'NO_ITEMS' | 'STRIPE'; message: string };
+
 function paymentMethodTypes(): Stripe.Checkout.SessionCreateParams.PaymentMethodType[] | undefined {
   const configured = env().STRIPE_PAYMENT_METHOD_TYPES?.trim();
   if (!configured) return undefined;
@@ -36,14 +40,15 @@ function paymentMethodTypes(): Stripe.Checkout.SessionCreateParams.PaymentMethod
     .filter(Boolean) as Stripe.Checkout.SessionCreateParams.PaymentMethodType[];
 }
 
-export async function createCheckoutSession(params: {
-  orderId: string;
-  orderNumber: string;
-  publicToken: string;
-  email: string;
-  cart: PricedCart;
-}): Promise<CheckoutSessionResult> {
-  const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = params.cart.lines.map((line) => ({
+type LineSnapshot = {
+  productName: string;
+  variantLabel: string;
+  unitPriceCents: number;
+  quantity: number;
+};
+
+function toLineItems(lines: LineSnapshot[]): Stripe.Checkout.SessionCreateParams.LineItem[] {
+  return lines.map((line) => ({
     quantity: line.quantity,
     price_data: {
       currency: 'eur',
@@ -53,6 +58,16 @@ export async function createCheckoutSession(params: {
       },
     },
   }));
+}
+
+export async function createCheckoutSession(params: {
+  orderId: string;
+  orderNumber: string;
+  publicToken: string;
+  email: string;
+  cart: PricedCart;
+}): Promise<CheckoutSessionResult> {
+  const lineItems = toLineItems(params.cart.lines);
 
   const session = await stripe().checkout.sessions.create(
     {
@@ -94,4 +109,134 @@ export async function createCheckoutSession(params: {
   });
 
   return { url: session.url, sessionId: session.id };
+}
+
+/**
+ * Erzeugt eine neue Checkout-Session fuer eine bereits angelegte, noch unbezahlte Bestellung.
+ *
+ * Gedacht fuer den Fall, dass jemand die Zahlung abbricht oder die Session nach 30 Minuten
+ * verfaellt. Die Bestellung bleibt bestehen, es wird nur ein neuer Bezahlvorgang gestartet.
+ *
+ * Drei Dinge sind dabei wichtig:
+ *
+ * 1. Die Positionen kommen aus dem **Preis-Snapshot der Bestellung**, nicht aus dem aktuellen
+ *    Katalog. Wer gestern zu 44,90 EUR bestellt hat, zahlt auch dann 44,90 EUR, wenn der
+ *    Preis inzwischen geaendert wurde. Der Betrag passt damit weiterhin zu totalCents, und
+ *    der Abgleich im Webhook geht auf.
+ *
+ * 2. Die alte Session wird bei Stripe **verfallen gelassen**. Sonst koennte jemand mit einem
+ *    alten Tab doch noch die erste Session bezahlen – der Webhook wuerde sie wegen der nicht
+ *    mehr passenden Session-ID ablehnen, und das Geld laege bei Stripe ohne Bestellung.
+ *
+ * 3. Vorher wird geprueft, ob die alte Session nicht doch schon bezahlt ist. Sonst wuerde
+ *    hier eine zweite Zahlung fuer dieselbe Bestellung eroeffnet.
+ */
+export async function resumeCheckoutSession(orderId: string): Promise<ResumeResult> {
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
+    select: {
+      id: true,
+      orderNumber: true,
+      publicToken: true,
+      email: true,
+      totalCents: true,
+      paymentStatus: true,
+      paymentAttempts: true,
+      stripeCheckoutSessionId: true,
+      items: {
+        orderBy: [{ productName: 'asc' }, { variantLabel: 'asc' }],
+        select: { productName: true, variantLabel: true, unitPriceCents: true, quantity: true },
+      },
+    },
+  });
+
+  if (!order) return { ok: false, code: 'NOT_PENDING', message: 'Bestellung nicht gefunden.' };
+
+  if (order.paymentStatus !== 'PENDING') {
+    return {
+      ok: false,
+      code: order.paymentStatus === 'PAID' ? 'ALREADY_PAID' : 'NOT_PENDING',
+      message:
+        order.paymentStatus === 'PAID'
+          ? 'Diese Bestellung ist bereits bezahlt.'
+          : 'Diese Bestellung kann nicht mehr bezahlt werden.',
+    };
+  }
+
+  if (order.items.length === 0) {
+    return { ok: false, code: 'NO_ITEMS', message: 'Diese Bestellung enthaelt keine Positionen.' };
+  }
+
+  if (order.stripeCheckoutSessionId) {
+    try {
+      const previous = await stripe().checkout.sessions.retrieve(order.stripeCheckoutSessionId);
+
+      // Bezahlt, aber der Webhook ist noch unterwegs: auf keinen Fall ein zweites Mal kassieren.
+      if (previous.payment_status === 'paid' || previous.status === 'complete') {
+        return {
+          ok: false,
+          code: 'ALREADY_PAID',
+          message: 'Die Zahlung ist bereits bei unserem Zahlungsdienstleister eingegangen und wird gerade bestaetigt.',
+        };
+      }
+
+      if (previous.status === 'open') {
+        await stripe().checkout.sessions.expire(order.stripeCheckoutSessionId);
+      }
+    } catch (error) {
+      logger.warn('Alte Checkout-Session konnte nicht geprueft werden', {
+        orderNumber: order.orderNumber,
+        error: error instanceof Error ? error.message : 'unbekannt',
+      });
+      return {
+        ok: false,
+        code: 'STRIPE',
+        message: 'Die bisherige Zahlung konnte nicht geprueft werden. Bitte spaeter erneut versuchen.',
+      };
+    }
+  }
+
+  const attempt = order.paymentAttempts + 1;
+
+  const session = await stripe().checkout.sessions.create(
+    {
+      mode: 'payment',
+      line_items: toLineItems(order.items),
+      customer_email: order.email,
+      client_reference_id: order.id,
+      metadata: { orderId: order.id, orderNumber: order.orderNumber },
+      payment_intent_data: {
+        metadata: { orderId: order.id, orderNumber: order.orderNumber },
+        description: `Abi-Shop Bestellung ${order.orderNumber}`,
+      },
+      ...(paymentMethodTypes() ? { payment_method_types: paymentMethodTypes() } : {}),
+      locale: 'de',
+      expires_at: Math.floor(Date.now() / 1000) + SESSION_LIFETIME_SECONDS,
+      success_url: appUrl(`/bestellung/${order.publicToken}?zahlung=erfolgreich`),
+      cancel_url: appUrl(`/bestellung/${order.publicToken}?zahlung=abgebrochen`),
+    },
+    {
+      // Der Versuchszaehler gehoert in den Schluessel: Sonst gaebe Stripe die bereits
+      // verfallene Session des ersten Versuchs zurueck.
+      idempotencyKey: `checkout:${order.id}:${attempt}`,
+    },
+  );
+
+  if (!session.url) {
+    return { ok: false, code: 'STRIPE', message: 'Der Zahlungsdienstleister hat keine Adresse geliefert.' };
+  }
+
+  await prisma.order.update({
+    where: { id: order.id },
+    data: { stripeCheckoutSessionId: session.id, paymentAttempts: attempt },
+  });
+
+  logger.info('Zahlung wird fortgesetzt', {
+    orderNumber: order.orderNumber,
+    sessionId: session.id,
+    attempt,
+    amountCents: order.totalCents,
+  });
+
+  return { ok: true, url: session.url };
 }

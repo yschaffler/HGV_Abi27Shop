@@ -238,7 +238,6 @@ describe('checkoutSchema', () => {
     firstName: 'Max',
     lastName: 'Mustermann',
     email: 'Max@Example.DE',
-    className: '13B',
     items: [{ variantId: PULLOVER.id, quantity: 1 }],
     acceptedTerms: true as const,
     acceptedPickup: true as const,

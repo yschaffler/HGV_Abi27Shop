@@ -7,12 +7,14 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { OrderPageEffects } from '@/components/shop/order-page-effects';
+import { ResumePaymentForm } from '@/components/shop/resume-payment-form';
 import { formatCents } from '@/lib/money';
 import { publicTokenSchema } from '@/lib/validation/order';
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limit';
 import { clientIp } from '@/server/request-context';
 import { findOrderByPublicToken } from '@/server/shop/order';
-import { getSettings } from '@/server/settings';
+import { evaluateOrderWindow } from '@/server/shop/order-window';
+import { getOrderWindow, getSettings } from '@/server/settings';
 
 /**
  * Bestellstatus für den Besteller.
@@ -52,12 +54,19 @@ export default async function OrderPage({ params, searchParams }: PageProps) {
     );
   }
 
-  const [order, settings] = await Promise.all([findOrderByPublicToken(parsedToken.data), getSettings()]);
+  const [order, settings, window] = await Promise.all([
+    findOrderByPublicToken(parsedToken.data),
+    getSettings(),
+    getOrderWindow(),
+  ]);
   if (!order) notFound();
 
   const cameFromPayment = query['zahlung'] === 'erfolgreich';
   const awaitingPayment = order.paymentStatus === 'PENDING' && cameFromPayment;
-  const cancelled = query['zahlung'] === 'abgebrochen';
+
+  // Nach dem Bestellschluss nuetzt eine Nachzahlung niemandem mehr: Die Sammelbestellung
+  // ist dann bereits beim Hersteller. Die Server Action prueft das noch einmal selbst.
+  const canResumePayment = order.paymentStatus === 'PENDING' && evaluateOrderWindow(window).isOpen;
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10 sm:py-14">
@@ -77,15 +86,26 @@ export default async function OrderPage({ params, searchParams }: PageProps) {
         </Alert>
       ) : null}
 
-      {cancelled && order.paymentStatus === 'PENDING' ? (
+      {order.paymentStatus === 'PENDING' && !awaitingPayment ? (
         <Alert variant="warning" className="mb-6">
           <CircleAlertIcon aria-hidden="true" />
-          <AlertTitle>Zahlung abgebrochen</AlertTitle>
+          <AlertTitle>Diese Bestellung ist noch nicht bezahlt</AlertTitle>
           <AlertDescription>
             <p>
-              Die Bestellung ist gespeichert, aber noch nicht bezahlt. Bitte lege sie neu an, wenn
-              du sie doch möchtest.
+              Deine Auswahl ist gespeichert, die Zahlung wurde aber abgebrochen oder ist nicht
+              abgeschlossen worden. Solange der Bestellzeitraum läuft, kannst du sie hier
+              nachholen – du musst nichts neu auswählen.
             </p>
+            {canResumePayment ? (
+              <div className="mt-3">
+                <ResumePaymentForm token={order.publicToken} />
+              </div>
+            ) : (
+              <p className="mt-2 font-medium">
+                Der Bestellzeitraum ist beendet und die Sammelbestellung ist raus. Wenn du den
+                Hoodie trotzdem noch möchtest, wende dich bitte an die Q-Sprecher.
+              </p>
+            )}
           </AlertDescription>
         </Alert>
       ) : null}
@@ -118,10 +138,6 @@ export default async function OrderPage({ params, searchParams }: PageProps) {
           <div>
             <dt className="text-muted-foreground">Name</dt>
             <dd className="text-foreground">{order.firstName} {order.lastName}</dd>
-          </div>
-          <div>
-            <dt className="text-muted-foreground">Kurs oder Klasse</dt>
-            <dd className="text-foreground">{order.className}</dd>
           </div>
           <div>
             <dt className="text-muted-foreground">E-Mail</dt>

@@ -1,5 +1,6 @@
 'use server';
 
+import { after } from 'next/server';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { parseEuroInput } from '@/lib/money';
@@ -21,6 +22,15 @@ import { logUnexpected } from '@/server/logger';
 import { storeProductImage } from '@/server/media';
 import { assertSameOrigin } from '@/server/request-context';
 import { SETTINGS_ID } from '@/server/settings';
+import { countRecipients, runBroadcast } from '@/server/mail/broadcast';
+import { broadcastSchema } from '@/lib/validation/broadcast';
+import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limit';
+import {
+  distributeAllItems,
+  distributeItem,
+  revokeAllDistributions,
+  revokeItemDistribution,
+} from '@/server/shop/distribution';
 import { hashAccessCode } from '@/server/shop/access';
 import { accessHintSchema, newAccessCodeSchema } from '@/lib/validation/access';
 
@@ -504,6 +514,203 @@ export async function clearAccessCodeAction(_previous: ActionState): Promise<Act
   revalidatePath('/admin/settings');
   revalidatePath('/', 'layout');
   return OK;
+}
+
+// ---------------------------------------------------------------------------
+// Ausgabestatus korrigieren
+// ---------------------------------------------------------------------------
+
+/**
+ * Setzt oder nimmt die Ausgabe einer einzelnen Position zurueck.
+ *
+ * An der Ausgabetheke gibt es bewusst nur den Weg nach vorne – dort steht eine Schlange und
+ * niemand soll versehentlich zuruecknehmen. Die Korrektur gehoert hierher, in den
+ * Adminbereich, wo in Ruhe nachgesehen werden kann, und sie landet im Protokoll.
+ */
+export async function setItemDistributionAction(_previous: ActionState, formData: FormData): Promise<ActionState> {
+  const origin = await assertSameOrigin();
+  if (!origin.ok) return fail(origin.message);
+
+  const auth = await authorize(['ADMIN']);
+  if (!auth.ok) return fail(auth.error);
+
+  const itemId = idSchema.safeParse(formData.get('itemId'));
+  if (!itemId.success) return fail('Ungueltige Position.');
+
+  const distributed = formData.get('distributed') === 'true';
+
+  const result = distributed
+    ? await distributeItem(itemId.data, auth.user)
+    : await revokeItemDistribution(itemId.data, auth.user);
+
+  if (!result.ok) return fail(result.message);
+
+  revalidatePath('/admin/orders');
+  if (result.changed === 0) {
+    return { status: 'ok', message: 'Der Status stand bereits so – es wurde nichts geaendert.' };
+  }
+
+  return {
+    status: 'ok',
+    message: distributed ? 'Als ausgegeben markiert.' : 'Ausgabe zurueckgenommen.',
+  };
+}
+
+/** Setzt oder nimmt die Ausgabe der gesamten Bestellung. */
+export async function setOrderDistributionAction(_previous: ActionState, formData: FormData): Promise<ActionState> {
+  const origin = await assertSameOrigin();
+  if (!origin.ok) return fail(origin.message);
+
+  const auth = await authorize(['ADMIN']);
+  if (!auth.ok) return fail(auth.error);
+
+  const orderId = idSchema.safeParse(formData.get('orderId'));
+  if (!orderId.success) return fail('Ungueltige Bestellung.');
+
+  const distributed = formData.get('distributed') === 'true';
+
+  const result = distributed
+    ? await distributeAllItems(orderId.data, auth.user)
+    : await revokeAllDistributions(orderId.data, auth.user);
+
+  if (!result.ok) return fail(result.message);
+
+  revalidatePath('/admin/orders');
+  if (result.changed === 0) {
+    return { status: 'ok', message: 'Es gab nichts zu aendern.' };
+  }
+
+  return {
+    status: 'ok',
+    message: distributed
+      ? `${result.changed} Position(en) als ausgegeben markiert.`
+      : `Ausgabe von ${result.changed} Position(en) zurueckgenommen.`,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Rundmail
+// ---------------------------------------------------------------------------
+
+/**
+ * Verschickt eine Rundmail an die Besteller.
+ *
+ * Der Versand laeuft ueber `after()` weiter, nachdem die Antwort schon beim Browser ist:
+ * 160 Mails mit Pause dazwischen dauern laenger, als eine Server Action offen bleiben
+ * sollte. Wer auf der Seite bleibt, sieht die Zahlen in der Uebersicht hochlaufen.
+ *
+ * Bricht der Versand mittendrin ab – Neustart des Containers, Ausfall des Mailservers –,
+ * steht in BroadcastDelivery, wer schon erreicht wurde. Ein zweiter Anlauf ueber
+ * "Fehlende erneut anschreiben" macht genau dort weiter.
+ */
+export async function sendBroadcastAction(_previous: ActionState, formData: FormData): Promise<ActionState> {
+  const origin = await assertSameOrigin();
+  if (!origin.ok) return fail(origin.message);
+
+  const auth = await authorize(['ADMIN']);
+  if (!auth.ok) return fail(auth.error);
+
+  const limit = checkRateLimit(`broadcast:${auth.user.id}`, RATE_LIMITS.broadcast);
+  if (!limit.allowed) {
+    return fail(`Zu viele Rundmails. Bitte in ${Math.ceil(limit.retryAfterSeconds / 60)} Minuten erneut versuchen.`);
+  }
+
+  const parsed = broadcastSchema.safeParse({
+    subject: formData.get('subject'),
+    body: formData.get('body'),
+    audience: formData.get('audience'),
+    confirm: formData.get('confirm'),
+  });
+
+  if (!parsed.success) return fail(firstIssueMessage(parsed.error));
+
+  let broadcastId: string;
+  let recipientCount: number;
+
+  try {
+    recipientCount = await countRecipients(parsed.data.audience);
+    if (recipientCount === 0) {
+      return fail('Für diese Auswahl gibt es derzeit keine Empfänger.');
+    }
+
+    const broadcast = await prisma.broadcast.create({
+      data: {
+        subject: parsed.data.subject,
+        body: parsed.data.body,
+        audience: parsed.data.audience,
+        recipientCount,
+        createdByUserId: auth.user.id,
+      },
+      select: { id: true },
+    });
+
+    broadcastId = broadcast.id;
+
+    await recordAudit({
+      actor: auth.user,
+      action: 'BROADCAST_SENT',
+      entityType: 'Broadcast',
+      entityId: broadcastId,
+      summary: `Rundmail "${parsed.data.subject}" an ${recipientCount} Empfänger angestoßen`,
+    });
+  } catch (error) {
+    const errorId = logUnexpected('sendBroadcastAction', error);
+    return fail(`Die Rundmail konnte nicht angelegt werden. (Kennung ${errorId})`);
+  }
+
+  // Laeuft weiter, nachdem die Antwort raus ist.
+  after(async () => {
+    try {
+      await runBroadcast(broadcastId);
+    } catch (error) {
+      logUnexpected('runBroadcast', error);
+      await prisma.broadcast
+        .update({
+          where: { id: broadcastId },
+          data: { status: 'FAILED', finishedAt: new Date(), lastError: 'Der Versand wurde abgebrochen.' },
+        })
+        .catch(() => undefined);
+    }
+  });
+
+  revalidatePath('/admin/broadcast');
+  return { status: 'ok', message: `Rundmail an ${recipientCount} Empfänger wird versendet.` };
+}
+
+/** Schreibt die Empfänger an, bei denen der erste Anlauf gescheitert ist. */
+export async function retryBroadcastAction(_previous: ActionState, formData: FormData): Promise<ActionState> {
+  const origin = await assertSameOrigin();
+  if (!origin.ok) return fail(origin.message);
+
+  const auth = await authorize(['ADMIN']);
+  if (!auth.ok) return fail(auth.error);
+
+  const limit = checkRateLimit(`broadcast:${auth.user.id}`, RATE_LIMITS.broadcast);
+  if (!limit.allowed) {
+    return fail(`Zu viele Rundmails. Bitte in ${Math.ceil(limit.retryAfterSeconds / 60)} Minuten erneut versuchen.`);
+  }
+
+  const broadcastId = idSchema.safeParse(formData.get('broadcastId'));
+  if (!broadcastId.success) return fail('Ungültige Rundmail.');
+
+  const existing = await prisma.broadcast.findUnique({
+    where: { id: broadcastId.data },
+    select: { id: true, status: true },
+  });
+
+  if (!existing) return fail('Rundmail nicht gefunden.');
+  if (existing.status === 'SENDING') return fail('Diese Rundmail wird gerade versendet.');
+
+  after(async () => {
+    try {
+      await runBroadcast(broadcastId.data);
+    } catch (error) {
+      logUnexpected('runBroadcast', error);
+    }
+  });
+
+  revalidatePath('/admin/broadcast');
+  return { status: 'ok', message: 'Die fehlenden Empfänger werden erneut angeschrieben.' };
 }
 
 // ---------------------------------------------------------------------------

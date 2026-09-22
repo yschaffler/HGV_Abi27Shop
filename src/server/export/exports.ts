@@ -56,7 +56,6 @@ export type DetailRow = {
   firstName: string;
   lastName: string;
   email: string;
-  className: string;
   productName: string;
   variantLabel: string;
   color: string;
@@ -88,7 +87,6 @@ export async function loadDetailRows(): Promise<DetailRow[]> {
           firstName: true,
           lastName: true,
           email: true,
-          className: true,
           paymentStatus: true,
           createdAt: true,
         },
@@ -101,7 +99,6 @@ export async function loadDetailRows(): Promise<DetailRow[]> {
     firstName: item.order.firstName,
     lastName: item.order.lastName,
     email: item.order.email,
-    className: item.order.className,
     productName: item.productName,
     variantLabel: item.variantLabel,
     color: item.color,
@@ -137,7 +134,6 @@ const DETAIL_COLUMNS: Array<CsvColumn<DetailRow> & XlsxColumn<DetailRow>> = [
   { header: 'Nachname', width: 18, value: (row) => row.lastName },
   { header: 'Vorname', width: 18, value: (row) => row.firstName },
   { header: 'E-Mail', width: 28, value: (row) => row.email },
-  { header: 'Klasse', width: 10, value: (row) => row.className },
   { header: 'Produkt', width: 24, value: (row) => row.productName },
   { header: 'Variante', width: 22, value: (row) => row.variantLabel },
   { header: 'Farbe', width: 14, value: (row) => row.color },

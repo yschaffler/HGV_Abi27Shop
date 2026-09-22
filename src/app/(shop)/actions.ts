@@ -9,9 +9,10 @@ import { createPendingOrder } from '@/server/shop/order';
 import { evaluateOrderWindow } from '@/server/shop/order-window';
 import { priceCart } from '@/server/shop/pricing';
 import { getOrderWindow } from '@/server/settings';
-import { createCheckoutSession } from '@/server/stripe/checkout';
+import { createCheckoutSession, resumeCheckoutSession } from '@/server/stripe/checkout';
 import { isStripeConfigured } from '@/server/stripe/client';
-import { cartSchema, checkoutSchema } from '@/lib/validation/order';
+import { findOrderByPublicToken } from '@/server/shop/order';
+import { cartSchema, checkoutSchema, publicTokenSchema } from '@/lib/validation/order';
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limit';
 
 /**
@@ -92,7 +93,7 @@ export type CheckoutFormState = {
   message?: string;
   fieldErrors?: Partial<
     Record<
-      'firstName' | 'lastName' | 'email' | 'className' | 'acceptedTerms' | 'acceptedPickup' | 'items',
+      'firstName' | 'lastName' | 'email' | 'acceptedTerms' | 'acceptedPickup' | 'items',
       string
     >
   >;
@@ -136,7 +137,6 @@ export async function submitCheckoutAction(
     firstName: formData.get('firstName'),
     lastName: formData.get('lastName'),
     email: formData.get('email'),
-    className: formData.get('className'),
     acceptedTerms: formData.get('acceptedTerms') === 'on',
     acceptedPickup: formData.get('acceptedPickup') === 'on',
     items: itemsRaw.data,
@@ -189,6 +189,73 @@ export async function submitCheckoutAction(
     return {
       status: 'error',
       message: `Die Bestellung konnte nicht abgeschlossen werden. Bitte erneut versuchen. (Kennung ${errorId})`,
+    };
+  }
+
+  // redirect() wirft intern – deshalb steht es außerhalb des try-Blocks.
+  redirect(checkoutUrl);
+}
+
+export type ResumePaymentState = { status: 'idle' | 'error'; message?: string };
+
+/**
+ * Setzt eine abgebrochene oder verfallene Zahlung fort.
+ *
+ * Der oeffentliche Token ist hier das einzige Zugangsmerkmal – genau wie beim Anzeigen der
+ * Bestellung. Wer den Token hat, darf die zugehoerige Bestellung bezahlen; das ist kein
+ * zusaetzliches Risiko, weil dabei nur Geld in Richtung des Shops fliesst.
+ *
+ * Die Bestellung selbst wird nicht neu berechnet: Es zaehlt der Preis-Snapshot, der beim
+ * Anlegen gespeichert wurde. Der Bestellzeitraum wird trotzdem erneut geprueft – nach dem
+ * Bestellschluss geht die Sammelbestellung raus, danach nuetzt eine Zahlung niemandem mehr.
+ */
+export async function resumePaymentAction(
+  _previous: ResumePaymentState,
+  formData: FormData,
+): Promise<ResumePaymentState> {
+  const origin = await assertSameOrigin();
+  if (!origin.ok) return { status: 'error', message: origin.message };
+
+  const ip = await clientIp();
+  const limit = checkRateLimit(`resume-payment:${ip}`, RATE_LIMITS.resumePayment);
+  if (!limit.allowed) {
+    return {
+      status: 'error',
+      message: `Zu viele Versuche. Bitte in ${Math.ceil(limit.retryAfterSeconds / 60)} Minuten erneut versuchen.`,
+    };
+  }
+
+  const token = publicTokenSchema.safeParse(formData.get('token'));
+  if (!token.success) return { status: 'error', message: 'Ungueltige Bestellreferenz.' };
+
+  if (!isStripeConfigured()) {
+    return { status: 'error', message: 'Die Bezahlung ist derzeit nicht verfügbar. Bitte später erneut versuchen.' };
+  }
+
+  let checkoutUrl: string;
+
+  try {
+    const order = await findOrderByPublicToken(token.data);
+    if (!order) return { status: 'error', message: 'Bestellung nicht gefunden.' };
+
+    const window = evaluateOrderWindow(await getOrderWindow());
+    if (!window.isOpen) {
+      return {
+        status: 'error',
+        message:
+          'Der Bestellzeitraum ist beendet – die Sammelbestellung ist bereits raus. Bitte wendet euch an die Q-Sprecher.',
+      };
+    }
+
+    const resumed = await resumeCheckoutSession(order.id);
+    if (!resumed.ok) return { status: 'error', message: resumed.message };
+
+    checkoutUrl = resumed.url;
+  } catch (error) {
+    const errorId = logUnexpected('resumePaymentAction', error);
+    return {
+      status: 'error',
+      message: `Die Zahlung konnte nicht gestartet werden. Bitte erneut versuchen. (Kennung ${errorId})`,
     };
   }
 

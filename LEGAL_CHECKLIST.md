@@ -105,6 +105,19 @@ sein. Wer die Routen umbaut, darf diese Ausnahme nicht versehentlich entfernen.
 - [ ] Ist die Bestellseite `/bestellung/<token>` aus der Bestaetigungsmail ohne Code
       erreichbar?
 
+## 5b. Rundmail an die Besteller
+
+Der Adminbereich kann eine Rundmail an alle Besteller schicken (Ausgabetermin und
+Ähnliches). Das ist eine **Bestandsinformation zur laufenden Bestellung**, keine Werbung –
+sie geht ausschließlich an Leute, die bezahlt haben, und betrifft ausschließlich deren
+Bestellung.
+
+- [ ] Wird die Rundmail wirklich nur für Informationen zur Abholung benutzt? Sobald darin
+      geworben wird (weitere Artikel, Veranstaltungen, Spendenaufrufe), gelten andere
+      Regeln – dann ist eine Einwilligung nötig. **PRÜFEN LASSEN**
+- [ ] Steht in der Datenschutzerklärung, dass die E-Mail-Adresse auch für Nachrichten zur
+      Abholung verwendet wird?
+
 ## 6. Verbraucherinformationen und Bestellprozess
 
 - [ ] Preise inklusive Mehrwertsteuer angegeben?
@@ -125,7 +138,11 @@ sein. Wer die Routen umbaut, darf diese Ausnahme nicht versehentlich entfernen.
 
 ## 7. Datenschutz (DSGVO)
 
-**Erhoben werden ausschließlich:** Vorname, Nachname, E-Mail-Adresse, Klasse.
+**Erhoben werden ausschließlich:** Vorname, Nachname, E-Mail-Adresse.
+
+Das Feld für Kurs oder Klasse wurde entfernt: Der Shop richtet sich an genau einen Jahrgang,
+damit hatte die Angabe keinen Zweck mehr. Die zugehörige Spalte ist per Migration aus der
+Datenbank verschwunden.
 Keine Adresse, kein Geburtsdatum, keine Telefonnummer, keine Zahlungsdaten.
 
 - [ ] Datenschutzerklärung erstellen und unter *Admin → Einstellungen* eintragen.

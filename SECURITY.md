@@ -200,6 +200,49 @@ darauf darf sich auch niemand verlassen.
 muessen ohne Huerde erreichbar sein), `/bestellung/<token>` (dort ist der Token das
 Zugangsmerkmal), der Adminbereich mit eigener Anmeldung und der Stripe-Webhook.
 
+## 10b. Rundmail an alle Besteller
+
+Eine Rundmail erreicht den gesamten Jahrgang und laesst sich nicht zurueckholen. Entsprechend
+eng ist sie abgesichert:
+
+* Nur die Rolle **ADMIN**, geprueft serverseitig in der Action.
+* **Rate Limit**: 5 Rundmails je Konto und Stunde.
+* Zum Absenden muss zusaetzlich das Wort `SENDEN` eingetippt werden (`z.literal`). Ein
+  versehentlicher Klick oder ein doppelt abgeschicktes Formular loest nichts aus.
+* Der Freitext wird als **Klartext** versendet. Fuer die HTML-Fassung laeuft er durch
+  `escapeHtml` und wird nur an Absatz- und Zeilenumbruechen aufgeteilt – es gibt keinen Weg,
+  ueber das Adminformular Markup oder ein Skript in eine Mail zu bekommen. Getestet in
+  `tests/integration/broadcast.test.ts`.
+* Empfaenger sind ausschliesslich **bezahlte** Bestellungen. Wer nicht bezahlt hat, bekommt
+  keine Abholmail – es gibt nichts abzuholen.
+* Die Zustellung wird je Empfaenger protokolliert (`BroadcastDelivery` mit
+  `@@unique([broadcastId, orderId])`). Ein zweiter Anlauf schreibt deshalb nur die an, bei
+  denen noch nichts angekommen ist, statt den Jahrgang erneut zuzuspammen.
+* Der Versand laeuft ueber `after()` weiter, nachdem die Antwort raus ist. Bricht er ab, steht
+  in der Datenbank, wer erreicht wurde; ein erneuter Aufruf macht dort weiter.
+* Jede Rundmail landet im Audit-Log – mit Betreff und Empfaengerzahl, ohne Adressen.
+
+## 10c. Zahlung nachholen
+
+Eine abgebrochene Zahlung laesst sich ueber den persoenlichen Link der Bestellung
+fortsetzen. Der Token ist dabei das einzige Zugangsmerkmal, genau wie beim Anzeigen – das
+ist kein zusaetzliches Risiko, weil dabei nur Geld in Richtung des Shops fliesst.
+
+Zwei Dinge duerfen dabei nicht passieren, und gegen beide wird geprueft:
+
+* **Doppelt kassieren.** Vor dem Anlegen einer neuen Session wird die bisherige bei Stripe
+  abgefragt. Ist sie `complete` oder `paid`, wird abgebrochen – der Webhook ist dann nur noch
+  nicht angekommen.
+* **Zahlung ohne Bestellung.** Die alte, noch offene Session wird bei Stripe zum Verfallen
+  gebracht. Sonst koennte jemand mit einem alten Tab eine Session bezahlen, die der Webhook
+  anschliessend wegen der nicht mehr passenden Session-ID ablehnt; das Geld laege dann bei
+  Stripe ohne zugehoerige Bestellung.
+
+Die Positionen kommen aus dem **Preis-Snapshot der Bestellung**, nicht aus dem aktuellen
+Katalog. Damit passt der Betrag weiterhin zu `totalCents` und der Abgleich im Webhook geht
+auf, auch wenn sich der Preis zwischenzeitlich geaendert hat. Der Bestellzeitraum wird erneut
+geprueft, und ein Rate Limit von 5 Versuchen je IP in 10 Minuten begrenzt den Missbrauch.
+
 ## 11. Race Conditions
 
 Nirgends Lesen-Prüfen-Schreiben, überall bedingte Updates:
@@ -230,7 +273,7 @@ fünf gleichzeitige „Alles ausgeben“ zählen zusammen genau die vorhandenen 
 
 ## 13. Datensparsamkeit
 
-Erhoben werden ausschließlich Vorname, Nachname, E-Mail und Klasse. Keine Adresse, kein
+Erhoben werden ausschließlich Vorname, Nachname und E-Mail. Keine Adresse, kein
 Geburtsdatum, keine Telefonnummer. Das Audit-Log speichert Akteur, Aktion, Entität und eine
 kurze Zusammenfassung – keine IP-Adressen, keine Request-Inhalte, keine Kontaktdaten von
 Bestellern. Zahlungsdaten werden nirgends gespeichert, nur Stripe-Referenzen.

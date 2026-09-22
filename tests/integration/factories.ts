@@ -69,7 +69,6 @@ export async function createPaidOrder(params: {
   variantId: string;
   firstName?: string;
   lastName?: string;
-  className?: string;
   quantity?: number;
   unitPriceCents?: number;
   itemCount?: number;
@@ -85,7 +84,6 @@ export async function createPaidOrder(params: {
       firstName: params.firstName ?? 'Max',
       lastName: params.lastName ?? 'Mustermann',
       email: 'max@example.de',
-      className: params.className ?? '13B',
       totalCents: unitPriceCents * quantity * itemCount,
       paymentStatus: 'PAID',
       paidAt: new Date(),

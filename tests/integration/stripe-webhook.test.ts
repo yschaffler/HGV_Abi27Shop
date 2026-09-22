@@ -27,7 +27,6 @@ async function createPendingOrderRow(totalCents = 3990) {
       firstName: 'Max',
       lastName: 'Mustermann',
       email: 'max@example.de',
-      className: '13B',
       totalCents,
       paymentStatus: 'PENDING',
       stripeCheckoutSessionId: 'cs_test_123',

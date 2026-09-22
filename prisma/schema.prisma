@@ -61,7 +61,7 @@ model User {
   isActive     Boolean @default(true)
 
   /// TOTP-Secret, AES-256-GCM-verschlüsselt mit einem aus AUTH_SECRET abgeleiteten Key.
-  totpSecret    String?   @db.Text
+  totpSecret      String?   @db.Text
   totpConfirmedAt DateTime?
 
   /// Notfallcodes im Klartext, AES-256-GCM-verschlüsselt – ausschliesslich während der
@@ -78,11 +78,12 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  sessions      Session[]
-  recoveryCodes RecoveryCode[]
-  auditLogs     AuditLog[]
-  distributedItems OrderItem[]  @relation("DistributedBy")
-  uploadedMedia    MediaAsset[] @relation("UploadedBy")
+  sessions         Session[]
+  recoveryCodes    RecoveryCode[]
+  broadcasts       Broadcast[]
+  auditLogs        AuditLog[]
+  distributedItems OrderItem[]    @relation("DistributedBy")
+  uploadedMedia    MediaAsset[]   @relation("UploadedBy")
 
   @@index([role, isActive])
   @@map("users")
@@ -91,13 +92,13 @@ model User {
 /// Serverseitige Session. Die Primärschlüssel-Spalte enthält den SHA-256-Hash des
 /// Cookie-Tokens – wer die Datenbank liest, kann daraus keine gültige Session bauen.
 model Session {
-  id         String   @id
-  userId     String
+  id           String   @id
+  userId       String
   /// Solange false, ist die Session nur für den 2FA-Schritt gültig, sonst für nichts.
-  totpVerified Boolean @default(false)
-  expiresAt  DateTime
-  createdAt  DateTime @default(now())
-  lastUsedAt DateTime @default(now())
+  totpVerified Boolean  @default(false)
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+  lastUsedAt   DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -185,19 +186,21 @@ model Order {
   firstName String
   lastName  String
   email     String
-  className String
 
   totalCents Int
 
-  paymentStatus      PaymentStatus           @default(PENDING)
-  paidAt             DateTime?
-  fulfillmentStatus  FulfillmentStatus       @default(NEW)
+  paymentStatus           PaymentStatus           @default(PENDING)
+  paidAt                  DateTime?
+  fulfillmentStatus       FulfillmentStatus       @default(NEW)
   /// Denormalisiert, wird immer in derselben Transaktion wie die Positionen neu berechnet.
-  distributionStatus OrderDistributionStatus @default(NOT_DISTRIBUTED)
+  distributionStatus      OrderDistributionStatus @default(NOT_DISTRIBUTED)
   distributionCompletedAt DateTime?
 
   stripeCheckoutSessionId String? @unique
   stripePaymentIntentId   String? @unique
+  /// Zaehlt die erzeugten Checkout-Sessions. Wird hochgezaehlt, wenn eine abgebrochene
+  /// Zahlung nachgeholt wird – der Idempotenzschluessel bei Stripe haengt daran.
+  paymentAttempts         Int     @default(1)
 
   confirmationEmailSentAt DateTime?
   /// Interne Notiz des Admins, wird dem Besteller nie angezeigt.
@@ -206,11 +209,11 @@ model Order {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  items OrderItem[]
+  items      OrderItem[]
+  deliveries BroadcastDelivery[]
 
   @@index([lastName, firstName])
   @@index([paymentStatus, createdAt])
-  @@index([className])
   @@index([fulfillmentStatus])
   @@index([distributionStatus])
   @@map("orders")
@@ -260,8 +263,8 @@ model OrderItem {
 model Settings {
   id Int @id @default(1)
 
-  shopName     String  @default("Abi-Shop")
-  contactEmail String  @default("")
+  shopName     String @default("Abi-Shop")
+  contactEmail String @default("")
 
   orderStartAt DateTime?
   orderEndAt   DateTime?
@@ -312,12 +315,12 @@ model AuditLog {
 /// Idempotenzschutz für Stripe-Webhooks. Der Primärschlüssel ist die Stripe-Event-ID;
 /// ein zweiter Zustellversuch läuft in den Unique-Constraint und bleibt wirkungslos.
 model StripeWebhookEvent {
-  id          String   @id
+  id          String    @id
   type        String
-  receivedAt  DateTime @default(now())
+  receivedAt  DateTime  @default(now())
   processedAt DateTime?
   /// Kurze Notiz zum Ergebnis, z. B. "order ABI-7F4K92 -> PAID".
-  result      String?  @db.Text
+  result      String?   @db.Text
 
   @@index([type, receivedAt])
   @@map("stripe_webhook_events")
@@ -339,4 +342,70 @@ model MediaAsset {
 
   @@index([uploadedByUserId])
   @@map("media_assets")
+}
+
+/// Wer bei einer Rundmail angeschrieben wird.
+enum BroadcastAudience {
+  /// Alle bezahlten Bestellungen.
+  PAID
+  /// Bezahlte Bestellungen, die noch nicht vollstaendig ausgegeben wurden.
+  PAID_NOT_DISTRIBUTED
+}
+
+enum BroadcastStatus {
+  DRAFT
+  SENDING
+  SENT
+  FAILED
+}
+
+/// Eine Rundmail an die Besteller, z. B. die Ankuendigung des Ausgabetermins.
+model Broadcast {
+  id String @id @default(cuid())
+
+  subject String @db.Text
+  /// Freitext des Admins. Wird als Klartext versendet und fuer die HTML-Fassung escaped.
+  body    String @db.Text
+
+  audience BroadcastAudience
+  status   BroadcastStatus   @default(DRAFT)
+
+  /// Zum Zeitpunkt des Absendens ermittelte Empfaengerzahl.
+  recipientCount Int @default(0)
+  sentCount      Int @default(0)
+  failedCount    Int @default(0)
+
+  /// Kurze Fehlerbeschreibung, falls der Versand insgesamt scheitert. Keine Adressen.
+  lastError String? @db.Text
+
+  createdByUserId String?
+  createdBy       User?   @relation(fields: [createdByUserId], references: [id], onDelete: SetNull)
+
+  createdAt  DateTime  @default(now())
+  startedAt  DateTime?
+  finishedAt DateTime?
+
+  deliveries BroadcastDelivery[]
+
+  @@index([createdAt])
+  @@map("broadcasts")
+}
+
+/// Protokoll je Empfaenger. Damit schreibt ein zweiter Versuch nur die noch Fehlenden an.
+model BroadcastDelivery {
+  id String @id @default(cuid())
+
+  broadcastId String
+  broadcast   Broadcast @relation(fields: [broadcastId], references: [id], onDelete: Cascade)
+
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  sentAt DateTime @default(now())
+  /// NULL = zugestellt. Sonst die Fehlermeldung des Mailtreibers.
+  error  String?  @db.Text
+
+  /// Eine Bestellung bekommt dieselbe Rundmail genau einmal.
+  @@unique([broadcastId, orderId])
+  @@map("broadcast_deliveries")
 }

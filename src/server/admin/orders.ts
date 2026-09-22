@@ -23,7 +23,6 @@ export function buildOrderWhere(filter: OrderFilter): Prisma.OrderWhereInput {
   if (filter.zahlung) where.paymentStatus = filter.zahlung;
   if (filter.sammelbestellung) where.fulfillmentStatus = filter.sammelbestellung;
   if (filter.ausgabe) where.distributionStatus = filter.ausgabe;
-  if (filter.klasse) where.className = sanitize(filter.klasse);
 
   const search = filter.suche ? sanitize(filter.suche) : '';
   if (search.length > 0) {
@@ -53,7 +52,6 @@ export async function listOrders(filter: OrderFilter) {
         orderNumber: true,
         firstName: true,
         lastName: true,
-        className: true,
         email: true,
         totalCents: true,
         paymentStatus: true,
@@ -86,13 +84,3 @@ export async function getOrderDetail(orderId: string) {
   });
 }
 
-/** Klassenliste für das Filter-Dropdown – aus den tatsächlich vorhandenen Bestellungen. */
-export async function listClassNames(): Promise<string[]> {
-  const rows = await prisma.order.findMany({
-    distinct: ['className'],
-    select: { className: true },
-    orderBy: { className: 'asc' },
-  });
-
-  return rows.map((row) => row.className);
-}

@@ -23,14 +23,6 @@ const nameSchema = z
   .max(80, 'Zu lang')
   .regex(/^[\p{L}][\p{L}\p{M}\s'’-]*$/u, 'Bitte nur Buchstaben, Leerzeichen und Bindestriche');
 
-/** Klassenbezeichnung wie "13B", "Q2" oder "12/3". */
-const classNameSchema = z
-  .string()
-  .trim()
-  .min(1, 'Bitte ausfüllen')
-  .max(20, 'Zu lang')
-  .regex(/^[\p{L}\p{N}][\p{L}\p{N}\s/.-]*$/u, 'Ungültige Klassenbezeichnung');
-
 const emailSchema = z
   .email('Bitte eine gültige E-Mail-Adresse angeben')
   .trim()
@@ -56,14 +48,12 @@ export const customerSchema = z.object({
   firstName: nameSchema,
   lastName: nameSchema,
   email: emailSchema,
-  className: classNameSchema,
 });
 
 export const checkoutSchema = z.object({
   firstName: nameSchema,
   lastName: nameSchema,
   email: emailSchema,
-  className: classNameSchema,
   items: cartSchema,
   /** Muss aktiv bestätigt werden; der Wert wird serverseitig geprüft, nicht nur im Browser. */
   acceptedTerms: z.literal(true, { error: 'Bitte bestätigen' }),

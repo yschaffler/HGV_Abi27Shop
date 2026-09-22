@@ -169,7 +169,6 @@ export function DistributionDesk() {
           <p className="text-foreground text-3xl font-bold">
             {order.firstName} {order.lastName}
           </p>
-          <p className="text-muted-foreground mt-1 text-xl">Klasse {order.className}</p>
           <p className="text-muted-foreground mt-2 font-mono text-base">Bestellung {order.orderNumber}</p>
           <p className="text-foreground mt-3 text-lg font-semibold">
             {distributed} von {order.items.length} Artikeln ausgegeben
@@ -304,7 +303,7 @@ export function DistributionDesk() {
                     {hit.firstName} {hit.lastName}
                   </span>
                   <span className="text-muted-foreground mt-0.5 block text-lg">
-                    Klasse {hit.className} · {hit.orderNumber}
+                    {hit.orderNumber}
                   </span>
                 </span>
 

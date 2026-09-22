@@ -323,6 +323,20 @@ Link aus der Bestaetigungsmail immer funktioniert.
 
 Was der Code leistet und was nicht, steht in [SECURITY.md](SECURITY.md), Abschnitt 10a.
 
+## Rundmail an die Besteller
+
+Unter *Admin → Rundmail* laesst sich eine Nachricht an alle Besteller schicken – typischer
+Fall: "Am Freitag koennt ihr eure Hoodies abholen". Der Text ist Freitext; Anrede mit
+Vornamen, Bestellnummer und der persoenliche Link werden automatisch ergaenzt. Eine Vorschau
+daneben zeigt, was ankommt.
+
+Empfaenger sind wahlweise alle bezahlten Bestellungen oder nur die, die noch nicht abgeholt
+wurden. Unbezahlte Bestellungen bekommen nie eine Abholmail.
+
+Zum Absenden muss `SENDEN` eingetippt werden – eine Rundmail laesst sich nicht zurueckholen.
+Jede Zustellung wird einzeln protokolliert; schlaegt eine fehl, schreibt
+*Fehlende erneut anschreiben* genau diese Empfaenger noch einmal an und sonst niemanden.
+
 ## Ausgabe am iPad
 
 `/admin/distribution` ist eine eigene, reduzierte Ansicht ohne Admin-Navigation.
@@ -395,6 +409,21 @@ Weitere Punkte:
   das Signing Secret ist ein anderes.
 
 ---
+
+## Ausgabestatus korrigieren
+
+An der Ausgabetheke geht es bewusst nur nach vorne: Dort steht eine Schlange, und niemand
+soll versehentlich eine Ausgabe zuruecknehmen. Die Korrektur sitzt unter
+*Admin → Bestellungen → [Bestellung]*: je Position und fuer die ganze Bestellung, jeweils in
+beide Richtungen. Jede Aenderung landet mit Zeitpunkt und Konto im Protokoll.
+
+## Zahlung nachholen
+
+Bricht jemand die Zahlung ab oder verfaellt die Stripe-Session nach 30 Minuten, bleibt die
+Bestellung als unbezahlt bestehen. Auf der Bestellseite (dem Link aus der E-Mail, oder dem
+Link im Adminbereich) gibt es dann *Jetzt bezahlen* – es muss nichts neu ausgewaehlt werden.
+Berechnet wird der Preis, der beim Bestellen galt. Nach dem Bestellschluss ist Schluss: Die
+Sammelbestellung ist dann raus.
 
 ## Fehlersuche
 

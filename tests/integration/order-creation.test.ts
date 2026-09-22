@@ -15,7 +15,6 @@ const CUSTOMER = {
   firstName: 'Max',
   lastName: 'Mustermann',
   email: 'max@example.de',
-  className: '13B',
   acceptedTerms: true as const,
   acceptedPickup: true as const,
 };

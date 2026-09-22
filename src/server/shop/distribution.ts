@@ -28,7 +28,6 @@ export type DistributionSearchHit = {
   orderNumber: string;
   firstName: string;
   lastName: string;
-  className: string;
   distributionStatus: string;
   itemCount: number;
   distributedCount: number;
@@ -60,7 +59,6 @@ export async function searchPaidOrders(rawQuery: string): Promise<DistributionSe
       orderNumber: true,
       firstName: true,
       lastName: true,
-      className: true,
       distributionStatus: true,
       items: { select: { distributionStatus: true } },
     },
@@ -71,7 +69,6 @@ export async function searchPaidOrders(rawQuery: string): Promise<DistributionSe
     orderNumber: order.orderNumber,
     firstName: order.firstName,
     lastName: order.lastName,
-    className: order.className,
     distributionStatus: order.distributionStatus,
     itemCount: order.items.length,
     distributedCount: order.items.filter((item) => item.distributionStatus === 'DISTRIBUTED').length,
@@ -86,7 +83,6 @@ export async function getOrderForDistribution(orderId: string) {
       orderNumber: true,
       firstName: true,
       lastName: true,
-      className: true,
       distributionStatus: true,
       totalCents: true,
       items: {
@@ -214,6 +210,99 @@ export async function distributeAllItems(orderId: string, actor: AuthUser): Prom
     entityType: 'Order',
     entityId: orderId,
     summary: `${order.orderNumber}: ${result.changed} Position(en) ausgegeben`,
+  });
+
+  return { ok: true, changed: result.changed, orderStatus: result.orderStatus, alreadyDistributed: false };
+}
+
+/**
+ * Nimmt die Ausgabe einer einzelnen Position zurueck.
+ *
+ * Der Gegenpart zu distributeItem: An der Ausgabe wird mal daneben getippt, und dann muss
+ * sich das korrigieren lassen, ohne in der Datenbank zu hantieren. Bewusst nur im
+ * Adminbereich und nicht an der Ausgabetheke – dort soll niemand versehentlich eine
+ * Ausgabe zuruecknehmen, waehrend die Schlange wartet.
+ *
+ * Dieselbe Technik wie beim Ausgeben: bedingtes updateMany statt lesen-pruefen-schreiben.
+ * Wer als Zweiter klickt, trifft null Zeilen statt doppelt zurueckzunehmen.
+ */
+export async function revokeItemDistribution(itemId: string, actor: AuthUser): Promise<DistributionOutcome> {
+  const item = await prisma.orderItem.findUnique({
+    where: { id: itemId },
+    select: {
+      id: true,
+      orderId: true,
+      productName: true,
+      variantLabel: true,
+      order: { select: { orderNumber: true } },
+    },
+  });
+
+  if (!item) return { ok: false, message: 'Position nicht gefunden.' };
+
+  const result = await prisma.$transaction(async (tx) => {
+    const updated = await tx.orderItem.updateMany({
+      where: { id: itemId, distributionStatus: 'DISTRIBUTED' },
+      data: {
+        distributionStatus: 'NOT_DISTRIBUTED',
+        distributedAt: null,
+        distributedByUserId: null,
+      },
+    });
+
+    const orderStatus = await syncOrderStatus(tx, item.orderId);
+    return { changed: updated.count, orderStatus };
+  });
+
+  if (result.changed === 0) {
+    // "alreadyDistributed" heisst hier: war ohnehin schon nicht ausgegeben.
+    return { ok: true, changed: 0, orderStatus: result.orderStatus, alreadyDistributed: true };
+  }
+
+  await recordAudit({
+    actor: { id: actor.id, email: actor.email },
+    action: 'ITEM_DISTRIBUTION_REVOKED',
+    entityType: 'OrderItem',
+    entityId: itemId,
+    summary: `${item.order.orderNumber}: Ausgabe von ${item.productName} (${item.variantLabel}) zurueckgenommen`,
+  });
+
+  return { ok: true, changed: result.changed, orderStatus: result.orderStatus, alreadyDistributed: false };
+}
+
+/** Nimmt die Ausgabe der gesamten Bestellung zurueck. */
+export async function revokeAllDistributions(orderId: string, actor: AuthUser): Promise<DistributionOutcome> {
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
+    select: { id: true, orderNumber: true },
+  });
+
+  if (!order) return { ok: false, message: 'Bestellung nicht gefunden.' };
+
+  const result = await prisma.$transaction(async (tx) => {
+    const updated = await tx.orderItem.updateMany({
+      where: { orderId, distributionStatus: 'DISTRIBUTED' },
+      data: {
+        distributionStatus: 'NOT_DISTRIBUTED',
+        distributedAt: null,
+        distributedByUserId: null,
+      },
+    });
+
+    const orderStatus = await syncOrderStatus(tx, orderId);
+    return { changed: updated.count, orderStatus };
+  });
+
+  if (result.changed === 0) {
+    return { ok: true, changed: 0, orderStatus: result.orderStatus, alreadyDistributed: true };
+  }
+
+  await recordAudit({
+    actor: { id: actor.id, email: actor.email },
+    action: 'ORDER_DISTRIBUTION_REVOKED',
+    entityType: 'Order',
+    entityId: orderId,
+    summary: `${order.orderNumber}: Ausgabe von ${result.changed} Position(en) zurueckgenommen`,
   });
 
   return { ok: true, changed: result.changed, orderStatus: result.orderStatus, alreadyDistributed: false };

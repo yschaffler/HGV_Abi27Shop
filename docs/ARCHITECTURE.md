@@ -227,7 +227,9 @@ enum OrderDistributionStatus { NOT_DISTRIBUTED  PARTIALLY_DISTRIBUTED  FULLY_DIS
 | `Session` | serverseitige Sessions | PK = SHA-256 des Tokens, `expiresAt`, `lastUsedAt`, Cascade zum User |
 | `Product` | Artikel | `slug @unique`, `active`, `sortOrder`, optionales Bild |
 | `ProductVariant` | Farbe/Größe/Preis | `priceCents Int`, `@@unique([productId, color, size])`, `active` |
-| `Order` | Bestellung | `orderNumber @unique`, `publicToken @unique`, Name/E-Mail/Klasse, `totalCents`, `paymentStatus`, `fulfillmentStatus`, `distributionStatus`, Stripe-IDs `@unique` |
+| `Order` | Bestellung | `orderNumber @unique`, `publicToken @unique`, Vorname/Nachname/E-Mail, `totalCents`, `paymentStatus`, `fulfillmentStatus`, `distributionStatus`, `paymentAttempts`, Stripe-IDs `@unique` |
+| `Broadcast` | Rundmail an die Besteller | Betreff, Freitext, Empfaengerkreis, Status, Zaehler |
+| `BroadcastDelivery` | Zustellprotokoll je Empfaenger | `@@unique([broadcastId, orderId])` – jede Bestellung bekommt dieselbe Rundmail genau einmal |
 | `OrderItem` | Position mit Preis-Snapshot | `unitPriceCents`, `quantity`, `lineTotalCents`, `distributionStatus`, `distributedAt`, `distributedByUserId` |
 | `Settings` | Singleton (id=1) | Bestellzeitraum, Abholhinweis, Kontakt, Rechtstexte |
 | `AuditLog` | kritische Admin-Aktionen | Akteur, Aktion, Entität, `summary` („NEW → ORDERED“) |
@@ -246,7 +248,7 @@ enum OrderDistributionStatus { NOT_DISTRIBUTED  PARTIALLY_DISTRIBUTED  FULLY_DIS
   Transaktion** wie die Positionsänderung neu berechnet → kann nicht auseinanderlaufen, ist
   aber filterbar.
 * Indizes: `Order(lastName, firstName)` für die Ausgabesuche, `Order(paymentStatus, createdAt)`,
-  `Order(className)`, `OrderItem(orderId)`, `OrderItem(variantId)` für die Aggregation.
+  `OrderItem(orderId)`, `OrderItem(variantId)` für die Aggregation.
 
 ---
 
@@ -269,9 +271,10 @@ weiterhin mehrere Produkte – zusätzliche Artikel erscheinen unter "Weitere Ar
 | `/` | Landingpage für den Hoodie: Hero mit Countdown, Galerie, Variantenauswahl und "in den Warenkorb" direkt auf der Seite, Ablauf, FAQ |
 | `/produkte/[slug]` | Produktdetail, Variantenauswahl, in den Warenkorb |
 | `/warenkorb` | Positionen, serverseitig neu bepreist |
-| `/checkout` | Vorname, Nachname, E-Mail, Klasse, zwei Pflichtbestätigungen → Stripe |
+| `/checkout` | Vorname, Nachname, E-Mail, zwei Pflichtbestätigungen → Stripe |
 | `/bestellung/[token]` | Bestellstatus über Zufallstoken |
 | `/rechtliches/[doc]` | Impressum, Datenschutz, Widerruf, AGB |
+| `/bestellung/[token]` (offen) | Bei unbezahlter Bestellung: Zahlung nachholen, ohne neu auszuwählen |
 | `/zugang` | Eingabe des Zugangscodes, falls einer gesetzt ist |
 
 ### Mutationen: Server Actions statt REST
@@ -306,7 +309,7 @@ Rate-Limit-Prüfung → Zod-Validierung → Autorisierung.
 ## 6. Zahlungsfluss
 
 ```
-Kunde: /checkout  (Name, E-Mail, Klasse, Warenkorb = nur IDs + Mengen)
+Kunde: /checkout  (Name, E-Mail, Warenkorb = nur IDs + Mengen)
    │
    ├─► Server Action
    │      1. Rate Limit (IP + E-Mail)
@@ -393,7 +396,7 @@ verwechselbare Zeichen (kein I, L, O, U).
 ## 9. Ausgabe (iPad)
 
 `/admin/distribution` bekommt ein **eigenes Layout** ohne Admin-Navigation: großes Suchfeld,
-Trefferliste mit Namen, Klasse und Bestellnummer, danach die Positionsliste mit großen
+Trefferliste mit Namen und Bestellnummer, danach die Positionsliste mit großen
 Schaltflächen (mind. 64 px Höhe), hoher Kontrast, keine Scrollfallen.
 
 * Autocomplete ab 2 Zeichen, Suche in Vor- und Nachname, mit Debounce, `AbortController`
@@ -410,7 +413,7 @@ Schaltflächen (mind. 64 px Höhe), hoher Kontrast, keine Scrollfallen.
 
 ## 10. Datenschutz und Recht
 
-Erhoben werden **nur** Vorname, Nachname, E-Mail und Klasse – nichts darüber hinaus,
+Erhoben werden **nur** Vorname, Nachname und E-Mail – nichts darüber hinaus,
 insbesondere keine Adresse, kein Geburtsdatum, keine Telefonnummer.
 
 Weitergabe: Name, E-Mail und Betrag an Stripe (Zahlungsabwicklung), Name, E-Mail und

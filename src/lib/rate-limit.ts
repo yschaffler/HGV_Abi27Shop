@@ -73,6 +73,8 @@ export const RATE_LIMITS = {
   loginPerAccount: { limit: 5, windowMs: 15 * 60 * 1000 },
   /** Bestellvorgänge je IP. */
   checkout: { limit: 8, windowMs: 10 * 60 * 1000 },
+  /** Erneute Zahlversuche zu einer bereits angelegten Bestellung. */
+  resumePayment: { limit: 5, windowMs: 10 * 60 * 1000 },
   /** Aufrufe der Bestellseite – bremst das Durchprobieren von Tokens zusätzlich ab. */
   orderLookup: { limit: 60, windowMs: 5 * 60 * 1000 },
   /** Autocomplete an der Ausgabe: häufig, aber nicht unbegrenzt. */
@@ -86,6 +88,8 @@ export const RATE_LIMITS = {
    * Entropie, deshalb ist die Bremse hier der eigentliche Schutz.
    */
   accessCode: { limit: 10, windowMs: 10 * 60 * 1000 },
+  /** Rundmails. Eng: Jede erreicht den gesamten Jahrgang. */
+  broadcast: { limit: 5, windowMs: 60 * 60 * 1000 },
   /** Exporte – erzeugen Last auf der Datenbank. */
   export: { limit: 30, windowMs: 10 * 60 * 1000 },
 } as const satisfies Record<string, RateLimitRule>;

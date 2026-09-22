@@ -24,7 +24,6 @@ export type DistributionOrderView = {
   orderNumber: string;
   firstName: string;
   lastName: string;
-  className: string;
   distributionStatus: string;
   items: Array<{
     id: string;
@@ -58,7 +57,6 @@ export async function loadOrderAction(orderId: string): Promise<LoadOrderResult>
         orderNumber: order.orderNumber,
         firstName: order.firstName,
         lastName: order.lastName,
-        className: order.className,
         distributionStatus: order.distributionStatus,
         items: order.items.map((item) => ({
           id: item.id,

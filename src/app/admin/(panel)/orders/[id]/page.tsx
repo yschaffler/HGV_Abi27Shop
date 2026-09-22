@@ -1,6 +1,10 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
+import {
+  ItemDistributionToggle,
+  OrderDistributionControls,
+} from '@/components/admin/distribution-controls';
 import { OrderStatusForm } from '@/components/admin/order-status-form';
 import { DistributionStatusBadge, PaymentStatusBadge } from '@/components/shop/order-status-badge';
 import { formatCents } from '@/lib/money';
@@ -25,6 +29,9 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
   const order = await getOrderDetail(parsed.data);
   if (!order) notFound();
 
+  const distributedCount = order.items.filter((item) => item.distributionStatus === 'DISTRIBUTED').length;
+  const openCount = order.items.length - distributedCount;
+
   return (
     <div className="space-y-5">
       <Link href="/admin/orders" className="text-muted-foreground text-sm hover:underline">
@@ -43,7 +50,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
             <h2 className="text-lg">Positionen</h2>
             <ul className="mt-3 space-y-3">
               {order.items.map((item) => (
-                <li key={item.id} className="border-border flex flex-wrap items-start justify-between gap-3 border-b pb-3 last:border-0 last:pb-0">
+                <li key={item.id} className="border-border flex flex-wrap items-start justify-between gap-3 border-b pb-4 last:border-0 last:pb-0">
                   <div>
                     <p className="text-foreground font-medium">{item.quantity} × {item.productName}</p>
                     <p className="text-muted-foreground text-sm">{item.variantLabel}</p>
@@ -58,6 +65,14 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
                         <span className="text-muted-foreground">Noch nicht ausgegeben</span>
                       )}
                     </p>
+                    {order.paymentStatus === 'PAID' ? (
+                      <div className="mt-2">
+                        <ItemDistributionToggle
+                          itemId={item.id}
+                          distributed={item.distributionStatus === 'DISTRIBUTED'}
+                        />
+                      </div>
+                    ) : null}
                   </div>
                   <p className="text-foreground font-semibold tabular-nums">{formatCents(item.lineTotalCents)}</p>
                 </li>
@@ -69,6 +84,22 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
               <span className="tabular-nums">{formatCents(order.totalCents)}</span>
             </p>
           </section>
+
+          {order.paymentStatus === 'PAID' ? (
+            <section className="surface-card rounded-xl p-5">
+              <h2 className="text-lg">Ausgabe</h2>
+              <p className="text-muted-foreground mt-1 text-sm">
+                {distributedCount} von {order.items.length} Position(en) ausgegeben.
+              </p>
+              <div className="mt-4">
+                <OrderDistributionControls
+                  orderId={order.id}
+                  hasDistributed={distributedCount > 0}
+                  hasOpen={openCount > 0}
+                />
+              </div>
+            </section>
+          ) : null}
 
           <section className="surface-card rounded-xl p-5">
             <h2 className="text-lg">Status ändern</h2>
@@ -89,10 +120,6 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
               <div>
                 <dt className="text-muted-foreground">Name</dt>
                 <dd className="text-foreground">{order.firstName} {order.lastName}</dd>
-              </div>
-              <div>
-                <dt className="text-muted-foreground">Klasse</dt>
-                <dd className="text-foreground">{order.className}</dd>
               </div>
               <div>
                 <dt className="text-muted-foreground">E-Mail</dt>

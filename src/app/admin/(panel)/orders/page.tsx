@@ -8,7 +8,7 @@ import {
   PAYMENT_STATUSES,
   orderFilterSchema,
 } from '@/lib/validation/admin';
-import { listClassNames, listOrders } from '@/server/admin/orders';
+import { listOrders } from '@/server/admin/orders';
 
 export const metadata: Metadata = { title: 'Bestellungen', robots: { index: false, follow: false } };
 export const dynamic = 'force-dynamic';
@@ -51,15 +51,11 @@ export default async function OrdersPage({
   const parsed = orderFilterSchema.safeParse(query);
   const filter = parsed.success ? parsed.data : orderFilterSchema.parse({});
 
-  const [{ orders, total, page, pageCount }, classNames] = await Promise.all([
-    listOrders(filter),
-    listClassNames(),
-  ]);
+  const { orders, total, page, pageCount } = await listOrders(filter);
 
   function pageHref(targetPage: number): string {
     const params = new URLSearchParams();
     if (filter.suche) params.set('suche', filter.suche);
-    if (filter.klasse) params.set('klasse', filter.klasse);
     if (filter.zahlung) params.set('zahlung', filter.zahlung);
     if (filter.sammelbestellung) params.set('sammelbestellung', filter.sammelbestellung);
     if (filter.ausgabe) params.set('ausgabe', filter.ausgabe);
@@ -75,20 +71,10 @@ export default async function OrdersPage({
       </div>
 
       {/* Filter als GET-Formular: funktioniert ohne JavaScript und ist teil- und lesbar in der URL. */}
-      <form method="get" className="surface-card grid gap-3 rounded-xl p-4 sm:grid-cols-2 lg:grid-cols-5">
+      <form method="get" className="surface-card grid gap-3 rounded-xl p-4 sm:grid-cols-2 lg:grid-cols-4">
         <div className="sm:col-span-2">
           <label htmlFor="suche" className="field-label">Name, Bestellnummer oder E-Mail</label>
           <input id="suche" name="suche" defaultValue={filter.suche ?? ''} maxLength={80} className="field-input" />
-        </div>
-
-        <div>
-          <label htmlFor="klasse" className="field-label">Klasse</label>
-          <select id="klasse" name="klasse" defaultValue={filter.klasse ?? ''} className="field-input">
-            <option value="">Alle</option>
-            {classNames.map((className) => (
-              <option key={className} value={className}>{className}</option>
-            ))}
-          </select>
         </div>
 
         <div>
@@ -131,12 +117,11 @@ export default async function OrdersPage({
         <p className="text-muted-foreground surface-card rounded-xl px-4 py-10 text-center">Keine Bestellungen gefunden.</p>
       ) : (
         <div className="surface-card overflow-x-auto rounded-xl">
-          <table className="w-full min-w-[56rem] text-sm">
+          <table className="w-full min-w-[52rem] text-sm">
             <thead className="border-border text-muted-foreground border-b text-left">
               <tr>
                 <th className="px-4 py-3 font-medium">Bestellung</th>
                 <th className="px-4 py-3 font-medium">Name</th>
-                <th className="px-4 py-3 font-medium">Klasse</th>
                 <th className="px-4 py-3 font-medium">Artikel</th>
                 <th className="px-4 py-3 text-right font-medium">Betrag</th>
                 <th className="px-4 py-3 font-medium">Status</th>
@@ -152,7 +137,6 @@ export default async function OrdersPage({
                     </Link>
                   </td>
                   <td className="text-foreground px-4 py-3">{order.lastName}, {order.firstName}</td>
-                  <td className="px-4 py-3">{order.className}</td>
                   <td className="px-4 py-3 tabular-nums">{order._count.items}</td>
                   <td className="px-4 py-3 text-right tabular-nums">{formatCents(order.totalCents)}</td>
                   <td className="px-4 py-3">

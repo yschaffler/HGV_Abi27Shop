@@ -10,6 +10,7 @@ const LINKS = [
   { href: '/admin/statistics', label: 'Statistik' },
   { href: '/admin/export', label: 'Sammelbestellung' },
   { href: '/admin/distribution', label: 'Ausgabe' },
+  { href: '/admin/broadcast', label: 'Rundmail' },
   { href: '/admin/users', label: 'Benutzer' },
   { href: '/admin/audit', label: 'Protokoll' },
   { href: '/admin/settings', label: 'Einstellungen' },
@@ -29,7 +30,7 @@ export function AdminNav() {
             href={link.href}
             aria-current={active ? 'page' : undefined}
             className={`rounded-lg px-3 py-2 text-sm font-medium whitespace-nowrap transition ${
-              active ? 'bg-brand-600 text-white' : 'text-foreground hover:bg-muted'
+              active ? 'bg-primary text-primary-foreground' : 'text-foreground hover:bg-muted'
             }`}
           >
             {link.label}

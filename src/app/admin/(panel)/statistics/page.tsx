@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic';
 export default async function StatisticsPage() {
   const stats = await loadStatistics();
 
-  const maxClassOrders = Math.max(1, ...stats.ordersByClass.map((row) => row.orders));
+  const maxDayOrders = Math.max(1, ...stats.ordersByDay.map((row) => row.orders));
 
   return (
     <div className="space-y-6">
@@ -31,16 +31,16 @@ export default async function StatisticsPage() {
       </div>
 
       <section className="surface-card rounded-xl p-5">
-        <h2 className="text-lg">Bestellungen je Klasse</h2>
+        <h2 className="text-lg">Bezahlte Bestellungen je Tag</h2>
 
-        {stats.ordersByClass.length === 0 ? (
+        {stats.ordersByDay.length === 0 ? (
           <p className="text-muted-foreground mt-3 text-sm">Noch keine bezahlten Bestellungen.</p>
         ) : (
           <ul className="mt-4 space-y-3">
-            {stats.ordersByClass.map((row) => (
-              <li key={row.className}>
+            {stats.ordersByDay.map((row) => (
+              <li key={row.day}>
                 <div className="flex items-baseline justify-between gap-4 text-sm">
-                  <span className="text-foreground font-medium">{row.className}</span>
+                  <span className="text-foreground font-medium">{row.label}</span>
                   <span className="text-muted-foreground tabular-nums">
                     {row.orders} · {formatCents(row.revenueCents)}
                   </span>
@@ -48,7 +48,7 @@ export default async function StatisticsPage() {
                 <div className="bg-muted mt-1 h-2 overflow-hidden rounded-full">
                   <div
                     className="h-full rounded-full bg-brand-500"
-                    style={{ width: `${(row.orders / maxClassOrders) * 100}%` }}
+                    style={{ width: `${(row.orders / maxDayOrders) * 100}%` }}
                   />
                 </div>
               </li>

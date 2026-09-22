@@ -54,7 +54,6 @@ export async function sendOrderConfirmation(orderId: string): Promise<void> {
     'vielen Dank für deine Bestellung. Wir haben deine Zahlung erhalten.',
     '',
     `Bestellnummer: ${order.orderNumber}`,
-    `Klasse: ${order.className}`,
     `Zahlungsstatus: ${statusLabel}`,
     '',
     'Deine Artikel:',
@@ -107,10 +106,6 @@ export async function sendOrderConfirmation(orderId: string): Promise<void> {
         <tr>
           <td style="padding:4px 0;color:#6b7280">Bestellnummer</td>
           <td style="padding:4px 0;text-align:right"><strong>${escapeHtml(order.orderNumber)}</strong></td>
-        </tr>
-        <tr>
-          <td style="padding:4px 0;color:#6b7280">Klasse</td>
-          <td style="padding:4px 0;text-align:right">${escapeHtml(order.className)}</td>
         </tr>
         <tr>
           <td style="padding:4px 0;color:#6b7280">Zahlungsstatus</td>

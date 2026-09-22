@@ -172,27 +172,6 @@ export function CheckoutForm({ pickupInfo }: { pickupInfo: string }) {
               ) : null}
             </div>
 
-            <div>
-              <Label htmlFor="className" className="mb-1.5">
-                Kurs oder Klasse
-              </Label>
-              <Input
-                id="className"
-                name="className"
-                required
-                maxLength={20}
-                placeholder="z. B. Q13"
-                className="sm:max-w-40"
-                aria-invalid={Boolean(fieldErrors.className)}
-              />
-              <p className="text-muted-foreground mt-1 text-xs">
-                Hilft bei der Ausgabe, deinen Pulli schneller zu finden.
-              </p>
-              {fieldErrors.className ? (
-                <p className="text-destructive mt-1 text-sm font-medium">{fieldErrors.className}</p>
-              ) : null}
-            </div>
-
             <Separator />
 
             {/*

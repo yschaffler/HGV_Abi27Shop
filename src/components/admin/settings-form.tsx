@@ -134,7 +134,7 @@ export function SettingsForm({ values }: { values: SettingsFormValues }) {
         <LegalField
           id="privacyText"
           label="Datenschutzerklärung"
-          hint="Erhoben werden Vorname, Nachname, E-Mail und Klasse. Weitergabe an Stripe (Zahlung) und den Mailversender."
+          hint="Erhoben werden Vorname, Nachname und E-Mail-Adresse. Weitergabe an Stripe (Zahlung) und den Mailversender."
           defaultValue={values.privacyText}
         />
         <LegalField

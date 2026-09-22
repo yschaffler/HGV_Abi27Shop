@@ -64,7 +64,6 @@ export async function createPendingOrder(input: CheckoutInput): Promise<CreateOr
           firstName: input.firstName,
           lastName: input.lastName,
           email: input.email,
-          className: input.className,
           totalCents: cart.totalCents,
           items: {
             create: cart.lines.map((line) => ({
