@@ -194,6 +194,12 @@ Zwei Eigenheiten, die bewusst so sind:
 * `color` und `size` sind `NOT NULL DEFAULT ''`. MySQL behandelt `NULL` in Unique-Indizes als
   verschieden; mit Leerstring greift die Eindeutigkeit der Variantenkombination tatsächlich.
 
+**Ziel-Datenbank ist MySQL 8.4** – in CI und auf dem Server. Wer lokal mit MariaDB arbeitet,
+merkt manche Unterschiede nicht: MariaDB erlaubt zum Beispiel einen Standardwert an
+`TEXT`-Spalten, MySQL lehnt ihn ab (Fehler 1101). Für Freitextfelder mit Standardwert deshalb
+`@db.VarChar(n)` statt `@db.Text` nehmen. Ob eine Migration unter MySQL durchläuft, zeigt
+verlässlich erst CI – dort läuft der Integrationstest gegen einen echten MySQL-8.4-Container.
+
 ---
 
 ## Stripe einrichten

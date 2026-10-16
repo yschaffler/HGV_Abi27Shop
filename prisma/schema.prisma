@@ -275,7 +275,9 @@ model Settings {
 
   /// Hinweis zum Anprobieren der Groessen, steht direkt bei der Groessenauswahl.
   /// Frei pflegbar, weil sich die Namen der Q-Sprecher aendern.
-  sizeAdvice String @db.Text @default("")
+  /// VARCHAR statt TEXT: MySQL erlaubt an TEXT-Spalten keinen Standardwert (MariaDB schon –
+  /// lokal faellt das deshalb nicht auf). 1000 Zeichen entsprechen der Grenze im Formular.
+  sizeAdvice String @default("") @db.VarChar(1000)
 
   /// Argon2id-Hash des Zugangscodes fuer den Shop. NULL = Shop ist oeffentlich.
   /// Der Code selbst wird nie gespeichert; er laesst sich nur neu setzen, nicht auslesen.
