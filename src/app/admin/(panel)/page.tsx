@@ -22,7 +22,7 @@ export default async function AdminDashboard() {
       <h1 className="text-2xl">Übersicht</h1>
 
       {legalPending ? (
-        <div className="border-gold-500/50 bg-gold-500/10 text-foreground rounded-xl border px-4 py-3 text-sm">
+        <div className="border-primary/40 bg-primary/5 text-foreground border-l-4 rounded-xl border px-4 py-3 text-sm">
           <p className="font-semibold">Rechtstexte fehlen noch</p>
           <p className="mt-1">
             Impressum, Datenschutz, Widerruf oder AGB sind noch Platzhalter. Vor dem Livegang
@@ -62,7 +62,7 @@ export default async function AdminDashboard() {
       <section className="surface-card rounded-xl p-5">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-lg">Meistbestellte Varianten</h2>
-          <Link href="/admin/export" className="text-sm text-gold-700 dark:text-gold-400 hover:underline">
+          <Link href="/admin/export" className="text-sm text-primary underline-offset-2 hover:underline">
             Zur Sammelbestellung
           </Link>
         </div>

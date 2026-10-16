@@ -56,7 +56,7 @@ export function SiteHeader({ shopName }: { shopName: string }) {
             <span className="hidden sm:inline">Warenkorb</span>
             {/* Erst nach dem Lesen des localStorage anzeigen, sonst blitzt eine falsche Zahl auf. */}
             {ready && count > 0 ? (
-              <Badge className="bg-gold-500 text-navy-950 absolute -top-2 -right-2 size-5 justify-center rounded-full px-0 text-[11px] tabular-nums">
+              <Badge className="bg-creme-300 text-navy-950 absolute -top-2 -right-2 size-5 justify-center rounded-full px-0 text-[11px] tabular-nums">
                 {count > 99 ? '99+' : count}
               </Badge>
             ) : null}

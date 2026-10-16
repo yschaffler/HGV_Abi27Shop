@@ -70,7 +70,7 @@ export default async function UsersPage() {
                   {!user.isActive ? (
                     <span className="text-muted-foreground">deaktiviert</span>
                   ) : user.lockedUntil && user.lockedUntil > new Date() ? (
-                    <span className="text-gold-700 dark:text-gold-300 font-medium">gesperrt</span>
+                    <span className="text-destructive font-medium">gesperrt</span>
                   ) : (
                     <span className="text-success-fg font-medium">aktiv</span>
                   )}

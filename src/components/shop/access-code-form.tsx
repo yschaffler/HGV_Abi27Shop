@@ -14,7 +14,7 @@ function SubmitButton() {
   const { pending } = useFormStatus();
 
   return (
-    <Button type="submit" variant="gold" size="lg" className="w-full" disabled={pending}>
+    <Button type="submit" variant="ink" size="lg" className="w-full" disabled={pending}>
       {pending ? 'Wird geprüft …' : 'Zum Shop'}
     </Button>
   );
@@ -45,7 +45,7 @@ export function AccessCodeForm({ hint }: { hint: string | null }) {
       </div>
 
       {state.status === 'error' && state.message ? (
-        <p id="code-fehler" role="alert" className="text-gold-300 text-center text-sm font-medium">
+        <p id="code-fehler" role="alert" className="text-center text-sm font-medium text-red-300">
           {state.message}
         </p>
       ) : null}

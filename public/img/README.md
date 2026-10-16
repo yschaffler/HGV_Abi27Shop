@@ -8,8 +8,8 @@ Der Shop lädt die Bilder über feste Pfade. Sobald es echte Produktfotos gibt, 
 | `hoodie-front.webp` | Galerie "Vorne" | hochkant, ca. 1000 × 1500 px |
 | `hoodie-back.webp` | Hero auf der Startseite **und** Galerie "Hinten" | hochkant, ca. 1000 × 1500 px |
 | `hoodie-detail.webp` | Galerie "Detail" | quer, ca. 1200 × 800 px |
-| `logo-dark.png` | Jahrgangslogo in Kopfzeile, Fußzeile und auf der Zugangsseite | quer, transparent, helle Fassung |
-| `logo.png` | dieselbe Marke in der dunklen Fassung, derzeit nicht eingebunden | quer, transparent |
+| `logo-dark.png` | Jahrgangslogo in Kopfzeile, Fußzeile und auf der Zugangsseite – wird erzeugt, nicht von Hand ersetzen | quer, transparent |
+| `logo.png` | Vorlage des Jahrgangslogos; nach dem Austausch `npm run logo:brand` ausführen | quer, transparent |
 
 Hinweise:
 
@@ -30,8 +30,8 @@ Im Shop stehen zwei Zeichen, mit getrennten Aufgaben:
 
 * **Jahrgangslogo "HGV ABI 2027"** (`logo-dark.png`) – sagt, *wer* hier bestellt. Es steht in
   Kopfzeile, Fußzeile und auf der Zugangsseite. Kopfzeile und Fußzeile sind immer dunkel,
-  deshalb wird dort nur die helle Fassung gebraucht; `logo.png` liegt als dunkle Fassung
-  bereit, falls das Logo einmal auf hellem Grund stehen soll.
+  deshalb wird dort nur die helle Fassung gebraucht. Sie ist aus `logo.png` einfarbig in
+  Creme gerechnet (`npm run logo:brand`), passend zum zweifarbigen Druck des Hoodies.
 * **Lorbeer-Emblem** – der Brustdruck des Hoodies, also das *Was*. Es steht beim Artikel.
   Es ist **kein Bild**, sondern gezeichnet: `src/components/shop/abi-emblem.tsx`. Dadurch ist
   es bei jeder Größe scharf und färbt sich mit dem Farbschema mit.

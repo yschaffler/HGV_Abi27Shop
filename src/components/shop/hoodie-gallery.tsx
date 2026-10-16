@@ -53,7 +53,7 @@ export function HoodieGallery({ images }: { images: GalleryImage[] }) {
               onClick={() => setActiveIndex(index)}
               aria-pressed={index === activeIndex}
               className={`bg-night grid flex-1 place-items-center overflow-hidden rounded-xl p-2 ring-1 transition ${
-                index === activeIndex ? 'ring-gold-500' : 'ring-creme-300/15 hover:ring-creme-300/40'
+                index === activeIndex ? 'ring-creme-300 ring-2' : 'ring-creme-300/15 hover:ring-creme-300/40'
               }`}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}

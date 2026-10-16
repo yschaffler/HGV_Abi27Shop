@@ -26,7 +26,7 @@ export function LoginForm({ redirectTo, notice }: { redirectTo: string; notice: 
       </div>
 
       {notice ? (
-        <p role="alert" className="bg-gold-500/15 text-foreground rounded-lg px-3 py-2 text-sm">
+        <p role="alert" className="bg-muted text-foreground border-primary/40 border-l-4 rounded-lg px-3 py-2 text-sm">
           {notice}
         </p>
       ) : null}

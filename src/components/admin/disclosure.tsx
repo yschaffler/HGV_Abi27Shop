@@ -30,7 +30,7 @@ export function Disclosure({
     tone === 'muted'
       ? 'text-muted-foreground text-xs'
       : tone === 'accent'
-        ? 'text-sm font-medium text-gold-700 dark:text-gold-400'
+        ? 'text-sm font-medium text-primary underline-offset-2'
         : 'text-foreground text-sm font-semibold';
 
   return (

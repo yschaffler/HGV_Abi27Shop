@@ -2,33 +2,26 @@
 @import 'tw-animate-css';
 
 /*
- * Designsystem – Abikropolis 2027, Design 3.
+ * Designsystem – Abikropolis 2027, Design 3: "Druck auf Stoff".
  *
- * Grundlage sind die Farbmarken von shadcn/ui (--background, --primary, --muted …), damit
- * die Komponenten aus components/ui unveraendert funktionieren. Die Werte kommen aus dem
- * Hoodie:
+ * Der Hoodie hat genau zwei Farben: Navy als Stoff, Creme als Druckfarbe. Der Shop hält
+ * sich daran und kennt keinen dritten Akzent. Hierarchie entsteht über Kontrast, feine
+ * Linien und die Schrift – nicht über eine weitere Farbe. Ein Gold- oder Olivton wurde
+ * ausprobiert und wieder entfernt: Er stand neben dem Print wie ein Fremdkörper.
  *
- *   Deep Navy   #0E1A36  Hauptfarbe: Header, Hero, Fusszeile, Schaltflaechen
- *   Creme       #F3EAD8  Schrift und Linien auf Navy – der Druckfarbe des Hoodies nachempfunden
- *   Oliv/Gold   #A3A05A  Akzent: Countdown, Plaketten, Icons (Lorbeer und Weinlaub des Prints)
- *   Hell        #F9F8F6  Heller Grund fuer Inhalte, damit Formulare und Texte ruhig bleiben
+ *   Navy   #0E1A36  Stoff: Kopfzeile, Hero, Fußzeile, Schaltflächen im hellen Modus
+ *   Creme  #F3EAD8  Druck: Schrift und Linien auf Navy, Schaltflächen auf dunklem Grund
+ *   Hell   #F9F8F6  Heller Grund für Inhalte, damit Formulare und Texte ruhig bleiben
  *
- * Die exakten Markenwerte stehen als oklch an den Ankerstufen navy-950, gold-500 und
- * background; die uebrigen Stufen sind daraus auf derselben Farbachse abgeleitet. Wer eine
- * Farbe ergaenzt, bleibt auf Farbton 265 (Navy) beziehungsweise 106 (Oliv) – alles andere
- * faellt aus dem Bild.
+ * Wer etwas ergänzt, nimmt eine dieser Farben mit Deckkraft (z. B. creme-300/40) statt
+ * einer neuen. Einzige Ausnahme sind Fehler- und Erfolgsmeldungen: Die müssen auch für
+ * jemanden funktionieren, der nicht genau hinsieht.
  *
- * Navy ist dunkel genug, dass Hero, Kopf- und Fusszeile in jedem Farbschema dunkel bleiben
- * (--color-night). Der Dunkelmodus hebt dieses Navy auf die ganze Seite; der helle Modus
- * stellt helle Inhaltsflaechen dagegen.
- *
- * Dunkelmodus laeuft ueber prefers-color-scheme, nicht ueber eine .dark-Klasse: Das ist die
+ * Dunkelmodus läuft über prefers-color-scheme, nicht über eine .dark-Klasse: Das ist die
  * Systemeinstellung des Besuchers, braucht kein JavaScript, kein Cookie und flackert beim
  * ersten Rendern nicht.
  *
  * Schriften liegen als Paket im Projekt und werden selbst ausgeliefert (siehe app/layout.tsx).
- * Cinzel fuer Ueberschriften nimmt den antiken Charakter des Prints auf, Inter traegt alles,
- * was gelesen statt betrachtet wird.
  */
 
 :root {
@@ -51,9 +44,9 @@
   --muted: oklch(0.944 0.006 85);
   --muted-foreground: oklch(0.47 0.027 265);
 
-  /* Oliv/Gold nur als Akzent – im Print sind es auch nur Lorbeer und Weinlaub. */
-  --accent: oklch(0.941 0.03 106);
-  --accent-foreground: oklch(0.37 0.058 106);
+  /* Akzent = ein Hauch Navy auf hellem Grund, z. B. für Hover-Flächen. */
+  --accent: oklch(0.935 0.012 265);
+  --accent-foreground: oklch(0.224 0.057 265);
 
   --destructive: oklch(0.548 0.145 27);
   --destructive-foreground: oklch(0.982 0.002 85);
@@ -87,15 +80,15 @@
     --muted: oklch(0.298 0.06 265);
     --muted-foreground: oklch(0.73 0.027 265);
 
-    --accent: oklch(0.335 0.05 160);
-    --accent-foreground: oklch(0.88 0.06 106);
+    --accent: oklch(0.32 0.06 265);
+    --accent-foreground: oklch(0.939 0.026 85);
 
     --destructive: oklch(0.662 0.122 24);
     --destructive-foreground: oklch(0.2 0.04 265);
 
     --border: oklch(0.365 0.052 265);
     --input: oklch(0.365 0.052 265);
-    --ring: oklch(0.692 0.092 106);
+    --ring: oklch(0.85 0.03 85);
 
     color-scheme: dark;
   }
@@ -174,18 +167,6 @@
   --color-navy-900: oklch(0.26 0.062 265);
   --color-navy-950: oklch(0.224 0.057 265);
 
-  /* Oliv/Gold – Lorbeer und Weinlaub des Prints. Ankerstufe 500 ist exakt #A3A05A. */
-  --color-gold-50: oklch(0.972 0.015 106);
-  --color-gold-100: oklch(0.941 0.03 106);
-  --color-gold-200: oklch(0.888 0.052 106);
-  --color-gold-300: oklch(0.822 0.07 106);
-  --color-gold-400: oklch(0.757 0.084 106);
-  --color-gold-500: oklch(0.692 0.092 106);
-  --color-gold-600: oklch(0.602 0.082 106);
-  --color-gold-700: oklch(0.503 0.069 106);
-  --color-gold-800: oklch(0.414 0.056 106);
-  --color-gold-900: oklch(0.348 0.046 106);
-
   /* Creme – die Druckfarbe auf dem Hoodie. */
   --color-creme-100: oklch(0.985 0.008 85);
   --color-creme-200: oklch(0.962 0.016 85);
@@ -211,9 +192,7 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    /* Auf Navy muessen Oliv und die Statusfarben heller werden, sonst verschwinden sie. */
-    --color-gold-500: oklch(0.757 0.084 106);
-    --color-gold-600: oklch(0.692 0.092 106);
+    /* Auf Navy müssen die Statusfarben heller werden, sonst verschwinden sie. */
     --color-success-bg: oklch(0.33 0.045 155);
     --color-success-fg: oklch(0.84 0.06 155);
     --color-neutral-bg: oklch(0.312 0.055 265);
@@ -263,7 +242,7 @@
   }
 
   ::selection {
-    @apply bg-gold-500/30;
+    @apply bg-primary/20;
   }
 }
 
@@ -288,14 +267,17 @@
     letter-spacing: 0.02em;
   }
 
-  /* Duenner Trenner mit Goldakzent – greift Lorbeer und Weinlaub des Prints auf. */
-  .rule-gold {
+  /*
+   * Feine Linie als Trenner – wie die Linien im Print. Nimmt die Schriftfarbe auf und
+   * funktioniert dadurch auf hellem wie auf dunklem Grund.
+   */
+  .rule {
     @apply h-px w-full;
     background: linear-gradient(
       to right,
       transparent,
-      var(--color-gold-500) 20%,
-      var(--color-gold-500) 80%,
+      color-mix(in oklch, currentColor 35%, transparent) 15%,
+      color-mix(in oklch, currentColor 35%, transparent) 85%,
       transparent
     );
   }
@@ -329,7 +311,7 @@
   /* Fuer die immer dunklen Flaechen, etwa den Hero. */
   .btn-on-dark {
     @apply inline-flex items-center justify-center gap-2 rounded-md px-5 py-3 text-sm font-semibold transition-all outline-none;
-    @apply bg-gold-500 text-navy-950 hover:bg-gold-400 active:scale-[0.99];
+    @apply bg-creme-300 text-navy-950 hover:bg-creme-200 active:scale-[0.99];
     @apply focus-visible:ring-[3px] focus-visible:ring-creme-300/50;
     @apply disabled:pointer-events-none disabled:opacity-50;
   }

@@ -152,7 +152,7 @@ export default async function ShopHomePage() {
         <div className="relative mx-auto grid max-w-6xl items-center gap-10 px-4 py-14 sm:py-20 md:grid-cols-2 md:gap-6">
           <div>
             <div className="flex flex-wrap items-center gap-2">
-              <Badge variant="gold" className="text-gold-200">
+              <Badge variant="ink-dark">
                 Sammelbestellung
               </Badge>
               <span className="eyebrow text-creme-300/50">Q13 · HGV</span>
@@ -161,7 +161,7 @@ export default async function ShopHomePage() {
             <h1 className="font-display text-creme-200 mt-5 text-6xl leading-[0.95] tracking-[0.03em] sm:text-8xl">
               Abikropolis
             </h1>
-            <p className="font-display text-gold-400 mt-3 text-base tracking-[0.22em] sm:text-xl">
+            <p className="font-display text-creme-300/70 mt-3 text-base tracking-[0.22em] sm:text-xl">
               Die Götter verlassen den Olymp
             </p>
             <p className="text-creme-300/70 mt-5 max-w-md text-base">
@@ -182,7 +182,7 @@ export default async function ShopHomePage() {
             ) : null}
 
             <div className="mt-8 flex flex-wrap items-center gap-3">
-              <Button asChild variant="gold" size="xl">
+              <Button asChild variant="ink" size="xl">
                 <a href="#bestellen">{status.isOpen ? 'Jetzt bestellen' : 'Zum Artikel'}</a>
               </Button>
               <Button asChild variant="ghost" size="xl" className="text-creme-300/80 hover:bg-creme-300/10 hover:text-creme-100">
@@ -274,7 +274,7 @@ export default async function ShopHomePage() {
               */}
               <div className="flex items-center gap-4">
                 <AbiEmblem className="text-foreground h-14 w-14 shrink-0" />
-                <Badge variant="gold">Sammelbestellung der Q13</Badge>
+                <Badge variant="ink">Sammelbestellung der Q13</Badge>
               </div>
               <h2 className="mt-4 text-3xl sm:text-4xl">{featured.name}</h2>
               <p className="text-foreground mt-3 text-2xl font-semibold">
@@ -289,7 +289,7 @@ export default async function ShopHomePage() {
                 <p className="text-muted-foreground mt-5">{featured.summary}</p>
               ) : null}
 
-              <div className="rule-gold my-7" />
+              <div className="rule text-foreground my-7" />
 
               <AddToCart
                 variants={featured.variants}

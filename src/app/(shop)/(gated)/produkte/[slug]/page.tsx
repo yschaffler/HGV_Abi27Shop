@@ -51,7 +51,7 @@ export default async function ProductPage({ params }: PageProps) {
         />
 
         <div>
-          <Badge variant="gold">Sammelbestellung der Q13</Badge>
+          <Badge variant="ink">Sammelbestellung der Q13</Badge>
           <h1 className="mt-3 text-3xl sm:text-4xl">{product.name}</h1>
           <p className="text-foreground mt-3 text-2xl font-semibold">
             {Math.min(...prices) === Math.max(...prices)
@@ -63,7 +63,7 @@ export default async function ProductPage({ params }: PageProps) {
             <p className="text-muted-foreground mt-5 whitespace-pre-line">{product.description}</p>
           ) : null}
 
-          <div className="rule-gold my-7" />
+          <div className="rule text-foreground my-7" />
 
           <AddToCart
             variants={product.variants}

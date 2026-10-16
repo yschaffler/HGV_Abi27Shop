@@ -10,7 +10,8 @@ const alertVariants = cva(
       variant: {
         default: 'bg-card text-card-foreground',
         info: 'border-primary/30 bg-primary/10 text-foreground',
-        warning: 'border-gold-500/50 bg-gold-500/10 text-foreground',
+        /* Hervorgehoben durch eine kräftigere Kante, nicht durch eine weitere Farbe. */
+        warning: 'border-primary/40 bg-primary/5 text-foreground border-l-4',
         destructive: 'border-destructive/40 bg-destructive/10 text-destructive [&>svg]:text-current',
       },
     },

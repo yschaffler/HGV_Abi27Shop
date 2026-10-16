@@ -133,8 +133,8 @@ export function AddToCart({
             Namen der Q-Sprecher wechseln.
           */}
           {sizeAdvice ? (
-            <div className="border-gold-500/40 bg-gold-500/10 mt-3 flex items-start gap-2.5 rounded-lg border p-3">
-              <RulerIcon className="text-gold-700 dark:text-gold-400 mt-0.5 size-4 shrink-0" aria-hidden="true" />
+            <div className="border-primary/40 bg-primary/5 mt-3 flex items-start gap-2.5 rounded-lg border border-l-4 p-3">
+              <RulerIcon className="text-primary mt-0.5 size-4 shrink-0" aria-hidden="true" />
               <p className="text-foreground text-sm">{sizeAdvice}</p>
             </div>
           ) : null}

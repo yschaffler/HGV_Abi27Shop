@@ -31,7 +31,7 @@ const COMPONENTS: Components = {
   em: ({ children }) => <em className="italic">{children}</em>,
   hr: () => <hr className="border-border my-8" />,
   blockquote: ({ children }) => (
-    <blockquote className="border-gold-500 text-muted-foreground my-4 border-l-2 pl-4 italic">{children}</blockquote>
+    <blockquote className="border-primary/40 text-muted-foreground my-4 border-l-2 pl-4 italic">{children}</blockquote>
   ),
   code: ({ children }) => (
     <code className="bg-muted rounded px-1.5 py-0.5 font-mono text-[0.85em]">{children}</code>
@@ -60,7 +60,7 @@ const COMPONENTS: Components = {
     return (
       <a
         href={target}
-        className="text-gold-700 dark:text-gold-400 underline underline-offset-2 hover:no-underline"
+        className="text-primary font-medium underline underline-offset-2 hover:no-underline"
         {...(isExternal ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
       >
         {children}

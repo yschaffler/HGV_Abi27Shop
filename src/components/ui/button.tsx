@@ -17,8 +17,11 @@ const buttonVariants = cva(
         secondary: 'bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80',
         ghost: 'hover:bg-accent hover:text-accent-foreground',
         link: 'text-primary underline-offset-4 hover:underline',
-        /* Eigene Variante fuer dunkle Flaechen wie den Hero – dort traegt Gold. */
-        gold: 'bg-gold-500 text-navy-950 shadow-xs hover:bg-gold-400 focus-visible:ring-creme-300/50',
+        /*
+         * Fuer die immer dunklen Flaechen (Hero, Zugangsseite): Creme auf Navy, also die
+         * Druckfarbe des Hoodies. Benannt nach der Rolle, nicht nach der Farbe.
+         */
+        ink: 'bg-creme-300 text-navy-950 shadow-xs hover:bg-creme-200 focus-visible:ring-creme-300/50',
       },
       size: {
         default: 'h-9 px-4 py-2 has-[>svg]:px-3',

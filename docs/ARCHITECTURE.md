@@ -117,13 +117,22 @@ kommen aber aus dem Hoodie (Design 3):
 | Marke | Wert | Wofür |
 |---|---|---|
 | Deep Navy | `#0E1A36` | Kopfzeile, Hero, Fusszeile, Schaltflaechen – die Farbe des Pullis |
-| Creme | `#F3EAD8` | Schrift und Linien auf Navy, der Druckfarbe nachempfunden |
-| Oliv/Gold | `#A3A05A` | Akzent: Countdown, Plaketten, Icons (Lorbeer und Weinlaub des Prints) |
+| Creme | `#F3EAD8` | Druckfarbe: Schrift, Linien und Schaltflaechen auf Navy |
 | Hell | `#F9F8F6` | Heller Grund fuer Inhalte, damit Formulare und Texte ruhig bleiben |
 
-Die exakten Werte stehen als oklch an den Ankerstufen `navy-950`, `gold-500` und
-`--background`; alle uebrigen Stufen sind daraus auf derselben Farbachse abgeleitet. Wer eine
-Farbe ergaenzt, bleibt auf Farbton 265 (Navy) beziehungsweise 106 (Oliv).
+Das Konzept heisst **"Druck auf Stoff"**: Der Hoodie hat genau zwei Farben, also hat der Shop
+auch nur zwei. Es gibt keinen dritten Akzent; Hierarchie entsteht ueber Kontrast, feine
+Linien, eine kraeftigere Kante (`border-l-4`) und die Schrift. Ein Oliv-Gold aus dem ersten
+Briefing wurde ausprobiert und wieder entfernt – es stand neben dem Print wie ein
+Fremdkoerper. Die Gold-Skala ist deshalb ganz aus `globals.css` verschwunden, damit sie nicht
+versehentlich zurueckkommt.
+
+Varianten sind nach ihrer Rolle benannt, nicht nach ihrer Farbe: `Button variant="ink"` und
+`Badge variant="ink"` / `"ink-dark"` bedeuten "Druckfarbe", egal welcher Ton das gerade ist.
+Einzige bunte Ausnahme sind Fehler- und Erfolgsmeldungen.
+
+Die exakten Werte stehen als oklch an den Ankerstufen `navy-950`, `creme-300` und
+`--background`; alle uebrigen Stufen sind daraus auf derselben Farbachse abgeleitet.
 
 Kopfzeile, Hero und Fusszeile sind in **jedem** Farbschema dunkel (`--color-night`): Sie sind
 der Stoff, auf den gedruckt wird. Der Dunkelmodus hebt dieses Navy auf die ganze Seite, der
@@ -183,11 +192,11 @@ Im Shop stehen zwei Zeichen, und sie konkurrieren bewusst nicht:
   bestellt. Es steht in Kopfzeile, Fusszeile und auf der Zugangsseite. Diese Flaechen sind
   in jedem Farbschema dunkel, deshalb wird dort nur die helle Fassung gebraucht.
 
-  `logo-dark.png` ist aus `logo.png` **auf die Shop-Palette gerechnet**: unbunte Pixel werden
-  zu Creme, bunte zum Oliv-Gold der Marke. Grund ist, dass die Vorlage ein helles, leuchtendes
-  Gold mitbringt – zwei verschiedene Goldtoene nebeneinander sehen nach Versehen aus. Die
-  Vorlage `logo.png` bleibt unangetastet; wer das Original zurueckwill, aendert eine Zeile in
-  der Kopfzeile. Das Skript dafuer steht im Commit, der die Datei erzeugt hat.
+  `logo-dark.png` ist aus `logo.png` **einfarbig in Creme gerechnet**, als waere es mit
+  aufgedruckt; die Helligkeitsstufen der Vorlage bleiben als Deckkraft erhalten, damit der
+  Pinguin seine Zeichnung behaelt. Die Vorlage bleibt unangetastet. Neu erzeugen mit
+  `npm run logo:brand` (`scripts/logo-brand.ts`), noetig nur, wenn `logo.png` ausgetauscht
+  wird.
 * Das **Lorbeer-Emblem** ist der Brustdruck des Hoodies, also das *Was*. Es steht beim
   Artikel. Es ist **gezeichnet**, nicht fotografiert: `src/components/shop/abi-emblem.tsx`.
   Der Ausschnitt aus dem Designblatt waere nur 115 Pixel breit gewesen; als Inline-SVG ist es

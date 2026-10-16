@@ -18,7 +18,8 @@
     "admin:create": "tsx scripts/create-admin.ts",
     "test:unit": "vitest run --project unit",
     "test:integration": "vitest run --project integration",
-    "access:code": "tsx scripts/set-access-code.ts"
+    "access:code": "tsx scripts/set-access-code.ts",
+    "logo:brand": "tsx scripts/logo-brand.ts"
   },
   "dependencies": {
     "@fontsource-variable/inter": "^5.3.0",

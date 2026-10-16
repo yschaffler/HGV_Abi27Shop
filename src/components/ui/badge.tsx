@@ -13,11 +13,13 @@ const badgeVariants = cva(
         secondary: 'border-transparent bg-secondary text-secondary-foreground',
         destructive: 'border-transparent bg-destructive text-destructive-foreground',
         outline: 'text-foreground border-border',
-        /* Goldakzent, z. B. fuer "Sammelbestellung" – bewusst die Ausnahme. */
-        gold: 'border-gold-500/40 bg-gold-500/15 text-gold-800 dark:text-gold-200',
+        /* Umrandete Auszeichnung in der Schriftfarbe, z. B. "Sammelbestellung". */
+        ink: 'border-foreground/25 bg-foreground/5 text-foreground',
+        /* Dasselbe fuer die immer dunklen Flaechen. */
+        'ink-dark': 'border-creme-300/35 bg-creme-300/10 text-creme-200',
         /* Statusfarben, gedeckt gehalten wie der Rest der Palette. */
         success: 'border-transparent bg-success-bg text-success-fg',
-        warning: 'border-transparent bg-gold-500/20 text-gold-800 dark:text-gold-200',
+        warning: 'border-foreground/30 bg-transparent text-foreground',
         neutral: 'border-transparent bg-neutral-bg text-neutral-fg',
       },
     },

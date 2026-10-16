@@ -46,7 +46,7 @@ export function AccessCodeForm({ active, hint }: { active: boolean; hint: string
         <CardTitle className="flex items-center gap-3 text-lg">
           Zugangscode
           {active ? (
-            <Badge variant="gold">
+            <Badge variant="ink">
               <LockKeyholeIcon aria-hidden="true" />
               aktiv
             </Badge>

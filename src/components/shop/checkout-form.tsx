@@ -202,7 +202,7 @@ export function CheckoutForm({ pickupInfo }: { pickupInfo: string }) {
             <ConfirmationField
               id="acceptedPickup"
               error={fieldErrors.acceptedPickup}
-              className="border-gold-500/60 bg-gold-500/10 rounded-lg border p-4"
+              className="border-primary/40 bg-primary/5 rounded-lg border border-l-4 p-4"
             >
               <span>
                 <span className="text-foreground font-semibold">

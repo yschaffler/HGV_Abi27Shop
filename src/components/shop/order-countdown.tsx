@@ -65,7 +65,7 @@ export function OrderCountdown({
 
   return (
     <div>
-      <p className="eyebrow text-gold-400">Noch bestellbar bis {deadlineLabel}</p>
+      <p className="eyebrow text-creme-300/60">Noch bestellbar bis {deadlineLabel}</p>
       {/*
         Der Gesamtwert steht als Text für Screenreader daneben; die einzelnen Kacheln
         würden sonst als sinnlose Zahlenkolonne vorgelesen. aria-live bleibt aus – eine
@@ -79,7 +79,7 @@ export function OrderCountdown({
         {parts.map((part) => (
           <div
             key={part.label}
-            className="border-gold-500/25 min-w-16 rounded-xl border bg-white/5 px-3 py-2 text-center backdrop-blur-sm sm:min-w-20"
+            className="border-creme-300/20 min-w-16 rounded-xl border bg-white/5 px-3 py-2 text-center backdrop-blur-sm sm:min-w-20"
           >
             <span className="font-display text-creme-200 block text-3xl leading-none sm:text-4xl">
               {pad(part.value)}

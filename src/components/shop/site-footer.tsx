@@ -31,7 +31,7 @@ export function SiteFooter({ shopName, contactEmail }: { shopName: string; conta
           </div>
 
           <nav aria-label="Rechtliches">
-            <p className="eyebrow text-gold-400/70">Rechtliches</p>
+            <p className="eyebrow text-creme-300/45">Rechtliches</p>
             <ul className="mt-3 space-y-2 text-sm">
               {LEGAL_LINKS.map((link) => (
                 <li key={link.href}>

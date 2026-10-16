@@ -7,9 +7,10 @@ import 'server-only';
  * den style-Attributen stehen. Damit die Mails trotzdem nicht neben dem Shop stehen, liegen
  * die Werte hier an einer Stelle. Es sind dieselben Marken wie in globals.css:
  *
- *   navy   Deep Navy des Hoodies, Kopfzeile und Schaltflaechen
- *   creme  Druckfarbe des Prints, Schrift auf Navy
- *   gold   Lorbeer und Weinlaub, nur als Akzent
+ *   navy   Stoff des Hoodies: Kopfzeile und Schaltflaechen
+ *   creme  Druckfarbe des Prints: Schrift auf Navy
+ *
+ * Wie im Shop gibt es keinen dritten Akzent – zwei Farben, wie auf dem Pulli.
  *
  * Dunkelmodus gibt es hier bewusst nicht: Mailprogramme faerben HTML-Mails nach eigenen
  * Regeln um, und ein zweiter Satz Farben macht das Ergebnis nur unvorhersehbarer.
@@ -19,7 +20,8 @@ export const MAIL_COLORS = {
   navySoft: '#16233f',
   creme: '#f3ead8',
   cremeSoft: '#f9f8f6',
-  gold: '#a3a05a',
+  /** Feine Linie auf Navy, Creme mit geringer Deckkraft. */
+  navyLine: '#2b3651',
   /** Flaechen und Linien auf hellem Grund. */
   page: '#f1efe9',
   card: '#ffffff',

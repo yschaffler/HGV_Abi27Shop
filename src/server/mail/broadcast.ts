@@ -96,7 +96,7 @@ function buildHtml(params: {
 <html lang="de">
   <body style="margin:0;padding:24px;background:${C.page};font-family:system-ui,-apple-system,'Segoe UI',sans-serif;color:${C.text}">
     <div style="max-width:560px;margin:0 auto;background:${C.card};border-radius:12px;overflow:hidden;border:1px solid ${C.line}">
-      <div style="background:${C.navy};padding:20px 28px;border-bottom:3px solid ${C.gold}">
+      <div style="background:${C.navy};padding:20px 28px;border-bottom:1px solid ${C.navyLine}">
         <p style="margin:0;color:${C.creme};font-size:13px;letter-spacing:0.18em;text-transform:uppercase">
           ${escapeHtml(params.shopName)}
         </p>
