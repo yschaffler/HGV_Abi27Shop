@@ -323,6 +323,16 @@ Link aus der Bestaetigungsmail immer funktioniert.
 
 Was der Code leistet und was nicht, steht in [SECURITY.md](SECURITY.md), Abschnitt 10a.
 
+## Produktbilder austauschen
+
+Der Shop laedt die Produktbilder ueber feste Pfade unter `public/img`. Sobald echte Fotos
+vorliegen, werden einfach diese Dateien ersetzt – ohne Codeaenderung. Welche Datei wo
+erscheint und worauf beim Fotografieren zu achten ist, steht in
+[`public/img/README.md`](public/img/README.md).
+
+Das Lorbeer-Emblem in Kopfzeile, Fusszeile und auf der Zugangsseite ist kein Bild, sondern
+gezeichnet (`src/components/shop/abi-emblem.tsx`) und deshalb bei jeder Groesse scharf.
+
 ## Rundmail an die Besteller
 
 Unter *Admin → Rundmail* laesst sich eine Nachricht an alle Besteller schicken – typischer

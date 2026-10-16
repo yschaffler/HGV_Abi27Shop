@@ -132,7 +132,7 @@ export default async function OrdersPage({
               {orders.map((order) => (
                 <tr key={order.id} className="border-border border-b last:border-0">
                   <td className="px-4 py-3">
-                    <Link href={`/admin/orders/${order.id}`} className="font-mono font-medium text-brand-600 hover:underline">
+                    <Link href={`/admin/orders/${order.id}`} className="font-mono font-medium text-gold-700 dark:text-gold-400 hover:underline">
                       {order.orderNumber}
                     </Link>
                   </td>

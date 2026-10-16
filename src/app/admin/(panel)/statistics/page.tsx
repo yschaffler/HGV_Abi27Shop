@@ -47,7 +47,7 @@ export default async function StatisticsPage() {
                 </div>
                 <div className="bg-muted mt-1 h-2 overflow-hidden rounded-full">
                   <div
-                    className="h-full rounded-full bg-brand-500"
+                    className="h-full rounded-full bg-navy-500"
                     style={{ width: `${(row.orders / maxDayOrders) * 100}%` }}
                   />
                 </div>

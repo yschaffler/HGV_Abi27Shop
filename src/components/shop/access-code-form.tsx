@@ -26,7 +26,7 @@ export function AccessCodeForm({ hint }: { hint: string | null }) {
   return (
     <form action={formAction} className="space-y-4">
       <div>
-        <Label htmlFor="code" className="mb-2 text-white/80">
+        <Label htmlFor="code" className="text-creme-300/80 mb-2">
           <LockKeyholeIcon className="size-3.5" aria-hidden="true" />
           Zugangscode
         </Label>
@@ -40,7 +40,7 @@ export function AccessCodeForm({ hint }: { hint: string | null }) {
           spellCheck={false}
           aria-invalid={state.status === 'error'}
           aria-describedby={state.status === 'error' ? 'code-fehler' : hint ? 'code-hinweis' : undefined}
-          className="h-12 border-white/20 bg-white/5 text-center text-lg tracking-[0.3em] text-white uppercase placeholder:tracking-normal placeholder:text-white/30 focus-visible:border-white/40 focus-visible:ring-white/20"
+          className="border-creme-300/20 text-creme-100 placeholder:text-creme-300/25 focus-visible:border-creme-300/40 focus-visible:ring-creme-300/20 h-12 bg-white/5 text-center text-lg tracking-[0.3em] uppercase placeholder:tracking-normal"
         />
       </div>
 
@@ -53,7 +53,7 @@ export function AccessCodeForm({ hint }: { hint: string | null }) {
       <SubmitButton />
 
       {hint ? (
-        <p id="code-hinweis" className="text-center text-xs text-white/50">
+        <p id="code-hinweis" className="text-creme-300/55 text-center text-xs">
           {hint}
         </p>
       ) : null}

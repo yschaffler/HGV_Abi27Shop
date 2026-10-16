@@ -3,6 +3,7 @@ import { prisma } from '../db';
 import { appUrl } from '../env';
 import { logger } from '../logger';
 import { getSettings } from '../settings';
+import { MAIL_COLORS as C } from './branding';
 import { sendMail } from './mailer';
 import { escapeHtml } from '@/lib/escape-html';
 import type { BroadcastAudience } from '@/generated/prisma/enums';
@@ -93,27 +94,35 @@ function buildHtml(params: {
 
   return `<!doctype html>
 <html lang="de">
-  <body style="margin:0;background:#f6f4ee;font-family:system-ui,-apple-system,'Segoe UI',sans-serif;color:#1f2420">
-    <div style="max-width:560px;margin:0 auto;padding:24px">
-      <p style="margin:0 0 20px;color:#6b7280">${escapeHtml(params.shopName)}</p>
+  <body style="margin:0;padding:24px;background:${C.page};font-family:system-ui,-apple-system,'Segoe UI',sans-serif;color:${C.text}">
+    <div style="max-width:560px;margin:0 auto;background:${C.card};border-radius:12px;overflow:hidden;border:1px solid ${C.line}">
+      <div style="background:${C.navy};padding:20px 28px;border-bottom:3px solid ${C.gold}">
+        <p style="margin:0;color:${C.creme};font-size:13px;letter-spacing:0.18em;text-transform:uppercase">
+          ${escapeHtml(params.shopName)}
+        </p>
+      </div>
 
-      <p>Hallo ${escapeHtml(params.firstName)},</p>
-      ${paragraphs}
+      <div style="padding:28px">
+        <p style="margin:0 0 12px">Hallo ${escapeHtml(params.firstName)},</p>
+        ${paragraphs}
 
-      <table style="width:100%;border-collapse:collapse;margin:20px 0 4px">
-        <tr>
-          <td style="padding:4px 0;color:#6b7280">Bestellnummer</td>
-          <td style="padding:4px 0;text-align:right"><strong>${escapeHtml(params.orderNumber)}</strong></td>
-        </tr>
-      </table>
+        <table style="width:100%;border-collapse:collapse;margin:20px 0 4px">
+          <tr>
+            <td style="padding:4px 0;color:${C.textMuted}">Bestellnummer</td>
+            <td style="padding:4px 0;text-align:right"><strong>${escapeHtml(params.orderNumber)}</strong></td>
+          </tr>
+        </table>
 
-      <p style="margin:20px 0">
-        <a href="${escapeHtml(params.orderUrl)}" style="color:#4b5320">Deine Bestellung ansehen</a>
-      </p>
+        <p style="margin:20px 0 8px">
+          <a href="${escapeHtml(params.orderUrl)}" style="display:inline-block;background:${C.navy};color:${C.creme};padding:12px 20px;border-radius:8px;text-decoration:none;font-weight:600">
+            Deine Bestellung ansehen
+          </a>
+        </p>
 
-      <p style="margin:24px 0 0;font-size:12px;color:#6b7280">
-        Diesen Link bitte nicht weitergeben – wer ihn hat, sieht deine Bestellung.
-      </p>
+        <p style="margin:16px 0 0;font-size:12px;color:${C.textMuted}">
+          Diesen Link bitte nicht weitergeben – wer ihn hat, sieht deine Bestellung.
+        </p>
+      </div>
     </div>
   </body>
 </html>`;

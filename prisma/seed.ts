@@ -18,8 +18,16 @@ if (!databaseUrl) throw new Error('DATABASE_URL fehlt');
 const prisma = new PrismaClient({ adapter: new PrismaMariaDb(databaseUrl) });
 
 const SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL'];
-const COLORS = ['Schwarz', 'Dunkelblau', 'Creme', 'Weiss'];
+/**
+ * Design 3 gibt es in genau einer Farbe. Das Modell kann mehr – weitere Farben legt der
+ * Adminbereich an, ohne dass hier etwas geaendert werden muss.
+ */
+const COLORS = ['Navy'];
 const PRICE_CENTS = 4490;
+
+function daysFromNow(days: number): Date {
+  return new Date(Date.now() + days * 24 * 60 * 60 * 1000);
+}
 
 async function main(): Promise<void> {
   await prisma.settings.upsert({
@@ -29,8 +37,10 @@ async function main(): Promise<void> {
       id: 1,
       shopName: 'Abikropolis 2027',
       contactEmail: 'abi2027@example.de',
-      orderStartAt: new Date('2026-09-20T10:00:00Z'),
-      orderEndAt: new Date('2026-10-04T21:59:00Z'),
+      // Relativ zum Seed-Lauf, damit die Entwicklungsdaten nicht nach ein paar Wochen
+      // einen geschlossenen Shop zeigen. In Produktion setzt der Adminbereich die Termine.
+      orderStartAt: daysFromNow(-7),
+      orderEndAt: daysFromNow(14),
       pickupInfo:
         'Die gesamte Q13 bestellt gemeinsam: Nach dem Bestellschluss geht ein einziger Auftrag ' +
         'zum Hersteller. Sobald die Lieferung da ist, werden die Hoodies in der Schule bei den ' +
@@ -50,10 +60,12 @@ async function main(): Promise<void> {
     create: {
       slug: 'abi-hoodie',
       name: 'Abikropolis Hoodie 2027',
-      summary: 'Schwerer Hoodie mit dem Abikropolis-Motiv auf dem Rücken.',
+      summary: 'Navyfarbener Hoodie mit Lorbeer-Emblem vorne und dem Abikropolis-Print auf dem Rücken.',
       description:
-        'Dicker, angerauter Baumwollmix im Unisex-Schnitt. Vorne der kleine Jahrgangsprint, ' +
-        'hinten großflächig das Abikropolis-Motiv mit der Jahreszahl 2027.\n\n' +
+        'Dicker, angerauter Baumwollmix in tiefem Marineblau, Unisex-Schnitt. Vorne links das ' +
+        'Lorbeer-Emblem mit Säule und der Jahreszahl 2027, hinten großflächig der ' +
+        'Abikropolis-Schriftzug, der Spruch "Die Götter verlassen den Olymp", die Weinranke ' +
+        'und darunter alle Namen des Jahrgangs.\n\n' +
         'Die Q13 bestellt gemeinsam als Sammelbestellung. Der Hoodie fällt normal aus; wer es ' +
         'lockerer mag, nimmt eine Größe größer – umtauschen ist danach nicht möglich.',
       sortOrder: 10,

@@ -26,10 +26,12 @@ export function HoodieGallery({ images }: { images: GalleryImage[] }) {
   return (
     <div>
       {/*
-        Die Mockups stehen auf weißem Grund. Auf einer weißen Karte wären die Konturen des
-        hellen Hoodies nicht zu erkennen – deshalb der leicht abgesetzte Hintergrund.
+        Die Produktbilder sind freigestellt und navyfarben. Auf einer hellen Karte stünde der
+        Hoodie als dunkler Block in der Fläche – deshalb steht die Galerie auf Navy, so wie
+        Hero und Fußzeile. Ein Foto mit hellem Hintergrund würde hier auffallen; der Hinweis
+        dazu steht in public/img/README.md.
       */}
-      <div className="bg-muted border-border grid aspect-4/5 w-full place-items-center overflow-hidden rounded-3xl border p-4">
+      <div className="bg-night grid aspect-4/5 w-full place-items-center overflow-hidden rounded-3xl p-4 ring-1 ring-creme-300/15">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           key={active.src}
@@ -50,10 +52,8 @@ export function HoodieGallery({ images }: { images: GalleryImage[] }) {
               type="button"
               onClick={() => setActiveIndex(index)}
               aria-pressed={index === activeIndex}
-              className={`grid flex-1 place-items-center overflow-hidden rounded-xl border p-2 transition ${
-                index === activeIndex
-                  ? 'border-brand-600 bg-brand-500/10'
-                  : 'border-border bg-muted hover:border-brand-400'
+              className={`bg-night grid flex-1 place-items-center overflow-hidden rounded-xl p-2 ring-1 transition ${
+                index === activeIndex ? 'ring-gold-500' : 'ring-creme-300/15 hover:ring-creme-300/40'
               }`}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -64,7 +64,7 @@ export function HoodieGallery({ images }: { images: GalleryImage[] }) {
                 className="aspect-4/5 w-full rounded-md object-contain"
                 decoding="async"
               />
-              <span className="text-muted-foreground mt-1 block text-[0.7rem] font-medium">{image.caption}</span>
+              <span className="text-creme-300/70 mt-1 block text-[0.7rem] font-medium">{image.caption}</span>
             </button>
           ))}
         </div>

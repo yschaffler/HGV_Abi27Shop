@@ -44,8 +44,8 @@ export function OrderCountdown({
 
   if (nowSeconds === 0 || !Number.isFinite(endSeconds)) {
     return (
-      <p className="text-sm text-white/70">
-        Bestellschluss: <span className="font-semibold text-white">{deadlineLabel}</span>
+      <p className="text-creme-300/70 text-sm">
+        Bestellschluss: <span className="text-creme-200 font-semibold">{deadlineLabel}</span>
       </p>
     );
   }
@@ -53,7 +53,7 @@ export function OrderCountdown({
   const remaining = Math.max(0, endSeconds - nowSeconds);
 
   if (remaining === 0) {
-    return <p className="text-sm font-semibold text-white">Der Bestellzeitraum ist beendet.</p>;
+    return <p className="text-creme-200 text-sm font-semibold">Der Bestellzeitraum ist beendet.</p>;
   }
 
   const parts = [
@@ -79,12 +79,12 @@ export function OrderCountdown({
         {parts.map((part) => (
           <div
             key={part.label}
-            className="min-w-16 rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-center backdrop-blur-sm sm:min-w-20"
+            className="border-gold-500/25 min-w-16 rounded-xl border bg-white/5 px-3 py-2 text-center backdrop-blur-sm sm:min-w-20"
           >
-            <span className="font-display block text-2xl font-extrabold tabular-nums text-white sm:text-3xl">
+            <span className="font-display text-creme-200 block text-2xl font-bold tabular-nums sm:text-3xl">
               {pad(part.value)}
             </span>
-            <span className="text-[0.65rem] font-semibold tracking-[0.18em] text-white/50 uppercase">
+            <span className="text-creme-300/50 text-[0.65rem] font-semibold tracking-[0.18em] uppercase">
               {part.label}
             </span>
           </div>

@@ -6,6 +6,7 @@ import { getSettings } from '../settings';
 import { escapeHtml } from '@/lib/escape-html';
 import { formatCents } from '@/lib/money';
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limit';
+import { MAIL_COLORS as C } from './branding';
 import { sendMail } from './mailer';
 
 /**
@@ -80,12 +81,12 @@ export async function sendOrderConfirmation(orderId: string): Promise<void> {
     .map(
       (item) => `
         <tr>
-          <td style="padding:8px 0;border-bottom:1px solid #e5e7eb">
+          <td style="padding:8px 0;border-bottom:1px solid ${C.line}">
             <strong>${escapeHtml(item.productName)}</strong><br>
-            <span style="color:#6b7280">${escapeHtml(item.variantLabel)}</span>
+            <span style="color:${C.textMuted}">${escapeHtml(item.variantLabel)}</span>
           </td>
-          <td style="padding:8px 0;border-bottom:1px solid #e5e7eb;text-align:center">${item.quantity}</td>
-          <td style="padding:8px 0;border-bottom:1px solid #e5e7eb;text-align:right;white-space:nowrap">
+          <td style="padding:8px 0;border-bottom:1px solid ${C.line};text-align:center">${item.quantity}</td>
+          <td style="padding:8px 0;border-bottom:1px solid ${C.line};text-align:right;white-space:nowrap">
             ${escapeHtml(formatCents(item.lineTotalCents))}
           </td>
         </tr>`,
@@ -94,31 +95,36 @@ export async function sendOrderConfirmation(orderId: string): Promise<void> {
 
   const html = `<!doctype html>
 <html lang="de">
-  <body style="margin:0;padding:24px;background:#f5f5f7;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;color:#1f2937">
-    <div style="max-width:560px;margin:0 auto;background:#ffffff;border-radius:12px;padding:28px">
-      <h1 style="margin:0 0 4px;font-size:20px">Bestellung bestätigt</h1>
-      <p style="margin:0 0 20px;color:#6b7280">${escapeHtml(settings.shopName)}</p>
+  <body style="margin:0;padding:24px;background:${C.page};font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;color:${C.text}">
+    <div style="max-width:560px;margin:0 auto;background:${C.card};border-radius:12px;overflow:hidden;border:1px solid ${C.line}">
+      <div style="background:${C.navy};padding:20px 28px;border-bottom:3px solid ${C.gold}">
+        <p style="margin:0;color:${C.creme};font-size:13px;letter-spacing:0.18em;text-transform:uppercase">
+          ${escapeHtml(settings.shopName)}
+        </p>
+      </div>
+      <div style="padding:28px">
+      <h1 style="margin:0 0 20px;font-size:20px;color:${C.text}">Bestellung bestätigt</h1>
 
       <p>Hallo ${escapeHtml(order.firstName)} ${escapeHtml(order.lastName)},</p>
       <p>vielen Dank für deine Bestellung. Wir haben deine Zahlung erhalten.</p>
 
       <table style="width:100%;border-collapse:collapse;margin:20px 0 4px">
         <tr>
-          <td style="padding:4px 0;color:#6b7280">Bestellnummer</td>
+          <td style="padding:4px 0;color:${C.textMuted}">Bestellnummer</td>
           <td style="padding:4px 0;text-align:right"><strong>${escapeHtml(order.orderNumber)}</strong></td>
         </tr>
         <tr>
-          <td style="padding:4px 0;color:#6b7280">Zahlungsstatus</td>
+          <td style="padding:4px 0;color:${C.textMuted}">Zahlungsstatus</td>
           <td style="padding:4px 0;text-align:right">${escapeHtml(statusLabel)}</td>
         </tr>
       </table>
 
       <table style="width:100%;border-collapse:collapse;margin:16px 0">
         <thead>
-          <tr style="text-align:left;color:#6b7280;font-size:13px">
-            <th style="padding:6px 0;border-bottom:1px solid #e5e7eb">Artikel</th>
-            <th style="padding:6px 0;border-bottom:1px solid #e5e7eb;text-align:center">Menge</th>
-            <th style="padding:6px 0;border-bottom:1px solid #e5e7eb;text-align:right">Preis</th>
+          <tr style="text-align:left;color:${C.textMuted};font-size:13px">
+            <th style="padding:6px 0;border-bottom:1px solid ${C.line}">Artikel</th>
+            <th style="padding:6px 0;border-bottom:1px solid ${C.line};text-align:center">Menge</th>
+            <th style="padding:6px 0;border-bottom:1px solid ${C.line};text-align:right">Preis</th>
           </tr>
         </thead>
         <tbody>${itemRows}</tbody>
@@ -135,13 +141,14 @@ export async function sendOrderConfirmation(orderId: string): Promise<void> {
       <p style="white-space:pre-line;margin:0 0 20px">${escapeHtml(settings.pickupInfo)}</p>
 
       <p style="margin:0 0 8px">
-        <a href="${escapeHtml(orderUrl)}" style="display:inline-block;background:#6e7d4d;color:#ffffff;padding:11px 18px;border-radius:8px;text-decoration:none">
+        <a href="${escapeHtml(orderUrl)}" style="display:inline-block;background:${C.navy};color:${C.creme};padding:12px 20px;border-radius:8px;text-decoration:none;font-weight:600">
           Bestellung ansehen
         </a>
       </p>
-      <p style="color:#6b7280;font-size:13px">
+      <p style="color:${C.textMuted};font-size:13px">
         Diesen Link bitte nicht weitergeben – wer ihn hat, sieht deine Bestellung.
       </p>
+      </div>
     </div>
   </body>
 </html>`;

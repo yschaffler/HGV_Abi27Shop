@@ -41,22 +41,26 @@ export const dynamic = 'force-dynamic';
  * werden. Die Seite bleibt damit ehrlich zu dem, was in der Datenbank steht.
  */
 
+/*
+ * Die Bilddateien sind bewusst feste Pfade: Sobald es echte Produktfotos gibt, werden
+ * genau diese vier Dateien in public/img ersetzt – ohne Codeänderung. Siehe public/img/README.md.
+ */
 const GALLERY: GalleryImage[] = [
-  { src: '/img/hoodie-front.webp', alt: 'Der Abi-Hoodie von vorne mit dem Brustprint', caption: 'Vorne' },
+  { src: '/img/hoodie-front.webp', alt: 'Der Abi-Hoodie von vorne mit dem Lorbeer-Emblem auf der Brust', caption: 'Vorne' },
   { src: '/img/hoodie-back.webp', alt: 'Der Abi-Hoodie von hinten mit dem großen Abikropolis-Print', caption: 'Hinten' },
-  { src: '/img/hoodie-detail.webp', alt: 'Nahaufnahme des Drucks', caption: 'Detail' },
+  { src: '/img/hoodie-detail.webp', alt: 'Nahaufnahme des Schriftzugs mit der Weinranke', caption: 'Detail' },
 ];
 
 const HIGHLIGHTS = [
   {
     icon: ShirtIcon,
-    title: 'Schwerer Stoff',
-    text: 'Dicker, angerauter Baumwollmix. Kein dünner Werbeartikel, sondern ein Pulli, den man auch nach dem Abi noch trägt.',
+    title: 'Schwerer Stoff in Navy',
+    text: 'Dicker, angerauter Baumwollmix in tiefem Marineblau. Kein dünner Werbeartikel, sondern ein Pulli, den man auch nach dem Abi noch trägt.',
   },
   {
     icon: PackageIcon,
-    title: 'Print über den ganzen Rücken',
-    text: 'Das Abikropolis-Motiv mit der Jahreszahl 2027 – großflächig gedruckt, nicht aufgebügelt.',
+    title: 'Alle Namen auf dem Rücken',
+    text: 'Der Abikropolis-Schriftzug, die Weinranke und darunter der gesamte Jahrgang – großflächig gedruckt, nicht aufgebügelt.',
   },
   {
     icon: RulerIcon,
@@ -132,11 +136,11 @@ export default async function ShopHomePage() {
     <div>
       {/* ---------------------------------------------------------------- Hero */}
       <section className="bg-night relative overflow-hidden">
-        {/* Dezenter Lichtschein hinter dem Print, damit das Motiv nicht im Schwarz versinkt. */}
+        {/* Dezenter Lichtschein hinter dem Hoodie, damit Navy auf Navy nicht flach wirkt. */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute -top-24 right-0 size-[34rem] rounded-full opacity-[0.14] blur-3xl"
-          style={{ background: 'radial-gradient(closest-side, var(--color-brand-500), transparent)' }}
+          className="pointer-events-none absolute -top-20 right-0 size-[36rem] rounded-full opacity-25 blur-3xl"
+          style={{ background: 'radial-gradient(closest-side, var(--color-navy-500), transparent)' }}
         />
 
         <div className="relative mx-auto grid max-w-6xl items-center gap-10 px-4 py-14 sm:py-20 md:grid-cols-2 md:gap-6">
@@ -145,28 +149,29 @@ export default async function ShopHomePage() {
               <Badge variant="gold" className="text-gold-200">
                 Sammelbestellung
               </Badge>
-              <span className="eyebrow text-white/50">Q13 · HGV</span>
+              <span className="eyebrow text-creme-300/50">Q13 · HGV</span>
             </div>
 
-            <h1 className="font-display mt-5 text-4xl leading-[1.05] font-extrabold tracking-tight text-white sm:text-6xl">
-              Der Hoodie
-              <br />
-              zum Abi.
+            <h1 className="font-display text-creme-200 mt-5 text-4xl leading-[1.08] font-bold tracking-wide sm:text-6xl">
+              Abikropolis
             </h1>
-            <p className="mt-5 max-w-md text-base text-white/70">
+            <p className="font-display text-gold-400 mt-2 text-sm tracking-[0.18em] uppercase sm:text-base">
+              Die Götter verlassen den Olymp
+            </p>
+            <p className="text-creme-300/70 mt-5 max-w-md text-base">
               Ein Pulli, ein Print, ein Jahrgang. Die Q13 bestellt gemeinsam – du bezahlst online
               und holst deinen Hoodie in der Schule bei den Q-Sprechern ab.
             </p>
 
             {featured ? (
               <p className="mt-6 flex items-baseline gap-2">
-                <span className="font-display text-3xl font-extrabold text-white">
+                <span className="font-display text-creme-200 text-3xl font-bold">
                   {formatCents(featured.minPriceCents)}
                 </span>
                 {featured.minPriceCents !== featured.maxPriceCents ? (
-                  <span className="text-sm text-white/50">bis {formatCents(featured.maxPriceCents)}</span>
+                  <span className="text-creme-300/50 text-sm">bis {formatCents(featured.maxPriceCents)}</span>
                 ) : null}
-                <span className="text-sm text-white/50">inkl. MwSt., kein Versand</span>
+                <span className="text-creme-300/50 text-sm">inkl. MwSt., kein Versand</span>
               </p>
             ) : null}
 
@@ -174,7 +179,7 @@ export default async function ShopHomePage() {
               <Button asChild variant="gold" size="xl">
                 <a href="#bestellen">{status.isOpen ? 'Jetzt bestellen' : 'Zum Artikel'}</a>
               </Button>
-              <Button asChild variant="ghost" size="xl" className="text-white/80 hover:bg-white/10 hover:text-white">
+              <Button asChild variant="ghost" size="xl" className="text-creme-300/80 hover:bg-creme-300/10 hover:text-creme-100">
                 <a href="#ablauf">So läuft es ab</a>
               </Button>
             </div>
@@ -191,22 +196,20 @@ export default async function ShopHomePage() {
 
           <div className="flex justify-center md:justify-end">
             {/*
-              Das Motiv ist auf hellem Stoff gedruckt, der Ausschnitt hat also einen weißen
-              Hintergrund. Auf dem dunklen Hero wirkt das nur dann nicht wie ein Fehler,
-              wenn es bewusst als gerahmtes Poster auftritt – deshalb Rahmen und Schatten.
+              Die Produktbilder sind freigestellt, der Hoodie steht also ohne Kasten auf dem
+              Navy. Die Hoehenbegrenzung haelt den Hero auf dem Laptop in einer Bildschirmhoehe –
+              ohne sie wuerde das hochformatige Bild die ganze Sektion auseinanderziehen.
             */}
-            <div className="ring-gold-500/25 w-full max-w-md rounded-2xl p-2 shadow-lg ring-1">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/img/print-back.webp"
-                alt="Das Abikropolis-Motiv des Jahrgangs 2027"
-                width={900}
-                height={968}
-                className="w-full rounded-xl"
-                fetchPriority="high"
-                decoding="async"
-              />
-            </div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/img/hoodie-back.webp"
+              alt="Der Abi-Hoodie von hinten mit dem Abikropolis-Print"
+              width={1000}
+              height={1908}
+              className="max-h-[30rem] w-auto drop-shadow-2xl"
+              fetchPriority="high"
+              decoding="async"
+            />
           </div>
         </div>
       </section>

@@ -62,7 +62,7 @@ export default async function AdminDashboard() {
       <section className="surface-card rounded-xl p-5">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-lg">Meistbestellte Varianten</h2>
-          <Link href="/admin/export" className="text-sm text-brand-600 hover:underline">
+          <Link href="/admin/export" className="text-sm text-gold-700 dark:text-gold-400 hover:underline">
             Zur Sammelbestellung
           </Link>
         </div>

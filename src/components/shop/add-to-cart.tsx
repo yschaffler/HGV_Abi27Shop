@@ -80,7 +80,7 @@ export function AddToCart({ variants, disabled }: { variants: PublicVariant[]; d
                   {swatch ? (
                     <span
                       aria-hidden="true"
-                      className="size-4 shrink-0 rounded-full border border-black/25 [[data-state=on]_&]:border-white/60"
+                      className="border-foreground/25 [[data-state=on]_&]:border-primary-foreground/70 size-4 shrink-0 rounded-full border-2"
                       style={{ backgroundColor: swatch }}
                     />
                   ) : null}

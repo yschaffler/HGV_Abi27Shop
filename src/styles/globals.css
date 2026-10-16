@@ -2,87 +2,100 @@
 @import 'tw-animate-css';
 
 /*
- * Designsystem.
+ * Designsystem – Abikropolis 2027, Design 3.
  *
  * Grundlage sind die Farbmarken von shadcn/ui (--background, --primary, --muted …), damit
- * die Komponenten aus components/ui unveraendert funktionieren. Die Werte selbst stammen
- * aber aus dem Hoodie: Olivgruen der Jahreszahl, Gold der Farbspritzer, Creme des Stoffs
- * und ein warmes, leicht gruenstichiges Schwarz statt des neutralen Grau der Vorlage.
+ * die Komponenten aus components/ui unveraendert funktionieren. Die Werte kommen aus dem
+ * Hoodie:
  *
- * Alle Farben sind bewusst matt gehalten: niedrige Chroma-Werte, kein Glanz, keine
- * Leuchtfarben. Das passt zu dem, was der Shop verkauft - bedruckter Baumwollstoff
- * glaenzt nicht. Wer hier spaeter etwas ergaenzt, bleibt bei Chroma-Werten in derselben
- * Groessenordnung, sonst faellt die neue Farbe aus dem Bild.
+ *   Deep Navy   #0E1A36  Hauptfarbe: Header, Hero, Fusszeile, Schaltflaechen
+ *   Creme       #F3EAD8  Schrift und Linien auf Navy – der Druckfarbe des Hoodies nachempfunden
+ *   Oliv/Gold   #A3A05A  Akzent: Countdown, Plaketten, Icons (Lorbeer und Weinlaub des Prints)
+ *   Hell        #F9F8F6  Heller Grund fuer Inhalte, damit Formulare und Texte ruhig bleiben
  *
- * Dunkelmodus laeuft ueber prefers-color-scheme, nicht ueber eine .dark-Klasse. Das ist die
+ * Die exakten Markenwerte stehen als oklch an den Ankerstufen navy-950, gold-500 und
+ * background; die uebrigen Stufen sind daraus auf derselben Farbachse abgeleitet. Wer eine
+ * Farbe ergaenzt, bleibt auf Farbton 265 (Navy) beziehungsweise 106 (Oliv) – alles andere
+ * faellt aus dem Bild.
+ *
+ * Navy ist dunkel genug, dass Hero, Kopf- und Fusszeile in jedem Farbschema dunkel bleiben
+ * (--color-night). Der Dunkelmodus hebt dieses Navy auf die ganze Seite; der helle Modus
+ * stellt helle Inhaltsflaechen dagegen.
+ *
+ * Dunkelmodus laeuft ueber prefers-color-scheme, nicht ueber eine .dark-Klasse: Das ist die
  * Systemeinstellung des Besuchers, braucht kein JavaScript, kein Cookie und flackert beim
  * ersten Rendern nicht.
  *
  * Schriften liegen als Paket im Projekt und werden selbst ausgeliefert (siehe app/layout.tsx).
- * Google Fonts wuerde bei jedem Aufruf die IP der Besucher an einen US-Dienst uebertragen.
+ * Cinzel fuer Ueberschriften nimmt den antiken Charakter des Prints auf, Inter traegt alles,
+ * was gelesen statt betrachtet wird.
  */
 
 :root {
-  --radius: 0.625rem;
+  --radius: 0.5rem;
 
-  /* Heller Modus: Cremeton des Stoffs, warmes Schwarz statt kaltem Grau. */
-  --background: oklch(0.969 0.004 90);
-  --foreground: oklch(0.203 0.006 110);
-  --card: oklch(0.993 0.003 90);
-  --card-foreground: oklch(0.203 0.006 110);
-  --popover: oklch(0.993 0.003 90);
-  --popover-foreground: oklch(0.203 0.006 110);
+  /* Heller Modus: ruhiger Papierton, Schrift in Navy statt Schwarz. */
+  --background: oklch(0.979 0.003 85);
+  --foreground: oklch(0.224 0.057 265);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.224 0.057 265);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.224 0.057 265);
 
-  /* Olivgruen traegt die Marke und ist deshalb die Primaerfarbe. */
-  --primary: oklch(0.487 0.044 115);
-  --primary-foreground: oklch(0.982 0.003 90);
+  /* Deep Navy traegt die Marke und ist deshalb die Primaerfarbe. */
+  --primary: oklch(0.224 0.057 265);
+  --primary-foreground: oklch(0.939 0.026 85);
 
-  --secondary: oklch(0.936 0.006 91);
-  --secondary-foreground: oklch(0.26 0.006 110);
-  --muted: oklch(0.936 0.006 91);
-  --muted-foreground: oklch(0.508 0.007 100);
+  --secondary: oklch(0.944 0.006 85);
+  --secondary-foreground: oklch(0.3 0.045 265);
+  --muted: oklch(0.944 0.006 85);
+  --muted-foreground: oklch(0.47 0.027 265);
 
-  /* Gold nur als Akzent – im Print sind es auch nur Spritzer. */
-  --accent: oklch(0.942 0.022 90);
-  --accent-foreground: oklch(0.31 0.028 82);
+  /* Oliv/Gold nur als Akzent – im Print sind es auch nur Lorbeer und Weinlaub. */
+  --accent: oklch(0.941 0.03 106);
+  --accent-foreground: oklch(0.37 0.058 106);
 
   --destructive: oklch(0.548 0.145 27);
-  --destructive-foreground: oklch(0.982 0.002 90);
+  --destructive-foreground: oklch(0.982 0.002 85);
 
-  --border: oklch(0.885 0.007 92);
-  --input: oklch(0.885 0.007 92);
-  --ring: oklch(0.577 0.052 115);
+  --border: oklch(0.898 0.009 265);
+  --input: oklch(0.898 0.009 265);
+  --ring: oklch(0.438 0.085 265);
 
   color-scheme: light;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    /* Der schwarze Hoodie als Nachtansicht. */
-    --background: oklch(0.176 0.006 130);
-    --foreground: oklch(0.951 0.005 95);
-    --card: oklch(0.223 0.008 130);
-    --card-foreground: oklch(0.951 0.005 95);
-    --popover: oklch(0.223 0.008 130);
-    --popover-foreground: oklch(0.951 0.005 95);
+    /* Der Hoodie selbst: Creme auf Navy. */
+    --background: oklch(0.224 0.057 265);
+    --foreground: oklch(0.939 0.026 85);
+    --card: oklch(0.272 0.062 265);
+    --card-foreground: oklch(0.939 0.026 85);
+    --popover: oklch(0.272 0.062 265);
+    --popover-foreground: oklch(0.939 0.026 85);
 
-    --primary: oklch(0.612 0.054 115);
-    --primary-foreground: oklch(0.972 0.003 95);
+    /*
+     * Auf Navy waere eine navyfarbene Schaltflaeche unsichtbar. Die Primaerfarbe dreht sich
+     * deshalb um – Creme mit Navy-Schrift, genau wie der Druck auf dem Pulli.
+     */
+    --primary: oklch(0.925 0.028 85);
+    --primary-foreground: oklch(0.224 0.057 265);
 
-    --secondary: oklch(0.266 0.009 129);
-    --secondary-foreground: oklch(0.94 0.005 95);
-    --muted: oklch(0.266 0.009 129);
-    --muted-foreground: oklch(0.702 0.009 99);
+    --secondary: oklch(0.298 0.06 265);
+    --secondary-foreground: oklch(0.925 0.025 85);
+    --muted: oklch(0.298 0.06 265);
+    --muted-foreground: oklch(0.73 0.027 265);
 
-    --accent: oklch(0.297 0.018 100);
-    --accent-foreground: oklch(0.935 0.018 90);
+    --accent: oklch(0.335 0.05 160);
+    --accent-foreground: oklch(0.88 0.06 106);
 
     --destructive: oklch(0.662 0.122 24);
-    --destructive-foreground: oklch(0.16 0.006 120);
+    --destructive-foreground: oklch(0.2 0.04 265);
 
-    --border: oklch(0.335 0.01 128);
-    --input: oklch(0.335 0.01 128);
-    --ring: oklch(0.66 0.052 116);
+    --border: oklch(0.365 0.052 265);
+    --input: oklch(0.365 0.052 265);
+    --ring: oklch(0.692 0.092 106);
 
     color-scheme: dark;
   }
@@ -91,9 +104,8 @@
 @theme inline {
   --font-sans:
     'Inter Variable', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  /* Fuer Ueberschriften und alles, was plakativ sein soll. */
-  --font-display:
-    'Archivo Variable', 'Inter Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  /* Antike Anmutung fuer Ueberschriften und alles, was plakativ sein soll. */
+  --font-display: 'Cinzel Variable', 'Iowan Old Style', Georgia, 'Times New Roman', serif;
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -144,56 +156,63 @@
 }
 
 @theme {
-  /* Olivgruen – die Jahreszahl auf dem Ruecken. */
-  --color-brand-50: oklch(0.964 0.007 120);
-  --color-brand-100: oklch(0.925 0.017 119);
-  --color-brand-200: oklch(0.855 0.033 118);
-  --color-brand-300: oklch(0.771 0.047 117);
-  --color-brand-400: oklch(0.685 0.056 116);
-  --color-brand-500: oklch(0.577 0.052 115);
-  --color-brand-600: oklch(0.487 0.044 115);
-  --color-brand-700: oklch(0.404 0.037 115);
-  --color-brand-800: oklch(0.334 0.03 115);
-  --color-brand-900: oklch(0.273 0.024 116);
-  --color-brand-950: oklch(0.186 0.016 117);
+  /* Deep Navy – die Farbe des Hoodies. Ankerstufe 950 ist exakt #0E1A36. */
+  --color-navy-50: oklch(0.962 0.012 265);
+  --color-navy-100: oklch(0.921 0.025 265);
+  --color-navy-200: oklch(0.846 0.045 265);
+  --color-navy-300: oklch(0.746 0.066 265);
+  --color-navy-400: oklch(0.636 0.084 265);
+  --color-navy-500: oklch(0.531 0.09 265);
+  --color-navy-600: oklch(0.438 0.085 265);
+  --color-navy-700: oklch(0.36 0.077 265);
+  --color-navy-800: oklch(0.295 0.068 265);
+  --color-navy-900: oklch(0.26 0.062 265);
+  --color-navy-950: oklch(0.224 0.057 265);
 
-  /* Gold – die Farbspritzer im Print. Gedeckt gehalten, kein Messinglack. */
-  --color-gold-50: oklch(0.972 0.012 92);
-  --color-gold-100: oklch(0.934 0.031 91);
-  --color-gold-200: oklch(0.876 0.057 90);
-  --color-gold-300: oklch(0.814 0.074 87);
-  --color-gold-400: oklch(0.759 0.078 84);
-  --color-gold-500: oklch(0.704 0.073 82);
-  --color-gold-600: oklch(0.596 0.062 80);
-  --color-gold-700: oklch(0.492 0.05 78);
-  --color-gold-800: oklch(0.405 0.04 78);
-  --color-gold-900: oklch(0.341 0.032 79);
+  /* Oliv/Gold – Lorbeer und Weinlaub des Prints. Ankerstufe 500 ist exakt #A3A05A. */
+  --color-gold-50: oklch(0.972 0.015 106);
+  --color-gold-100: oklch(0.941 0.03 106);
+  --color-gold-200: oklch(0.888 0.052 106);
+  --color-gold-300: oklch(0.822 0.07 106);
+  --color-gold-400: oklch(0.757 0.084 106);
+  --color-gold-500: oklch(0.692 0.092 106);
+  --color-gold-600: oklch(0.602 0.082 106);
+  --color-gold-700: oklch(0.503 0.069 106);
+  --color-gold-800: oklch(0.414 0.056 106);
+  --color-gold-900: oklch(0.348 0.046 106);
+
+  /* Creme – die Druckfarbe auf dem Hoodie. */
+  --color-creme-100: oklch(0.985 0.008 85);
+  --color-creme-200: oklch(0.962 0.016 85);
+  --color-creme-300: oklch(0.939 0.026 85);
+  --color-creme-400: oklch(0.9 0.034 85);
 
   /*
-   * Statusfarben fuer Zahlungs- und Ausgabestatus. Ebenfalls gedeckt: ein Gruen, das
-   * neben dem Olivgruen der Marke noch als "erledigt" lesbar ist, ohne zu leuchten.
+   * Hero, Kopf- und Fusszeile bleiben in jedem Farbschema dunkel – sie sind der Stoff,
+   * auf den gedruckt wird.
    */
-  --color-success-bg: oklch(0.928 0.024 150);
-  --color-success-fg: oklch(0.415 0.062 150);
-  --color-neutral-bg: oklch(0.925 0.005 100);
-  --color-neutral-fg: oklch(0.44 0.007 100);
+  --color-night: oklch(0.224 0.057 265);
+  --color-night-raised: oklch(0.272 0.062 265);
 
-  /* Der dunkle Grund fuer Hero und Fusszeile – unabhaengig vom Farbschema immer dunkel. */
-  --color-night: oklch(0.176 0.006 130);
-  --color-night-raised: oklch(0.223 0.008 130);
+  /*
+   * Statusfarben fuer Zahlungs- und Ausgabestatus. Gedeckt gehalten, damit die Seite neben
+   * dem Navy nicht zum Ampelbrett wird.
+   */
+  --color-success-bg: oklch(0.924 0.03 155);
+  --color-success-fg: oklch(0.41 0.068 155);
+  --color-neutral-bg: oklch(0.928 0.008 265);
+  --color-neutral-fg: oklch(0.44 0.025 265);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    /* Olive und Gold muessen auf dunklem Grund heller werden, sonst verschwinden sie. */
-    --color-brand-500: oklch(0.66 0.052 116);
-    --color-brand-600: oklch(0.612 0.054 115);
-    --color-gold-500: oklch(0.759 0.078 84);
-    --color-gold-600: oklch(0.704 0.073 82);
-    --color-success-bg: oklch(0.302 0.033 150);
-    --color-success-fg: oklch(0.83 0.055 150);
-    --color-neutral-bg: oklch(0.278 0.006 100);
-    --color-neutral-fg: oklch(0.775 0.007 100);
+    /* Auf Navy muessen Oliv und die Statusfarben heller werden, sonst verschwinden sie. */
+    --color-gold-500: oklch(0.757 0.084 106);
+    --color-gold-600: oklch(0.692 0.092 106);
+    --color-success-bg: oklch(0.33 0.045 155);
+    --color-success-fg: oklch(0.84 0.06 155);
+    --color-neutral-bg: oklch(0.312 0.055 265);
+    --color-neutral-fg: oklch(0.79 0.025 265);
   }
 }
 
@@ -224,25 +243,30 @@
     @apply bg-background text-foreground font-sans antialiased;
   }
 
+  /*
+   * Cinzel ist eine Versalienschrift – Kleinbuchstaben sind lediglich kleinere Versalien.
+   * Ueberschriften bekommen deshalb etwas mehr Laufweite, sonst kleben sie zusammen.
+   */
   h1,
   h2,
   h3,
   h4 {
-    @apply text-foreground font-display font-extrabold tracking-tight;
+    @apply text-foreground font-display font-bold;
+    letter-spacing: 0.01em;
   }
 
   ::selection {
-    @apply bg-primary/25;
+    @apply bg-gold-500/30;
   }
 }
 
 @layer components {
   /* Kleine Versalien-Auszeichnung, z. B. "Jahrgang 2027" oder Abschnittslabels. */
   .eyebrow {
-    @apply font-display text-xs font-bold tracking-[0.22em] uppercase;
+    @apply font-display text-xs font-bold tracking-[0.24em] uppercase;
   }
 
-  /* Duenner Trenner mit Goldakzent – greift die Farbspritzer des Prints auf. */
+  /* Duenner Trenner mit Goldakzent – greift Lorbeer und Weinlaub des Prints auf. */
   .rule-gold {
     @apply h-px w-full;
     background: linear-gradient(
@@ -258,9 +282,9 @@
    * Kompatibilitaetsschicht fuer den Adminbereich.
    *
    * Diese Klassen stammen aus der Zeit vor shadcn/ui und stehen an ueber 150 Stellen in
-   * Adminmasken und Ausgabeansicht. Sie bleiben erhalten, greifen aber jetzt auf dieselben
-   * Marken zu wie die Komponenten in components/ui und sehen deshalb identisch aus.
-   * Neuer Code verwendet Button, Card, Input und Label direkt.
+   * Adminmasken und Ausgabeansicht. Sie bleiben erhalten, greifen aber auf dieselben Marken
+   * zu wie die Komponenten in components/ui und sehen deshalb identisch aus. Neuer Code
+   * verwendet Button, Card, Input und Label direkt.
    */
   .surface-card {
     @apply bg-card text-card-foreground border border-border;
@@ -280,11 +304,11 @@
     @apply disabled:pointer-events-none disabled:opacity-50;
   }
 
-  /* Fuer dunkle Flaechen, etwa im Hero. */
+  /* Fuer die immer dunklen Flaechen, etwa den Hero. */
   .btn-on-dark {
     @apply inline-flex items-center justify-center gap-2 rounded-md px-5 py-3 text-sm font-semibold transition-all outline-none;
-    @apply bg-gold-500 text-brand-950 hover:bg-gold-400 active:scale-[0.99];
-    @apply focus-visible:ring-[3px] focus-visible:ring-white/50;
+    @apply bg-gold-500 text-navy-950 hover:bg-gold-400 active:scale-[0.99];
+    @apply focus-visible:ring-[3px] focus-visible:ring-creme-300/50;
     @apply disabled:pointer-events-none disabled:opacity-50;
   }
 

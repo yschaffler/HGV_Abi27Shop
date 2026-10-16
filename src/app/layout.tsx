@@ -1,8 +1,9 @@
 import type { Metadata, Viewport } from 'next';
 // Selbst ausgelieferte Schriften: keine Anfrage an Google Fonts, also keine IP-Übermittlung
-// an einen Drittdienst. "wght" ist die reine Gewichtsachse – wir brauchen weder Breiten-
-// noch Kursivschnitte, das spart einen guten Teil der Dateien.
-import '@fontsource-variable/archivo/wght.css';
+// an einen Drittdienst. Cinzel (Überschriften) nimmt den antiken Charakter des Prints auf,
+// Inter trägt alles, was gelesen statt betrachtet wird. Bei Inter reicht die reine
+// Gewichtsachse "wght"; Cinzel bringt ohnehin nur diese mit.
+import '@fontsource-variable/cinzel';
 import '@fontsource-variable/inter/wght.css';
 import '@/styles/globals.css';
 
@@ -18,8 +19,8 @@ export const viewport: Viewport = {
   initialScale: 1,
   // Kein maximumScale: Zoom darf nicht gesperrt werden, das wäre ein Barrierefreiheitsproblem.
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#f6f4ee' },
-    { media: '(prefers-color-scheme: dark)', color: '#1c1f1b' },
+    { media: '(prefers-color-scheme: light)', color: '#f9f8f6' },
+    { media: '(prefers-color-scheme: dark)', color: '#0e1a36' },
   ],
 };
 

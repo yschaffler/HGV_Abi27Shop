@@ -112,8 +112,23 @@ das Aussehen, sondern das Verhalten: Radix bringt Tastaturbedienung, Fokusverwal
 ARIA-Rollen mit, die man sonst selbst nachbauen und dabei uebersehen wuerde.
 
 Die Farbmarken heissen wie bei shadcn (`--background`, `--primary`, `--muted` …), die Werte
-kommen aber aus dem Hoodie und sind bewusst **matt** gehalten: niedrige Chroma-Werte, kein
-Glanz. Ein bedruckter Baumwollpulli leuchtet nicht.
+kommen aber aus dem Hoodie (Design 3):
+
+| Marke | Wert | Wofür |
+|---|---|---|
+| Deep Navy | `#0E1A36` | Kopfzeile, Hero, Fusszeile, Schaltflaechen – die Farbe des Pullis |
+| Creme | `#F3EAD8` | Schrift und Linien auf Navy, der Druckfarbe nachempfunden |
+| Oliv/Gold | `#A3A05A` | Akzent: Countdown, Plaketten, Icons (Lorbeer und Weinlaub des Prints) |
+| Hell | `#F9F8F6` | Heller Grund fuer Inhalte, damit Formulare und Texte ruhig bleiben |
+
+Die exakten Werte stehen als oklch an den Ankerstufen `navy-950`, `gold-500` und
+`--background`; alle uebrigen Stufen sind daraus auf derselben Farbachse abgeleitet. Wer eine
+Farbe ergaenzt, bleibt auf Farbton 265 (Navy) beziehungsweise 106 (Oliv).
+
+Kopfzeile, Hero und Fusszeile sind in **jedem** Farbschema dunkel (`--color-night`): Sie sind
+der Stoff, auf den gedruckt wird. Der Dunkelmodus hebt dieses Navy auf die ganze Seite, der
+helle Modus stellt helle Inhaltsflaechen dagegen. Im Dunkelmodus dreht sich die Primaerfarbe
+um – Creme mit Navy-Schrift, weil eine navyfarbene Schaltflaeche auf Navy unsichtbar waere.
 
 Zwei Abweichungen von der Vorlage, jeweils zugunsten der Bedienbarkeit:
 
@@ -140,10 +155,25 @@ Wer dort eine Seite ergaenzt, bekommt sie automatisch mit. Rechtstexte und die B
 mit Token liegen ausserhalb dieser Gruppe und bleiben ohne Code erreichbar.
 
 **8. Schriften liegen im Projekt, nicht bei Google.**
-`Archivo` (Überschriften) und `Inter` (Fließtext) kommen als `@fontsource-variable`-Pakete aus
+`Cinzel` (Überschriften) und `Inter` (Fließtext) kommen als `@fontsource-variable`-Pakete aus
 dem eigenen Build. Google Fonts würde bei jedem Seitenaufruf die IP-Adresse der Besucher an
 einen US-Dienst übertragen – das müsste in die Datenschutzerklärung und ist für einen Schulshop
 unnötig.
+
+Cinzel ist eine reine Versalienschrift – Kleinbuchstaben erscheinen als kleinere Versalien.
+Das passt zum antiken Charakter des Prints, taugt aber nicht für ganze Sätze. Der
+Akkordeon-Trigger im FAQ setzt die Schrift deshalb ausdrücklich auf `font-sans` zurück:
+Radix rendert ihn in einem `<h3>`, und ohne das stünden die Fragen in Versalien da.
+
+**11. Marke und Produktbilder.**
+Das Lorbeer-Emblem (Kopfzeile, Fusszeile, Zugangsseite) ist **gezeichnet**, nicht fotografiert:
+`src/components/shop/abi-emblem.tsx`. Als Inline-SVG ist es bei jeder Groesse scharf, faerbt
+sich ueber `currentColor` mit dem Farbschema und setzt "ABI 2027" in derselben Schrift wie die
+Ueberschriften. Als `<img>` eingebunden wuerde die Schrift im SVG nicht geladen.
+
+Die Produktbilder liegen unter festen Pfaden in `public/img` und sind damit austauschbar,
+ohne dass Code angefasst werden muss – siehe `public/img/README.md`. Die aktuellen Dateien
+sind freigestellte Ausschnitte aus dem Designblatt und Platzhalter, bis echte Fotos vorliegen.
 
 ---
 
