@@ -165,11 +165,22 @@ Das passt zum antiken Charakter des Prints, taugt aber nicht für ganze Sätze. 
 Akkordeon-Trigger im FAQ setzt die Schrift deshalb ausdrücklich auf `font-sans` zurück:
 Radix rendert ihn in einem `<h3>`, und ohne das stünden die Fragen in Versalien da.
 
-**11. Marke und Produktbilder.**
-Das Lorbeer-Emblem (Kopfzeile, Fusszeile, Zugangsseite) ist **gezeichnet**, nicht fotografiert:
-`src/components/shop/abi-emblem.tsx`. Als Inline-SVG ist es bei jeder Groesse scharf, faerbt
-sich ueber `currentColor` mit dem Farbschema und setzt "ABI 2027" in derselben Schrift wie die
-Ueberschriften. Als `<img>` eingebunden wuerde die Schrift im SVG nicht geladen.
+**11. Zwei Marken mit getrennten Aufgaben.**
+Im Shop stehen zwei Zeichen, und sie konkurrieren bewusst nicht:
+
+* Das **Jahrgangslogo "HGV ABI 2027"** (`public/img/logo-dark.png`) sagt, *wer* hier
+  bestellt. Es steht in Kopfzeile, Fusszeile und auf der Zugangsseite. Diese Flaechen sind
+  in jedem Farbschema dunkel, deshalb wird dort nur die helle Fassung gebraucht; `logo.png`
+  liegt als dunkle Fassung bereit, falls das Logo einmal auf hellem Grund stehen soll.
+* Das **Lorbeer-Emblem** ist der Brustdruck des Hoodies, also das *Was*. Es steht beim
+  Artikel. Es ist **gezeichnet**, nicht fotografiert: `src/components/shop/abi-emblem.tsx`.
+  Der Ausschnitt aus dem Designblatt waere nur 115 Pixel breit gewesen; als Inline-SVG ist es
+  bei jeder Groesse scharf, faerbt sich ueber `currentColor` mit dem Farbschema und setzt
+  "ABI 2027" in derselben Schrift wie die Ueberschriften. Als `<img>` eingebunden wuerde die
+  Schrift im SVG nicht geladen.
+
+Das Favicon zeigt Saeule und Lorbeer, weil der Pinguin bei 16 Pixeln nicht mehr zu erkennen
+waere.
 
 Die Produktbilder liegen unter festen Pfaden in `public/img` und sind damit austauschbar,
 ohne dass Code angefasst werden muss – siehe `public/img/README.md`. Die aktuellen Dateien

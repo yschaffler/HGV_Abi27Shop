@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import { AbiEmblem } from '@/components/shop/abi-emblem';
 
 const LEGAL_LINKS = [
   { href: '/rechtliches/impressum', label: 'Impressum' },
@@ -13,7 +12,8 @@ export function SiteFooter({ shopName, contactEmail }: { shopName: string; conta
       <div className="mx-auto max-w-6xl px-4 py-12">
         <div className="flex flex-col gap-8 sm:flex-row sm:items-start sm:justify-between">
           <div className="max-w-sm">
-            <AbiEmblem className="text-creme-300 h-16 w-16" />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/img/logo-dark.png" alt="HGV Abi 2027" width={375} height={217} className="h-14 w-auto" />
             <p className="font-display text-creme-200 mt-4 text-base font-bold tracking-wide">{shopName}</p>
             <p className="mt-2 text-sm">
               Sammelbestellung der Q13 am Humboldt-Gymnasium Vaterstetten. Kein Versand: Alle

@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { AbiEmblem } from '@/components/shop/abi-emblem';
 import { AccessCodeForm } from '@/components/shop/access-code-form';
 import { readAccessState } from '@/server/shop/access';
 import { getSettings } from '@/server/settings';
@@ -24,7 +23,14 @@ export default async function AccessPage() {
     <div className="bg-night flex min-h-dvh flex-col">
       <main className="flex flex-1 items-center justify-center px-4 py-12">
         <div className="w-full max-w-sm">
-          <AbiEmblem className="text-creme-300 mx-auto h-24 w-24" />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/img/logo-dark.png"
+            alt="HGV Abi 2027"
+            width={375}
+            height={217}
+            className="mx-auto h-20 w-auto"
+          />
 
           <h1 className="font-display text-creme-200 mt-6 text-center text-3xl font-bold tracking-wide">
             {settings.shopName}

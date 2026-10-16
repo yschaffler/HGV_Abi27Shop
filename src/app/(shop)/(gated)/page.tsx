@@ -8,6 +8,7 @@ import {
   ShirtIcon,
   UsersIcon,
 } from 'lucide-react';
+import { AbiEmblem } from '@/components/shop/abi-emblem';
 import { AddToCart } from '@/components/shop/add-to-cart';
 import { HoodieGallery, type GalleryImage } from '@/components/shop/hoodie-gallery';
 import { OrderCountdown } from '@/components/shop/order-countdown';
@@ -262,8 +263,15 @@ export default async function ShopHomePage() {
             <HoodieGallery images={GALLERY} />
 
             <div className="md:pt-2">
-              <Badge variant="gold">Sammelbestellung der Q13</Badge>
-              <h2 className="mt-3 text-3xl sm:text-4xl">{featured.name}</h2>
+              {/*
+                Das Lorbeer-Emblem ist der Brustdruck des Hoodies – es steht deshalb beim
+                Artikel und nicht in der Kopfzeile. Dort trägt das Jahrgangslogo.
+              */}
+              <div className="flex items-center gap-4">
+                <AbiEmblem className="text-foreground h-14 w-14 shrink-0" />
+                <Badge variant="gold">Sammelbestellung der Q13</Badge>
+              </div>
+              <h2 className="mt-4 text-3xl sm:text-4xl">{featured.name}</h2>
               <p className="text-foreground mt-3 text-2xl font-semibold">
                 {featured.minPriceCents === featured.maxPriceCents
                   ? formatCents(featured.minPriceCents)
