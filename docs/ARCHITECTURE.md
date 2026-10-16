@@ -155,23 +155,39 @@ Wer dort eine Seite ergaenzt, bekommt sie automatisch mit. Rechtstexte und die B
 mit Token liegen ausserhalb dieser Gruppe und bleiben ohne Code erreichbar.
 
 **8. Schriften liegen im Projekt, nicht bei Google.**
-`Cinzel` (Überschriften) und `Inter` (Fließtext) kommen als `@fontsource-variable`-Pakete aus
-dem eigenen Build. Google Fonts würde bei jedem Seitenaufruf die IP-Adresse der Besucher an
-einen US-Dienst übertragen – das müsste in die Datenschutzerklärung und ist für einen Schulshop
+`Bebas Neue` (Überschriften) und `Inter` (Fließtext) kommen als `@fontsource`-Pakete aus dem
+eigenen Build. Google Fonts würde bei jedem Seitenaufruf die IP-Adresse der Besucher an einen
+US-Dienst übertragen – das müsste in die Datenschutzerklärung und ist für einen Schulshop
 unnötig.
 
-Cinzel ist eine reine Versalienschrift – Kleinbuchstaben erscheinen als kleinere Versalien.
-Das passt zum antiken Charakter des Prints, taugt aber nicht für ganze Sätze. Der
-Akkordeon-Trigger im FAQ setzt die Schrift deshalb ausdrücklich auf `font-sans` zurück:
-Radix rendert ihn in einem `<h3>`, und ohne das stünden die Fragen in Versalien da.
+Zur Wahl der Display-Schrift: Das Briefing nannte `Cinzel` (antik) oder `Anton`/`Bebas Neue`
+(Streetwear). Der Schriftzug auf dem Hoodie ist eine schwere, geometrische Versalienschrift
+mit flachen Abschlüssen – also klar die zweite Richtung. Mit Cinzel sah der Shop aus wie eine
+Hochzeitseinladung neben einem Streetwear-Print; Bebas Neue nimmt Rhythmus und Gewicht des
+Drucks auf.
+
+Zwei Eigenheiten, die im Code sichtbar sind:
+
+* Bebas Neue gibt es nur in **einem Schnitt**. An Überschriften steht deshalb überall
+  `font-weight: 400` – sonst rechnet der Browser einen Fettschnitt aus, den es nicht gibt,
+  und die schmalen Buchstaben verschmieren.
+* Es ist eine **reine Versalienschrift** und taugt damit nicht für ganze Sätze. Die
+  `.eyebrow`-Auszeichnung und der Akkordeon-Trigger im FAQ setzen sie ausdrücklich auf die
+  Fließtextschrift zurück – Radix rendert den Trigger in einem `<h3>`, ohne das stünden die
+  Fragen in Versalien da.
 
 **11. Zwei Marken mit getrennten Aufgaben.**
 Im Shop stehen zwei Zeichen, und sie konkurrieren bewusst nicht:
 
 * Das **Jahrgangslogo "HGV ABI 2027"** (`public/img/logo-dark.png`) sagt, *wer* hier
   bestellt. Es steht in Kopfzeile, Fusszeile und auf der Zugangsseite. Diese Flaechen sind
-  in jedem Farbschema dunkel, deshalb wird dort nur die helle Fassung gebraucht; `logo.png`
-  liegt als dunkle Fassung bereit, falls das Logo einmal auf hellem Grund stehen soll.
+  in jedem Farbschema dunkel, deshalb wird dort nur die helle Fassung gebraucht.
+
+  `logo-dark.png` ist aus `logo.png` **auf die Shop-Palette gerechnet**: unbunte Pixel werden
+  zu Creme, bunte zum Oliv-Gold der Marke. Grund ist, dass die Vorlage ein helles, leuchtendes
+  Gold mitbringt – zwei verschiedene Goldtoene nebeneinander sehen nach Versehen aus. Die
+  Vorlage `logo.png` bleibt unangetastet; wer das Original zurueckwill, aendert eine Zeile in
+  der Kopfzeile. Das Skript dafuer steht im Commit, der die Datei erzeugt hat.
 * Das **Lorbeer-Emblem** ist der Brustdruck des Hoodies, also das *Was*. Es steht beim
   Artikel. Es ist **gezeichnet**, nicht fotografiert: `src/components/shop/abi-emblem.tsx`.
   Der Ausschnitt aus dem Designblatt waere nur 115 Pixel breit gewesen; als Inline-SVG ist es

@@ -14,7 +14,7 @@ export function SiteFooter({ shopName, contactEmail }: { shopName: string; conta
           <div className="max-w-sm">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/img/logo-dark.png" alt="HGV Abi 2027" width={375} height={217} className="h-14 w-auto" />
-            <p className="font-display text-creme-200 mt-4 text-base font-bold tracking-wide">{shopName}</p>
+            <p className="font-display text-creme-200 mt-4 text-xl tracking-wide">{shopName}</p>
             <p className="mt-2 text-sm">
               Sammelbestellung der Q13 am Humboldt-Gymnasium Vaterstetten. Kein Versand: Alle
               Bestellungen gehen gemeinsam zum Hersteller und werden in der Schule bei den

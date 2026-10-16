@@ -46,6 +46,10 @@ async function main(): Promise<void> {
         'zum Hersteller. Sobald die Lieferung da ist, werden die Hoodies in der Schule bei den ' +
         'Q-Sprechern ausgegeben. Es gibt keinen Versand. Den genauen Ausgabetermin geben wir ' +
         'rechtzeitig bekannt.',
+      sizeAdvice:
+        'Unsicher bei der Größe? Die Q-Sprecher haben Musterteile zum Anprobieren in der ' +
+        'Schule – sprecht sie einfach an oder schreibt im Abichat. Weil alles in einer ' +
+        'Sammelbestellung läuft, ist ein Umtausch später nicht möglich.',
       accessHint: 'Den Code findet ihr im Abichat.',
       imprintText: '[Vor dem Livegang ausfüllen – siehe LEGAL_CHECKLIST.md]',
       privacyText: '[Vor dem Livegang ausfüllen – siehe LEGAL_CHECKLIST.md]',

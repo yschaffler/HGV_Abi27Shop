@@ -32,7 +32,7 @@ export default async function AccessPage() {
             className="mx-auto h-20 w-auto"
           />
 
-          <h1 className="font-display text-creme-200 mt-6 text-center text-3xl font-bold tracking-wide">
+          <h1 className="font-display text-creme-200 mt-6 text-center text-4xl tracking-wide">
             {settings.shopName}
           </h1>
           <p className="text-creme-300/60 mt-2 text-center text-sm">

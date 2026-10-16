@@ -333,6 +333,15 @@ erscheint und worauf beim Fotografieren zu achten ist, steht in
 Das Lorbeer-Emblem in Kopfzeile, Fusszeile und auf der Zugangsseite ist kein Bild, sondern
 gezeichnet (`src/components/shop/abi-emblem.tsx`) und deshalb bei jeder Groesse scharf.
 
+## Hinweis zum Anprobieren
+
+Unter *Admin → Einstellungen → Hinweis zum Anprobieren* steht ein Freitext, der direkt bei
+der Groessenauswahl erscheint und im FAQ auftaucht. Dort gehoeren die Namen der Q-Sprecher
+hinein – sie wechseln, und dafuer soll niemand den Code anfassen muessen.
+
+Der Standardtext weist darauf hin, dass es Musterteile in der Schule gibt und ein Umtausch
+bei einer Sammelbestellung nicht moeglich ist.
+
 ## Rundmail an die Besteller
 
 Unter *Admin → Rundmail* laesst sich eine Nachricht an alle Besteller schicken – typischer

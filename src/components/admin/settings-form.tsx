@@ -14,6 +14,7 @@ export type SettingsFormValues = {
   orderEndAt: string;
   closedNotice: string;
   pickupInfo: string;
+  sizeAdvice: string;
   imprintText: string;
   privacyText: string;
   withdrawalText: string;
@@ -104,6 +105,16 @@ export function SettingsForm({ values }: { values: SettingsFormValues }) {
           <textarea id="pickupInfo" name="pickupInfo" rows={4} maxLength={2000} defaultValue={values.pickupInfo} className="field-input" />
           <p className="text-muted-foreground mt-1 text-xs">
             Erscheint im Shop, auf der Bestellseite und in der Bestätigungsmail.
+          </p>
+        </div>
+
+        <div>
+          <label htmlFor="sizeAdvice" className="field-label">Hinweis zum Anprobieren</label>
+          <textarea id="sizeAdvice" name="sizeAdvice" rows={3} maxLength={1000} defaultValue={values.sizeAdvice} className="field-input" />
+          <p className="text-muted-foreground mt-1 text-xs">
+            Steht direkt bei der Größenauswahl und als Antwort im FAQ. Hier gehören die Namen
+            der Q-Sprecher hinein – sie ändern sich, der Code soll deshalb nicht angefasst
+            werden müssen.
           </p>
         </div>
       </section>

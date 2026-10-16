@@ -104,8 +104,13 @@
 @theme inline {
   --font-sans:
     'Inter Variable', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  /* Antike Anmutung fuer Ueberschriften und alles, was plakativ sein soll. */
-  --font-display: 'Cinzel Variable', 'Iowan Old Style', Georgia, 'Times New Roman', serif;
+  /*
+   * Display-Schrift fuer Ueberschriften. Bebas Neue trifft den Schriftzug auf dem Hoodie:
+   * schmal, schwer, durchgehend Versalien. Es gibt sie nur in einem Schnitt – deshalb
+   * steht an Ueberschriften ueberall font-weight 400, sonst rechnet der Browser einen
+   * Fettschnitt aus, den es nicht gibt, und die Buchstaben verschmieren.
+   */
+  --font-display: 'Bebas Neue', 'Haettenschweiler', 'Arial Narrow', 'Helvetica Neue', sans-serif;
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -244,15 +249,17 @@
   }
 
   /*
-   * Cinzel ist eine Versalienschrift – Kleinbuchstaben sind lediglich kleinere Versalien.
-   * Ueberschriften bekommen deshalb etwas mehr Laufweite, sonst kleben sie zusammen.
+   * Bebas Neue kennt nur Versalien und nur einen Schnitt. font-weight bleibt deshalb auf
+   * 400, und etwas Laufweite haelt die schmalen Buchstaben auseinander.
    */
   h1,
   h2,
   h3,
   h4 {
-    @apply text-foreground font-display font-bold;
-    letter-spacing: 0.01em;
+    @apply text-foreground font-display;
+    font-weight: 400;
+    letter-spacing: 0.02em;
+    line-height: 1.1;
   }
 
   ::selection {
@@ -262,8 +269,23 @@
 
 @layer components {
   /* Kleine Versalien-Auszeichnung, z. B. "Jahrgang 2027" oder Abschnittslabels. */
+  /*
+   * Kleine Auszeichnung ueber Abschnitten. Bewusst in der Fliesstextschrift: Bebas Neue
+   * ist bei 12 Pixeln zu schmal, um noch lesbar zu sein.
+   */
   .eyebrow {
-    @apply font-display text-xs font-bold tracking-[0.24em] uppercase;
+    @apply text-xs font-bold tracking-[0.2em] uppercase;
+  }
+
+  /*
+   * Zahlen in der Display-Schrift, etwa Preise und Countdown. Bebas Neue hat keine
+   * Tabellenziffern; tabular-nums laeuft deshalb ins Leere und die Ziffern haetten beim
+   * Herunterzaehlen gesprungen. Eine feste Mindestbreite je Kachel faengt das ab.
+   */
+  .display-number {
+    @apply font-display;
+    font-weight: 400;
+    letter-spacing: 0.02em;
   }
 
   /* Duenner Trenner mit Goldakzent – greift Lorbeer und Weinlaub des Prints auf. */

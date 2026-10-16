@@ -273,6 +273,10 @@ model Settings {
   /// Wird in der Bestätigungsmail und auf der Bestellseite angezeigt.
   pickupInfo String @db.Text
 
+  /// Hinweis zum Anprobieren der Groessen, steht direkt bei der Groessenauswahl.
+  /// Frei pflegbar, weil sich die Namen der Q-Sprecher aendern.
+  sizeAdvice String @db.Text @default("")
+
   /// Argon2id-Hash des Zugangscodes fuer den Shop. NULL = Shop ist oeffentlich.
   /// Der Code selbst wird nie gespeichert; er laesst sich nur neu setzen, nicht auslesen.
   accessCodeHash String? @db.Text

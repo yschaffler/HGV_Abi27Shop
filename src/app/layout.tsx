@@ -1,9 +1,8 @@
 import type { Metadata, Viewport } from 'next';
 // Selbst ausgelieferte Schriften: keine Anfrage an Google Fonts, also keine IP-Übermittlung
-// an einen Drittdienst. Cinzel (Überschriften) nimmt den antiken Charakter des Prints auf,
-// Inter trägt alles, was gelesen statt betrachtet wird. Bei Inter reicht die reine
-// Gewichtsachse "wght"; Cinzel bringt ohnehin nur diese mit.
-import '@fontsource-variable/cinzel';
+// an einen Drittdienst. Bebas Neue (Überschriften) trifft den Schriftzug auf dem Hoodie,
+// Inter trägt alles, was gelesen statt betrachtet wird.
+import '@fontsource/bebas-neue/latin-400.css';
 import '@fontsource-variable/inter/wght.css';
 import '@/styles/globals.css';
 

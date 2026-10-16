@@ -13,6 +13,11 @@ const DEFAULT_PICKUP_INFO =
   'an einem zentralen Ausgabepunkt verteilt. Es gibt keinen Versand an einzelne Personen. ' +
   'Den genauen Ausgabetermin geben wir rechtzeitig bekannt.';
 
+const DEFAULT_SIZE_ADVICE =
+  'Unsicher bei der Größe? Die Q-Sprecher haben Musterteile zum Anprobieren in der Schule – ' +
+  'sprecht sie einfach an oder schreibt im Abichat. Weil alles in einer Sammelbestellung ' +
+  'läuft, ist ein Umtausch später nicht möglich.';
+
 const PLACEHOLDER = '[Vor dem Livegang ausfüllen – siehe LEGAL_CHECKLIST.md]';
 
 export async function getSettings(): Promise<SettingsModel> {
@@ -28,6 +33,7 @@ export async function getSettings(): Promise<SettingsModel> {
       shopName: 'Abi-Shop',
       contactEmail: '',
       pickupInfo: DEFAULT_PICKUP_INFO,
+      sizeAdvice: DEFAULT_SIZE_ADVICE,
       imprintText: PLACEHOLDER,
       privacyText: PLACEHOLDER,
       withdrawalText: PLACEHOLDER,

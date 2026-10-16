@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { formatCents } from '@/lib/money';
 import { getPublicProductBySlug } from '@/server/shop/catalog';
 import { evaluateOrderWindow } from '@/server/shop/order-window';
-import { getOrderWindow } from '@/server/settings';
+import { getOrderWindow, getSettings } from '@/server/settings';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,7 +24,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function ProductPage({ params }: PageProps) {
   const { slug } = await params;
 
-  const [product, window] = await Promise.all([getPublicProductBySlug(slug), getOrderWindow()]);
+  const [product, window, settings] = await Promise.all([
+    getPublicProductBySlug(slug),
+    getOrderWindow(),
+    getSettings(),
+  ]);
   if (!product) notFound();
 
   const status = evaluateOrderWindow(window);
@@ -61,7 +65,11 @@ export default async function ProductPage({ params }: PageProps) {
 
           <div className="rule-gold my-7" />
 
-          <AddToCart variants={product.variants} disabled={!status.isOpen} />
+          <AddToCart
+            variants={product.variants}
+            disabled={!status.isOpen}
+            sizeAdvice={settings.sizeAdvice}
+          />
 
           <p className="text-muted-foreground mt-6 flex items-start gap-2 text-sm">
             <MapPinIcon className="mt-0.5 size-4 shrink-0" aria-hidden="true" />

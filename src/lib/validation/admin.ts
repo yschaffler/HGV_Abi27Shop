@@ -65,6 +65,7 @@ export const settingsSchema = z.object({
   orderEndAt: dateTimeLocalSchema,
   closedNotice: z.string().trim().max(1000),
   pickupInfo: z.string().trim().max(2000),
+  sizeAdvice: z.string().trim().max(1000),
   imprintText: z.string().trim().max(20000),
   privacyText: z.string().trim().max(20000),
   withdrawalText: z.string().trim().max(20000),

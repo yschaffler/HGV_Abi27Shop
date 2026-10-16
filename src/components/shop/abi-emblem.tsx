@@ -74,10 +74,10 @@ export function AbiEmblem({ className = '', title }: { className?: string; title
       </g>
 
       {/* Schriftzug – nutzt die Display-Schrift der Seite */}
-      <text x="120" y="138" textAnchor="middle" className="font-display" fontSize="40" fontWeight="700" letterSpacing="2">
+      <text x="120" y="140" textAnchor="middle" className="font-display" fontSize="48" fontWeight="400" letterSpacing="3">
         ABI
       </text>
-      <text x="120" y="178" textAnchor="middle" className="font-display" fontSize="33" fontWeight="600" letterSpacing="0.5">
+      <text x="120" y="184" textAnchor="middle" className="font-display" fontSize="42" fontWeight="400" letterSpacing="1.5">
         2027
       </text>
     </svg>

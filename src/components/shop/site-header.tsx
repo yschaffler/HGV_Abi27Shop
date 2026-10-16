@@ -37,7 +37,7 @@ export function SiteHeader({ shopName }: { shopName: string }) {
             className="h-10 w-auto shrink-0"
           />
           <span className="border-creme-300/20 min-w-0 border-l pl-3">
-            <span className="font-display text-creme-200 block truncate text-base leading-tight font-bold tracking-wide">
+            <span className="font-display text-creme-200 block truncate text-lg leading-tight tracking-wide">
               {shopName}
             </span>
             <span className="text-creme-300/50 hidden text-[0.7rem] font-semibold tracking-[0.2em] uppercase sm:block">

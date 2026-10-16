@@ -81,7 +81,7 @@ export function OrderCountdown({
             key={part.label}
             className="border-gold-500/25 min-w-16 rounded-xl border bg-white/5 px-3 py-2 text-center backdrop-blur-sm sm:min-w-20"
           >
-            <span className="font-display text-creme-200 block text-2xl font-bold tabular-nums sm:text-3xl">
+            <span className="font-display text-creme-200 block text-3xl leading-none sm:text-4xl">
               {pad(part.value)}
             </span>
             <span className="text-creme-300/50 text-[0.65rem] font-semibold tracking-[0.18em] uppercase">

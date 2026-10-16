@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
-import { CheckIcon, ShoppingCartIcon } from 'lucide-react';
+import { CheckIcon, RulerIcon, ShoppingCartIcon } from 'lucide-react';
 import { useCart } from '@/components/use-cart';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -25,7 +25,16 @@ import type { PublicVariant } from '@/server/shop/catalog';
  * Es wird ausschließlich die Varianten-ID in den Warenkorb gelegt. Der Preis daneben ist
  * reine Anzeige; verbindlich ist immer der Preis, den der Server aus der Datenbank liest.
  */
-export function AddToCart({ variants, disabled }: { variants: PublicVariant[]; disabled: boolean }) {
+export function AddToCart({
+  variants,
+  disabled,
+  sizeAdvice,
+}: {
+  variants: PublicVariant[];
+  disabled: boolean;
+  /** Hinweis zum Anprobieren, aus den Einstellungen. Leer = kein Hinweis. */
+  sizeAdvice?: string;
+}) {
   const colors = useMemo(() => [...new Set(variants.map((v) => v.color).filter(Boolean))], [variants]);
   const sizes = useMemo(() => [...new Set(variants.map((v) => v.size).filter(Boolean))], [variants]);
 
@@ -116,10 +125,19 @@ export function AddToCart({ variants, disabled }: { variants: PublicVariant[]; d
               </ToggleGroupItem>
             ))}
           </ToggleGroup>
-          <p className="text-muted-foreground mt-2 text-xs">
-            Unisex-Schnitt, fällt normal aus. Weil alles in einer Sammelbestellung läuft, ist
-            ein Umtausch später nicht möglich.
-          </p>
+          <p className="text-muted-foreground mt-2 text-xs">Unisex-Schnitt, fällt normal aus.</p>
+
+          {/*
+            Der wichtigste Hinweis der ganzen Seite steht genau dort, wo die Entscheidung
+            fällt: bei der Größenauswahl. Der Text kommt aus den Einstellungen, weil die
+            Namen der Q-Sprecher wechseln.
+          */}
+          {sizeAdvice ? (
+            <div className="border-gold-500/40 bg-gold-500/10 mt-3 flex items-start gap-2.5 rounded-lg border p-3">
+              <RulerIcon className="text-gold-700 dark:text-gold-400 mt-0.5 size-4 shrink-0" aria-hidden="true" />
+              <p className="text-foreground text-sm">{sizeAdvice}</p>
+            </div>
+          ) : null}
         </div>
       ) : null}
 
@@ -146,7 +164,7 @@ export function AddToCart({ variants, disabled }: { variants: PublicVariant[]; d
           </NativeSelect>
         </div>
 
-        <p className="font-display text-foreground pb-1.5 text-3xl font-extrabold tabular-nums">
+        <p className="font-display text-foreground pb-1 text-4xl leading-none">
           {selected ? formatCents(selected.priceCents * quantity) : '—'}
         </p>
       </div>

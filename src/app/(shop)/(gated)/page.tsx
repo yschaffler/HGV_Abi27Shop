@@ -65,8 +65,8 @@ const HIGHLIGHTS = [
   },
   {
     icon: RulerIcon,
-    title: 'Unisex-Schnitt',
-    text: 'Fällt normal aus. Wer es lockerer mag, nimmt eine Größe größer – umtauschen geht bei einer Sammelbestellung nicht.',
+    title: 'Vorher anprobieren',
+    text: 'Unisex-Schnitt, fällt normal aus. Die Q-Sprecher haben Musterteile in der Schule – umtauschen geht bei einer Sammelbestellung nämlich nicht.',
   },
   {
     icon: UsersIcon,
@@ -107,9 +107,14 @@ const FAQ = [
       'Nein. Nach dem Bestellschluss geht die Sammelbestellung zum Hersteller. Danach lässt sich nichts mehr hinzufügen – auch keine einzelne Nachbestellung.',
   },
   {
+    question: 'Kann ich die Größen vorher anprobieren?',
+    answer:
+      'Ja. Die Q-Sprecher haben Musterteile in der Schule – sprecht sie an oder schreibt im Abichat, dann findet sich ein Termin. Das lohnt sich, weil ein Umtausch bei einer Sammelbestellung nicht möglich ist.',
+  },
+  {
     question: 'Was ist, wenn die Größe nicht passt?',
     answer:
-      'Bei einer Sammelbestellung gibt es keinen Umtausch. Wenn du unsicher bist, miss vorher einen Pulli nach, den du gerne trägst, und orientiere dich daran.',
+      'Bei einer Sammelbestellung gibt es keinen Umtausch. Probiert deshalb vorher bei den Q-Sprechern an, oder messt einen Pulli nach, den ihr gerne tragt, und orientiert euch daran.',
   },
   {
     question: 'Wie bezahle ich?',
@@ -153,10 +158,10 @@ export default async function ShopHomePage() {
               <span className="eyebrow text-creme-300/50">Q13 · HGV</span>
             </div>
 
-            <h1 className="font-display text-creme-200 mt-5 text-4xl leading-[1.08] font-bold tracking-wide sm:text-6xl">
+            <h1 className="font-display text-creme-200 mt-5 text-6xl leading-[0.95] tracking-[0.03em] sm:text-8xl">
               Abikropolis
             </h1>
-            <p className="font-display text-gold-400 mt-2 text-sm tracking-[0.18em] uppercase sm:text-base">
+            <p className="font-display text-gold-400 mt-3 text-base tracking-[0.22em] sm:text-xl">
               Die Götter verlassen den Olymp
             </p>
             <p className="text-creme-300/70 mt-5 max-w-md text-base">
@@ -166,7 +171,7 @@ export default async function ShopHomePage() {
 
             {featured ? (
               <p className="mt-6 flex items-baseline gap-2">
-                <span className="font-display text-creme-200 text-3xl font-bold">
+                <span className="font-display text-creme-200 text-4xl leading-none">
                   {formatCents(featured.minPriceCents)}
                 </span>
                 {featured.minPriceCents !== featured.maxPriceCents ? (
@@ -286,7 +291,11 @@ export default async function ShopHomePage() {
 
               <div className="rule-gold my-7" />
 
-              <AddToCart variants={featured.variants} disabled={!status.isOpen} />
+              <AddToCart
+                variants={featured.variants}
+                disabled={!status.isOpen}
+                sizeAdvice={settings.sizeAdvice}
+              />
 
               <p className="text-muted-foreground mt-6 flex items-start gap-2 text-sm">
                 <MapPinIcon className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
@@ -325,7 +334,7 @@ export default async function ShopHomePage() {
         <ol className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {STEPS.map((item) => (
             <li key={item.step} className="border-border relative border-t pt-5">
-              <span className="bg-primary text-primary-foreground font-display absolute -top-4 grid size-8 place-items-center rounded-lg text-sm font-extrabold">
+              <span className="bg-primary text-primary-foreground font-display absolute -top-4 grid size-8 place-items-center rounded-lg text-lg leading-none">
                 {item.step}
               </span>
               <h3 className="mt-3 text-base">{item.title}</h3>

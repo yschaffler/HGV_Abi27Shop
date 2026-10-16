@@ -48,6 +48,7 @@ export default async function SettingsPage() {
           orderEndAt: toBerlinDateTimeLocal(settings.orderEndAt),
           closedNotice: settings.closedNotice ?? '',
           pickupInfo: settings.pickupInfo,
+          sizeAdvice: settings.sizeAdvice,
           imprintText: settings.imprintText,
           privacyText: settings.privacyText,
           withdrawalText: settings.withdrawalText,
