@@ -9,17 +9,16 @@
  * Linien und die Schrift – nicht über eine weitere Farbe. Ein Gold- oder Olivton wurde
  * ausprobiert und wieder entfernt: Er stand neben dem Print wie ein Fremdkörper.
  *
- *   Navy   #0E1A36  Stoff: Kopfzeile, Hero, Fußzeile, Schaltflächen im hellen Modus
- *   Creme  #F3EAD8  Druck: Schrift und Linien auf Navy, Schaltflächen auf dunklem Grund
+ *   Navy   #0E1A36  Stoff: Kopfzeile, Hero, Fußzeile, Schaltflächen
+ *   Creme  #F3EAD8  Druck: Schrift und Linien auf Navy, Schaltflächen auf Navy
  *   Hell   #F9F8F6  Heller Grund für Inhalte, damit Formulare und Texte ruhig bleiben
  *
  * Wer etwas ergänzt, nimmt eine dieser Farben mit Deckkraft (z. B. creme-300/40) statt
  * einer neuen. Einzige Ausnahme sind Fehler- und Erfolgsmeldungen: Die müssen auch für
  * jemanden funktionieren, der nicht genau hinsieht.
  *
- * Dunkelmodus läuft über prefers-color-scheme, nicht über eine .dark-Klasse: Das ist die
- * Systemeinstellung des Besuchers, braucht kein JavaScript, kein Cookie und flackert beim
- * ersten Rendern nicht.
+ * Es gibt bewusst keinen Dunkelmodus: Der Shop sieht auf jedem Gerät gleich aus, egal was
+ * im System eingestellt ist (color-scheme: light hält auch native Formularelemente hell).
  *
  * Schriften liegen als Paket im Projekt und werden selbst ausgeliefert (siehe app/layout.tsx).
  */
@@ -27,7 +26,7 @@
 :root {
   --radius: 0.5rem;
 
-  /* Heller Modus: ruhiger Papierton, Schrift in Navy statt Schwarz. */
+  /* Ruhiger Papierton, Schrift in Navy statt Schwarz. */
   --background: oklch(0.979 0.003 85);
   --foreground: oklch(0.224 0.057 265);
   --card: oklch(1 0 0);
@@ -56,42 +55,6 @@
   --ring: oklch(0.438 0.085 265);
 
   color-scheme: light;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    /* Der Hoodie selbst: Creme auf Navy. */
-    --background: oklch(0.224 0.057 265);
-    --foreground: oklch(0.939 0.026 85);
-    --card: oklch(0.272 0.062 265);
-    --card-foreground: oklch(0.939 0.026 85);
-    --popover: oklch(0.272 0.062 265);
-    --popover-foreground: oklch(0.939 0.026 85);
-
-    /*
-     * Auf Navy waere eine navyfarbene Schaltflaeche unsichtbar. Die Primaerfarbe dreht sich
-     * deshalb um – Creme mit Navy-Schrift, genau wie der Druck auf dem Pulli.
-     */
-    --primary: oklch(0.925 0.028 85);
-    --primary-foreground: oklch(0.224 0.057 265);
-
-    --secondary: oklch(0.298 0.06 265);
-    --secondary-foreground: oklch(0.925 0.025 85);
-    --muted: oklch(0.298 0.06 265);
-    --muted-foreground: oklch(0.73 0.027 265);
-
-    --accent: oklch(0.32 0.06 265);
-    --accent-foreground: oklch(0.939 0.026 85);
-
-    --destructive: oklch(0.662 0.122 24);
-    --destructive-foreground: oklch(0.2 0.04 265);
-
-    --border: oklch(0.365 0.052 265);
-    --input: oklch(0.365 0.052 265);
-    --ring: oklch(0.85 0.03 85);
-
-    color-scheme: dark;
-  }
 }
 
 @theme inline {
@@ -174,7 +137,7 @@
   --color-creme-400: oklch(0.9 0.034 85);
 
   /*
-   * Hero, Kopf- und Fusszeile bleiben in jedem Farbschema dunkel – sie sind der Stoff,
+   * Hero, Kopf- und Fusszeile bleiben dunkel – sie sind der Stoff,
    * auf den gedruckt wird.
    */
   --color-night: oklch(0.224 0.057 265);
@@ -188,16 +151,6 @@
   --color-success-fg: oklch(0.41 0.068 155);
   --color-neutral-bg: oklch(0.928 0.008 265);
   --color-neutral-fg: oklch(0.44 0.025 265);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    /* Auf Navy müssen die Statusfarben heller werden, sonst verschwinden sie. */
-    --color-success-bg: oklch(0.33 0.045 155);
-    --color-success-fg: oklch(0.84 0.06 155);
-    --color-neutral-bg: oklch(0.312 0.055 265);
-    --color-neutral-fg: oklch(0.79 0.025 265);
-  }
 }
 
 @layer base {

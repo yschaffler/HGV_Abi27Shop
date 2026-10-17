@@ -17,10 +17,7 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   // Kein maximumScale: Zoom darf nicht gesperrt werden, das wäre ein Barrierefreiheitsproblem.
-  themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#f9f8f6' },
-    { media: '(prefers-color-scheme: dark)', color: '#0e1a36' },
-  ],
+  themeColor: '#f9f8f6',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

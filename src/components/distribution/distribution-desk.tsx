@@ -176,19 +176,19 @@ export function DistributionDesk() {
         </header>
 
         {notice ? (
-          <p role="status" className="rounded-xl bg-amber-100 px-4 py-3 text-lg font-medium text-amber-900 dark:bg-amber-950 dark:text-amber-100">
+          <p role="status" className="rounded-xl bg-amber-100 px-4 py-3 text-lg font-medium text-amber-900">
             {notice}
           </p>
         ) : null}
 
         {error ? (
-          <p role="alert" className="rounded-xl bg-red-100 px-4 py-3 text-lg font-medium text-red-900 dark:bg-red-950 dark:text-red-100">
+          <p role="alert" className="rounded-xl bg-red-100 px-4 py-3 text-lg font-medium text-red-900">
             {error}
           </p>
         ) : null}
 
         {allDone ? (
-          <p role="status" className="rounded-xl bg-green-100 px-4 py-4 text-center text-xl font-bold text-green-900 dark:bg-green-950 dark:text-green-100">
+          <p role="status" className="rounded-xl bg-green-100 px-4 py-4 text-center text-xl font-bold text-green-900">
             Alles ausgegeben – weiter zur nächsten Person
           </p>
         ) : null}
@@ -202,7 +202,7 @@ export function DistributionDesk() {
                 key={item.id}
                 className={`flex flex-wrap items-center justify-between gap-4 rounded-2xl border-2 p-4 ${
                   done
-                    ? 'border-green-500 bg-green-50 dark:bg-green-950/40'
+                    ? 'border-green-500 bg-green-50'
                     : 'border-border bg-card'
                 }`}
               >
@@ -217,7 +217,7 @@ export function DistributionDesk() {
                 </div>
 
                 {done ? (
-                  <span className="px-2 text-lg font-bold tracking-wide text-green-700 uppercase dark:text-green-400">
+                  <span className="px-2 text-lg font-bold tracking-wide text-green-700 uppercase">
                     Ausgegeben
                   </span>
                 ) : (
@@ -275,7 +275,7 @@ export function DistributionDesk() {
       </div>
 
       {error ? (
-        <p role="alert" className="rounded-xl bg-red-100 px-4 py-3 text-lg font-medium text-red-900 dark:bg-red-950 dark:text-red-100">
+        <p role="alert" className="rounded-xl bg-red-100 px-4 py-3 text-lg font-medium text-red-900">
           {error}
         </p>
       ) : null}
@@ -310,7 +310,7 @@ export function DistributionDesk() {
                 <span
                   className={`shrink-0 rounded-full px-3 py-1.5 text-base font-bold ${
                     complete
-                      ? 'bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-200'
+                      ? 'bg-green-100 text-green-800'
                       : 'bg-muted text-foreground'
                   }`}
                 >
