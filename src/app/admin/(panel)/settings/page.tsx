@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { AccessCodeForm } from '@/components/admin/access-code-form';
+import { HeroImageForm } from '@/components/admin/hero-image-form';
 import { SettingsForm } from '@/components/admin/settings-form';
 import { getSettings } from '@/server/settings';
 
@@ -39,6 +40,8 @@ export default async function SettingsPage() {
       <h1 className="text-2xl">Einstellungen</h1>
 
       <AccessCodeForm active={settings.accessCodeHash !== null} hint={settings.accessHint ?? ''} />
+
+      <HeroImageForm mediaId={settings.heroImageId} />
 
       <SettingsForm
         values={{

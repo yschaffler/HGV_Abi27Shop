@@ -598,6 +598,82 @@ export async function clearAccessCodeAction(_previous: ActionState): Promise<Act
 }
 
 // ---------------------------------------------------------------------------
+// Cover der Startseite
+// ---------------------------------------------------------------------------
+
+/**
+ * Setzt das Cover im Hero der Startseite. Hochgeladen wird mit denselben Regeln wie bei
+ * den Produktbildern (Größe, Magic Bytes, eigener Dateiname). Ein vorheriges Cover bleibt
+ * als Datei liegen, wird aber nicht mehr gezeigt.
+ */
+export async function updateHeroImageAction(_previous: ActionState, formData: FormData): Promise<ActionState> {
+  const origin = await assertSameOrigin();
+  if (!origin.ok) return fail(origin.message);
+
+  const auth = await authorize(['ADMIN']);
+  if (!auth.ok) return fail(auth.error);
+
+  const file = formData.get('image');
+  if (!(file instanceof File) || file.size === 0) return fail('Bitte ein Bild auswählen.');
+
+  try {
+    const upload = await storeProductImage({ file, userId: auth.user.id });
+    if (!upload.ok) return fail(upload.message);
+
+    await prisma.settings.update({
+      where: { id: SETTINGS_ID },
+      data: { heroImageId: upload.mediaId },
+    });
+
+    await recordAudit({
+      actor: auth.user,
+      action: 'HERO_IMAGE_SET',
+      entityType: 'Settings',
+      entityId: String(SETTINGS_ID),
+      summary: `Cover der Startseite auf Bild ${upload.mediaId} gesetzt`,
+    });
+  } catch (error) {
+    const errorId = logUnexpected('updateHeroImageAction', error);
+    return fail(`Hochladen fehlgeschlagen. (Kennung ${errorId})`);
+  }
+
+  revalidatePath('/admin/settings');
+  revalidatePath('/');
+  return { status: 'ok', message: 'Cover gespeichert.' };
+}
+
+/** Entfernt das Cover – die Startseite zeigt danach wieder die Titelbilder der Produkte. */
+export async function clearHeroImageAction(_previous: ActionState): Promise<ActionState> {
+  const origin = await assertSameOrigin();
+  if (!origin.ok) return fail(origin.message);
+
+  const auth = await authorize(['ADMIN']);
+  if (!auth.ok) return fail(auth.error);
+
+  try {
+    await prisma.settings.update({
+      where: { id: SETTINGS_ID },
+      data: { heroImageId: null },
+    });
+
+    await recordAudit({
+      actor: auth.user,
+      action: 'HERO_IMAGE_REMOVED',
+      entityType: 'Settings',
+      entityId: String(SETTINGS_ID),
+      summary: 'Cover der Startseite entfernt',
+    });
+  } catch (error) {
+    const errorId = logUnexpected('clearHeroImageAction', error);
+    return fail(`Speichern fehlgeschlagen. (Kennung ${errorId})`);
+  }
+
+  revalidatePath('/admin/settings');
+  revalidatePath('/');
+  return { status: 'ok', message: 'Cover entfernt.' };
+}
+
+// ---------------------------------------------------------------------------
 // Ausgabestatus korrigieren
 // ---------------------------------------------------------------------------
 

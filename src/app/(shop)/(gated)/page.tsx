@@ -38,8 +38,9 @@ export const dynamic = 'force-dynamic';
  * Texte sind auf zwei Artikel geschrieben, die Darstellung käme aber auch mit einem oder
  * dreien zurecht.
  *
- * Die Bilder kommen aus dem Adminbereich (Produkte › Bilder). Nur für den Fall, dass noch
- * keines hochgeladen ist, zeigt der Hero das Mockup aus public/img.
+ * Die Bilder kommen aus dem Adminbereich. Für den Hero lässt sich unter Einstellungen ein
+ * eigenes Cover hochladen; ohne Cover stehen dort die Titelbilder der Produkte (Produkte ›
+ * Bilder), und solange auch davon keines da ist, das Mockup aus public/img.
  */
 
 const HERO_FALLBACK = { src: '/img/hoodie-back.webp', width: 1000, height: 1908 };
@@ -124,8 +125,13 @@ const FAQ = [
   },
 ];
 
-/** Titelbilder der Artikel für den Hero – höchstens zwei, sonst wird es unruhig. */
-function heroImages(products: PublicProduct[]) {
+/**
+ * Bilder für den Hero: das eigene Cover aus den Einstellungen, sonst die Titelbilder der
+ * Artikel – höchstens zwei, sonst wird es unruhig.
+ */
+function heroImages(heroImageId: string | null, products: PublicProduct[]) {
+  if (heroImageId) return [{ src: `/api/media/${heroImageId}`, alt: 'Abikropolis-Kollektion' }];
+
   return products
     .flatMap((product) => {
       const cover = product.images[0];
@@ -142,7 +148,7 @@ export default async function ShopHomePage() {
   ]);
 
   const status = evaluateOrderWindow(window);
-  const covers = heroImages(products);
+  const covers = heroImages(settings.heroImageId, products);
   const lowestPrice = products.length > 0 ? Math.min(...products.map((product) => product.minPriceCents)) : null;
   const pricesDiffer = products.some(
     (product) => product.minPriceCents !== lowestPrice || product.maxPriceCents !== lowestPrice,
@@ -228,7 +234,11 @@ export default async function ShopHomePage() {
                   src={cover.src}
                   alt={cover.alt}
                   className={`min-w-0 rounded-2xl object-contain drop-shadow-2xl ${
-                    index === 0 ? 'max-h-[30rem] w-auto max-w-[60%]' : 'max-h-[21rem] w-auto max-w-[40%]'
+                    covers.length === 1
+                      ? 'max-h-[30rem] w-auto max-w-full'
+                      : index === 0
+                        ? 'max-h-[30rem] w-auto max-w-[60%]'
+                        : 'max-h-[21rem] w-auto max-w-[40%]'
                   }`}
                   fetchPriority={index === 0 ? 'high' : 'auto'}
                   decoding="async"

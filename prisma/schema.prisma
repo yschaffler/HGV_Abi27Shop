@@ -298,6 +298,11 @@ model Settings {
   /// lokal faellt das deshalb nicht auf). 1000 Zeichen entsprechen der Grenze im Formular.
   sizeAdvice String @default("") @db.VarChar(1000)
 
+  /// Cover im Hero der Startseite, eigens im Adminbereich hochgeladen. NULL = die Titelbilder
+  /// der Produkte werden gezeigt (bzw. das Mockup aus public/img, solange es keine gibt).
+  heroImageId String?
+  heroImage   MediaAsset? @relation(fields: [heroImageId], references: [id], onDelete: SetNull)
+
   /// Argon2id-Hash des Zugangscodes fuer den Shop. NULL = Shop ist oeffentlich.
   /// Der Code selbst wird nie gespeichert; er laesst sich nur neu setzen, nicht auslesen.
   accessCodeHash String? @db.Text
@@ -312,6 +317,7 @@ model Settings {
 
   updatedAt DateTime @updatedAt
 
+  @@index([heroImageId])
   @@map("settings")
 }
 
@@ -362,8 +368,9 @@ model MediaAsset {
   createdAt        DateTime @default(now())
   uploadedByUserId String?
 
-  uploadedBy User?     @relation("UploadedBy", fields: [uploadedByUserId], references: [id], onDelete: SetNull)
+  uploadedBy    User?          @relation("UploadedBy", fields: [uploadedByUserId], references: [id], onDelete: SetNull)
   productImages ProductImage[]
+  heroFor       Settings[]
 
   @@index([uploadedByUserId])
   @@map("media_assets")
