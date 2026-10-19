@@ -315,6 +315,15 @@ export default async function ShopHomePage() {
             ))}
           </div>
         )}
+
+        {/*
+          Bewusst als Fußnote unter der Kollektion: Die Info gehört zum Preis, soll aber nicht
+          mit Bestellschluss und Abholung um Aufmerksamkeit konkurrieren.
+        */}
+        <p className="text-muted-foreground mx-auto mt-16 max-w-xl text-center text-xs leading-relaxed">
+          Die Preise dienen der Finanzierung der Sammelbestellung. Ein Aufschlag zur
+          Gewinnerzielung ist nicht vorgesehen.
+        </p>
       </section>
 
       {/* ------------------------------------------------------------ Highlights */}
