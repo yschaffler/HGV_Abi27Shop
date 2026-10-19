@@ -19,7 +19,7 @@ import {
 
 const INITIAL: ActionState = { status: 'idle' };
 
-const VORLAGE = `am Freitag, den 13. November, könnt ihr eure Hoodies abholen.
+const VORLAGE = `am Freitag, den 13. November, könnt ihr eure Hoodies und Shirts abholen.
 
 Wann: 12:30 bis 14:00 Uhr
 Wo: Pausenhalle, beim Stand der Q-Sprecher
@@ -48,7 +48,7 @@ export function BroadcastForm({
 }) {
   const [state, formAction] = useActionState(sendBroadcastAction, INITIAL);
   const [body, setBody] = useState(VORLAGE);
-  const [subject, setSubject] = useState('Abholung eurer Abi-Hoodies');
+  const [subject, setSubject] = useState('Abholung eurer Abi-Bestellung');
 
   return (
     <div className="grid gap-5 lg:grid-cols-[1fr_22rem]">

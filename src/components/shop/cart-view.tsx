@@ -60,7 +60,7 @@ export function CartView({ orderingOpen }: { orderingOpen: boolean }) {
           <p className="text-foreground text-lg font-semibold">Der Warenkorb ist leer</p>
           <p className="text-muted-foreground mt-1">Such dir etwas aus – du kannst jederzeit zurück.</p>
           <Button asChild className="mt-5">
-            <Link href="/">Zum Hoodie</Link>
+            <Link href="/">Zur Kollektion</Link>
           </Button>
         </CardContent>
       </Card>
@@ -159,7 +159,7 @@ export function CartView({ orderingOpen }: { orderingOpen: boolean }) {
             <div className="text-muted-foreground mt-4 space-y-2 text-xs">
               <p className="flex items-start gap-2">
                 <UsersIcon className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
-                Teil der Sammelbestellung der Q13 – alle Pullis gehen gemeinsam zum Hersteller.
+                Teil der Sammelbestellung der Q13 – alles geht gemeinsam zum Hersteller.
               </p>
               <p className="flex items-start gap-2">
                 <MapPinIcon className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />

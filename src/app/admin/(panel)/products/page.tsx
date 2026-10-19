@@ -1,11 +1,13 @@
 import type { Metadata } from 'next';
 import { Disclosure } from '@/components/admin/disclosure';
 import { ProductForm } from '@/components/admin/product-form';
+import { ProductImages } from '@/components/admin/product-images';
 import { VariantForm } from '@/components/admin/variant-form';
 import { ProductImage } from '@/components/shop/product-image';
 import { centsToEuroInput, formatCents } from '@/lib/money';
 import { variantLabel } from '@/lib/variant-label';
 import { prisma } from '@/server/db';
+import { MAX_IMAGES_PER_PRODUCT } from '@/server/shop/product-images';
 
 export const metadata: Metadata = { title: 'Produkte', robots: { index: false, follow: false } };
 export const dynamic = 'force-dynamic';
@@ -14,6 +16,10 @@ export default async function ProductsPage() {
   const products = await prisma.product.findMany({
     orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
     include: {
+      images: {
+        orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
+        select: { id: true, mediaId: true, caption: true },
+      },
       variants: {
         orderBy: [{ sortOrder: 'asc' }, { color: 'asc' }, { size: 'asc' }],
         include: { _count: { select: { items: true } } },
@@ -40,7 +46,7 @@ export default async function ProductsPage() {
         <section key={product.id} className="surface-card rounded-xl p-5">
           <div className="flex flex-wrap items-start gap-4">
             <ProductImage
-              imageId={product.imageId}
+              imageId={product.images[0]?.mediaId ?? null}
               alt={product.name}
               className="border-border size-20 shrink-0 rounded-lg border object-cover"
             />
@@ -55,8 +61,9 @@ export default async function ProductsPage() {
                 ) : null}
               </h2>
               <p className="text-muted-foreground text-sm">/produkte/{product.slug}</p>
+              {product.model ? <p className="text-muted-foreground text-sm">Modell: {product.model}</p> : null}
               <p className="text-muted-foreground mt-1 text-sm">
-                {product.variants.length} Variante(n),{' '}
+                {product.images.length} Bild(er) · {product.variants.length} Variante(n),{' '}
                 {product.variants.filter((variant) => variant.active).length} davon bestellbar
               </p>
             </div>
@@ -71,12 +78,22 @@ export default async function ProductsPage() {
                   name: product.name,
                   summary: product.summary ?? '',
                   description: product.description ?? '',
-                  imageId: product.imageId,
+                  model: product.model,
                   active: product.active,
                   sortOrder: product.sortOrder,
                 }}
               />
             </Disclosure>
+          </div>
+
+          <h3 className="text-foreground mt-5 text-sm font-semibold">Bilder</h3>
+          <div className="mt-2">
+            <ProductImages
+              productId={product.id}
+              productName={product.name}
+              images={product.images}
+              maxImages={MAX_IMAGES_PER_PRODUCT}
+            />
           </div>
 
           <h3 className="text-foreground mt-5 text-sm font-semibold">Varianten</h3>

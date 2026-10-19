@@ -207,9 +207,11 @@ Im Shop stehen zwei Zeichen, und sie konkurrieren bewusst nicht:
 Das Favicon zeigt Saeule und Lorbeer, weil der Pinguin bei 16 Pixeln nicht mehr zu erkennen
 waere.
 
-Die Produktbilder liegen unter festen Pfaden in `public/img` und sind damit austauschbar,
-ohne dass Code angefasst werden muss – siehe `public/img/README.md`. Die aktuellen Dateien
-sind freigestellte Ausschnitte aus dem Designblatt und Platzhalter, bis echte Fotos vorliegen.
+Die Produktbilder pflegt der Adminbereich als Galerie je Artikel (`ProductImage`). Die
+Galerie steht auf hellem Grund und passt Bilder nur ein, statt sie zu beschneiden – so
+sehen freigestellte Mockups und echte Fotos mit Hintergrund gleichermassen ordentlich aus.
+`public/img` enthaelt nur noch Logo und ein Hero-Mockup als Rueckfall, solange kein Bild
+hochgeladen ist.
 
 ---
 
@@ -301,6 +303,7 @@ enum OrderDistributionStatus { NOT_DISTRIBUTED  PARTIALLY_DISTRIBUTED  FULLY_DIS
 | `AuditLog` | kritische Admin-Aktionen | Akteur, Aktion, Entität, `summary` („NEW → ORDERED“) |
 | `StripeWebhookEvent` | Idempotenz | PK = Stripe-`evt_…`-ID |
 | `MediaAsset` | Produktbilder | Dateiname auf Volume, MIME, Größe |
+| `ProductImage` | Galerie eines Produkts | `productId`, `mediaId`, `caption`, `sortOrder` – das erste Bild ist das Titelbild, höchstens 8 je Produkt |
 
 **Konsistenzregeln**
 
@@ -334,7 +337,7 @@ weiterhin mehrere Produkte – zusätzliche Artikel erscheinen unter "Weitere Ar
 
 | Route | Inhalt |
 |---|---|
-| `/` | Landingpage für den Hoodie: Hero mit Countdown, Galerie, Variantenauswahl und "in den Warenkorb" direkt auf der Seite, Ablauf, FAQ |
+| `/` | Landingpage der Kollektion (Hoodie und Shirt): Hero mit Countdown, je Artikel Galerie, Modell, Variantenauswahl und "in den Warenkorb" direkt auf der Seite, Hinweis auf den Textildrucker, Ablauf, FAQ |
 | `/produkte/[slug]` | Produktdetail, Variantenauswahl, in den Warenkorb |
 | `/warenkorb` | Positionen, serverseitig neu bepreist |
 | `/checkout` | Vorname, Nachname, E-Mail, zwei Pflichtbestätigungen → Stripe |

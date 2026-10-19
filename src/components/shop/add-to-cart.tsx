@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useId, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { CheckIcon, RulerIcon, ShoppingCartIcon } from 'lucide-react';
 import { useCart } from '@/components/use-cart';
@@ -44,6 +44,8 @@ export function AddToCart({
   const [added, setAdded] = useState(false);
 
   const { add } = useCart();
+  // Auf der Startseite stehen mehrere Artikel untereinander – feste IDs wären doppelt.
+  const quantityId = useId();
 
   const selected = useMemo(
     () => variants.find((variant) => variant.color === color && variant.size === size) ?? null,
@@ -63,7 +65,18 @@ export function AddToCart({
 
   return (
     <div className="space-y-6">
-      {colors.length > 0 ? (
+      {/*
+        Gibt es nur eine Farbe, ist das keine Auswahl, sondern eine Angabe – ein einzelner
+        Knopf zum "Auswählen" würde nur verwirren.
+      */}
+      {colors.length === 1 ? (
+        <p className="text-sm">
+          <span className="text-foreground font-medium">Farbe</span>{' '}
+          <span className="text-muted-foreground">· {colors[0]}</span>
+        </p>
+      ) : null}
+
+      {colors.length > 1 ? (
         <div>
           <Label className="mb-2.5">
             Farbe
@@ -125,7 +138,6 @@ export function AddToCart({
               </ToggleGroupItem>
             ))}
           </ToggleGroup>
-          <p className="text-muted-foreground mt-2 text-xs">Unisex-Schnitt, fällt normal aus.</p>
 
           {/*
             Der wichtigste Hinweis der ganzen Seite steht genau dort, wo die Entscheidung
@@ -145,11 +157,11 @@ export function AddToCart({
 
       <div className="flex flex-wrap items-end gap-5">
         <div className="w-24">
-          <Label htmlFor="quantity" className="mb-1.5">
+          <Label htmlFor={quantityId} className="mb-1.5">
             Menge
           </Label>
           <NativeSelect
-            id="quantity"
+            id={quantityId}
             value={quantity}
             onChange={(event) => {
               setQuantity(Number(event.target.value));

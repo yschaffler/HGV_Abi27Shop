@@ -16,13 +16,21 @@ export type PublicVariant = {
   priceCents: number;
 };
 
+/** Ein Galeriebild. `mediaId` wird über /api/media/<id> ausgeliefert. */
+export type PublicProductImage = {
+  mediaId: string;
+  caption: string;
+};
+
 export type PublicProduct = {
   id: string;
   slug: string;
   name: string;
   summary: string | null;
   description: string | null;
-  imageId: string | null;
+  /** Modellbezeichnung beim Textildrucker, leer wenn nicht gepflegt. */
+  model: string;
+  images: PublicProductImage[];
   variants: PublicVariant[];
   minPriceCents: number;
   maxPriceCents: number;
@@ -34,7 +42,8 @@ function toPublicProduct(product: {
   name: string;
   summary: string | null;
   description: string | null;
-  imageId: string | null;
+  model: string;
+  images: PublicProductImage[];
   variants: PublicVariant[];
 }): PublicProduct {
   const prices = product.variants.map((variant) => variant.priceCents);
@@ -63,7 +72,11 @@ export async function listPublicProducts(): Promise<PublicProduct[]> {
       name: true,
       summary: true,
       description: true,
-      imageId: true,
+      model: true,
+      images: {
+        orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
+        select: { mediaId: true, caption: true },
+      },
       variants: {
         where: { active: true },
         orderBy: [{ sortOrder: 'asc' }, { color: 'asc' }, { size: 'asc' }],
@@ -84,7 +97,11 @@ export async function getPublicProductBySlug(slug: string): Promise<PublicProduc
       name: true,
       summary: true,
       description: true,
-      imageId: true,
+      model: true,
+      images: {
+        orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
+        select: { mediaId: true, caption: true },
+      },
       variants: {
         where: { active: true },
         orderBy: [{ sortOrder: 'asc' }, { color: 'asc' }, { size: 'asc' }],

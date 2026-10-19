@@ -8,7 +8,7 @@ import '@/styles/globals.css';
 
 export const metadata: Metadata = {
   title: { default: 'HGV-Abi 2027', template: '%s · HGV-Abi 27' },
-  description: 'Der Abi-Hoodie des Jahrgangs 2027 – bestellen, bezahlen, in der Schule abholen.',
+  description: 'Abi-Hoodie und -Shirt des Jahrgangs 2027 – bestellen, bezahlen, in der Schule abholen.',
   // Bestellseiten enthalten personenbezogene Daten und gehören in keinen Suchindex.
   robots: { index: false, follow: false },
 };

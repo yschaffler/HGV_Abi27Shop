@@ -140,6 +140,13 @@ Content-Type, `X-Content-Type-Options: nosniff`, `Content-Disposition: inline` u
 eigenen restriktiven CSP ausgeliefert. Selbst eine Datei mit eingebettetem Skriptcode könnte
 so nie als HTML oder JavaScript interpretiert werden.
 
+Die Galerie je Produkt ist serverseitig auf 8 Bilder begrenzt, nicht nur im Formular.
+Hinzufügen und Entfernen von Bildern landen im Audit-Log. Beschriftungen sind Klartext
+(höchstens 60 Zeichen) und werden von React escaped ausgegeben.
+
+Der Link zum Textildrucker ist eine feste Konstante im Code (`src/lib/print-partner.ts`),
+kein Freitext aus der Datenbank, und öffnet mit `rel="noopener noreferrer"`.
+
 ## 10. Rate Limiting
 
 | Endpunkt | Grenze |

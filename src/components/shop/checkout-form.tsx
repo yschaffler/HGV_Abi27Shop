@@ -88,7 +88,7 @@ export function CheckoutForm({ pickupInfo }: { pickupInfo: string }) {
         <CardContent className="py-12 text-center">
           <p className="text-foreground text-lg font-semibold">Der Warenkorb ist leer</p>
           <Button asChild className="mt-5">
-            <Link href="/">Zum Hoodie</Link>
+            <Link href="/">Zur Kollektion</Link>
           </Button>
         </CardContent>
       </Card>
@@ -208,8 +208,8 @@ export function CheckoutForm({ pickupInfo }: { pickupInfo: string }) {
                 <span className="text-foreground font-semibold">
                   Sammelbestellung, kein Versand.
                 </span>{' '}
-                Mir ist bekannt, dass der Hoodie gemeinsam mit dem gesamten Jahrgang bestellt und
-                in der Schule bei den Q-Sprechern abgeholt werden muss – er wird nicht verschickt.
+                Mir ist bekannt, dass meine Bestellung gemeinsam mit dem gesamten Jahrgang bestellt und
+                in der Schule bei den Q-Sprechern abgeholt werden muss – sie wird nicht verschickt.
               </span>
             </ConfirmationField>
 

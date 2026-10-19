@@ -45,7 +45,7 @@ export default async function BroadcastPage() {
       <div>
         <h1 className="text-2xl">Rundmail</h1>
         <p className="text-muted-foreground mt-1 text-sm">
-          Eine Nachricht an alle Besteller – zum Beispiel, wann und wo die Hoodies abgeholt
+          Eine Nachricht an alle Besteller – zum Beispiel, wann und wo Hoodies und Shirts abgeholt
           werden können. Der Text geht als Klartext raus; jede Mail bekommt automatisch die
           Anrede mit Vornamen, die Bestellnummer und den persönlichen Link zur Bestellung.
         </p>

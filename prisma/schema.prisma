@@ -131,19 +131,38 @@ model Product {
   description String? @db.Text
   /// Kurztext für die Übersichtskachel.
   summary     String?
-  imageId     String?
+  /// Modellbezeichnung beim Textildrucker, z. B. "Premium Regular Hoodie". VARCHAR statt
+  /// TEXT, weil MySQL 8.4 auf TEXT-Spalten keinen Standardwert erlaubt.
+  model       String  @default("") @db.VarChar(120)
   active      Boolean @default(true)
   sortOrder   Int     @default(0)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  image    MediaAsset?      @relation(fields: [imageId], references: [id], onDelete: SetNull)
+  images   ProductImage[]
   variants ProductVariant[]
 
   @@index([active, sortOrder])
-  @@index([imageId])
   @@map("products")
+}
+
+/// Ein Bild der Produktgalerie. Das erste Bild (niedrigster sortOrder) ist das Titelbild.
+model ProductImage {
+  id        String   @id @default(cuid())
+  productId String
+  mediaId   String
+  /// Beschriftung unter dem Vorschaubild ("Vorne", "Hinten" …) und Grundlage für den Alt-Text.
+  caption   String   @default("") @db.VarChar(60)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+
+  product Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
+  media   MediaAsset @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+
+  @@index([productId, sortOrder])
+  @@index([mediaId])
+  @@map("product_images")
 }
 
 /// Eine konkret bestellbare Ausprägung mit eigenem Preis.
@@ -344,7 +363,7 @@ model MediaAsset {
   uploadedByUserId String?
 
   uploadedBy User?     @relation("UploadedBy", fields: [uploadedByUserId], references: [id], onDelete: SetNull)
-  products   Product[]
+  productImages ProductImage[]
 
   @@index([uploadedByUserId])
   @@map("media_assets")

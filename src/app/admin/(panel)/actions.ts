@@ -8,6 +8,8 @@ import {
   FULFILLMENT_STATUSES,
   PAYMENT_STATUSES,
   idSchema,
+  imageCaptionSchema,
+  productImageMoveSchema,
   productSchema,
   settingsSchema,
   userSchema,
@@ -20,6 +22,12 @@ import { hashPassword, passwordSchema } from '@/server/auth/password';
 import { prisma } from '@/server/db';
 import { logUnexpected } from '@/server/logger';
 import { storeProductImage } from '@/server/media';
+import {
+  attachProductImage,
+  moveProductImage,
+  removeProductImage,
+  updateProductImageCaption,
+} from '@/server/shop/product-images';
 import { assertSameOrigin } from '@/server/request-context';
 import { SETTINGS_ID } from '@/server/settings';
 import { countRecipients, runBroadcast } from '@/server/mail/broadcast';
@@ -112,7 +120,7 @@ export async function saveProductAction(_previous: ActionState, formData: FormDa
     name: formData.get('name'),
     summary: formData.get('summary') || undefined,
     description: formData.get('description') || undefined,
-    imageId: formData.get('imageId') || undefined,
+    model: formData.get('model') ?? '',
     active: checkbox(formData, 'active'),
     sortOrder: formData.get('sortOrder') ?? 0,
   });
@@ -120,21 +128,12 @@ export async function saveProductAction(_previous: ActionState, formData: FormDa
   if (!parsed.success) return fail(firstIssueMessage(parsed.error));
 
   try {
-    const imageFile = formData.get('image');
-    let imageId = parsed.data.imageId ?? null;
-
-    if (imageFile instanceof File && imageFile.size > 0) {
-      const upload = await storeProductImage({ file: imageFile, userId: auth.user.id });
-      if (!upload.ok) return fail(upload.message);
-      imageId = upload.mediaId;
-    }
-
     const data = {
       slug: parsed.data.slug,
       name: parsed.data.name,
       summary: parsed.data.summary ?? null,
       description: parsed.data.description ?? null,
-      imageId,
+      model: parsed.data.model,
       active: parsed.data.active,
       sortOrder: parsed.data.sortOrder,
     };
@@ -166,6 +165,86 @@ export async function saveProductAction(_previous: ActionState, formData: FormDa
 
   revalidatePath('/admin/products');
   revalidatePath('/');
+  return OK;
+}
+
+// ---------------------------------------------------------------------------
+// Produktbilder
+// ---------------------------------------------------------------------------
+
+function revalidateProductPages(): void {
+  revalidatePath('/admin/products');
+  revalidatePath('/');
+  revalidatePath('/produkte/[slug]', 'page');
+}
+
+export async function addProductImageAction(_previous: ActionState, formData: FormData): Promise<ActionState> {
+  const origin = await assertSameOrigin();
+  if (!origin.ok) return fail(origin.message);
+
+  const auth = await authorize(['ADMIN']);
+  if (!auth.ok) return fail(auth.error);
+
+  const productId = idSchema.safeParse(formData.get('productId'));
+  if (!productId.success) return fail('Produkt nicht gefunden.');
+
+  const caption = imageCaptionSchema.safeParse(formData.get('caption') ?? '');
+  if (!caption.success) return fail(firstIssueMessage(caption.error));
+
+  const file = formData.get('image');
+  if (!(file instanceof File) || file.size === 0) return fail('Bitte ein Bild auswählen.');
+
+  try {
+    const upload = await storeProductImage({ file, userId: auth.user.id });
+    if (!upload.ok) return fail(upload.message);
+
+    const result = await attachProductImage({
+      productId: productId.data,
+      mediaId: upload.mediaId,
+      caption: caption.data,
+      actor: auth.user,
+    });
+    if (!result.ok) return fail(result.message);
+  } catch (error) {
+    const errorId = logUnexpected('addProductImageAction', error);
+    return fail(`Hochladen fehlgeschlagen. (Kennung ${errorId})`);
+  }
+
+  revalidateProductPages();
+  return { status: 'ok', message: 'Bild hinzugefügt.' };
+}
+
+export async function updateProductImageAction(_previous: ActionState, formData: FormData): Promise<ActionState> {
+  const origin = await assertSameOrigin();
+  if (!origin.ok) return fail(origin.message);
+
+  const auth = await authorize(['ADMIN']);
+  if (!auth.ok) return fail(auth.error);
+
+  const imageId = idSchema.safeParse(formData.get('imageId'));
+  if (!imageId.success) return fail('Bild nicht gefunden.');
+
+  const intent = formData.get('intent');
+
+  try {
+    let result;
+    if (intent === 'remove') {
+      result = await removeProductImage(imageId.data, auth.user);
+    } else if (intent === 'up' || intent === 'down') {
+      const move = productImageMoveSchema.parse({ imageId: imageId.data, direction: intent });
+      result = await moveProductImage(move.imageId, move.direction);
+    } else {
+      const caption = imageCaptionSchema.safeParse(formData.get('caption') ?? '');
+      if (!caption.success) return fail(firstIssueMessage(caption.error));
+      result = await updateProductImageCaption(imageId.data, caption.data);
+    }
+    if (!result.ok) return fail(result.message);
+  } catch (error) {
+    const errorId = logUnexpected('updateProductImageAction', error);
+    return fail(`Speichern fehlgeschlagen. (Kennung ${errorId})`);
+  }
+
+  revalidateProductPages();
   return OK;
 }
 

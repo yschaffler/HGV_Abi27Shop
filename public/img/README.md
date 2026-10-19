@@ -1,28 +1,25 @@
-# Produktbilder
+# Bilder unter public/img
 
-Der Shop lädt die Bilder über feste Pfade. Sobald es echte Produktfotos gibt, werden einfach
-**diese Dateien ersetzt** – es muss keine Zeile Code geändert werden.
+**Die Produktfotos werden nicht hier gepflegt, sondern im Adminbereich** unter
+*Produkte › Bilder* – je Artikel bis zu acht Bilder mit Beschriftung und Reihenfolge. Das
+erste Bild ist das Titelbild und erscheint auch im Hero der Startseite.
 
-| Datei | Wo es erscheint | Empfohlen |
-|---|---|---|
-| `hoodie-front.webp` | Galerie "Vorne" | hochkant, ca. 1000 × 1500 px |
-| `hoodie-back.webp` | Hero auf der Startseite **und** Galerie "Hinten" | hochkant, ca. 1000 × 1500 px |
-| `hoodie-detail.webp` | Galerie "Detail" | quer, ca. 1200 × 800 px |
-| `logo-dark.png` | Jahrgangslogo in Kopfzeile, Fußzeile und auf der Zugangsseite – wird erzeugt, nicht von Hand ersetzen | quer, transparent |
-| `logo.png` | Vorlage des Jahrgangslogos; nach dem Austausch `npm run logo:brand` ausführen | quer, transparent |
+Hier liegen nur noch:
 
-Hinweise:
+| Datei | Wozu |
+|---|---|
+| `hoodie-back.webp` | Rückfall für den Hero, solange noch kein Artikel ein Bild hat |
+| `hoodie-front.webp`, `hoodie-detail.webp` | Mockups, die der Entwicklungs-Seed (`npm run db:seed`) als Galerie an den Hoodie hängt |
+| `logo-dark.png` | Jahrgangslogo in Kopfzeile, Fußzeile und auf der Zugangsseite – wird erzeugt, nicht von Hand ersetzen |
+| `logo.png` | Vorlage des Jahrgangslogos; nach dem Austausch `npm run logo:brand` ausführen |
 
-* **Format WebP**, Qualität um 90. Ein JPEG tut es auch – dann die Dateiendung im Code
-  mitziehen (`src/app/(shop)/(gated)/page.tsx`, Konstante `GALLERY`).
-* **Hintergrund dunkel lassen.** Galerie und Hero stehen auf Navy; ein Foto auf weißem
-  Grund bekäme dort einen harten Rand. Am besten vor dunklem Hintergrund fotografieren
-  oder freistellen.
-* Die Bildbeschreibungen (`alt`) stehen in `GALLERY` und sollten zum neuen Foto passen –
-  sie werden vorgelesen, wenn das Bild nicht lädt.
+Tipps für die Fotos im Adminbereich:
 
-Die aktuellen Dateien sind Ausschnitte aus dem Designblatt "Design 3" und entsprechend
-niedrig aufgelöst. Sie sind Platzhalter, bis echte Fotos vorliegen.
+* **Hochformat 4:5**, PNG, JPEG oder WebP, höchstens 2 MB.
+* Die Galerie steht auf hellem Grund und passt das Bild ein, statt es zu beschneiden. Ein
+  ruhiger, heller Hintergrund oder ein freigestelltes Bild wirkt am besten.
+* Die Beschriftung ("Vorne", "Hinten") wird zusammen mit dem Artikelnamen auch als
+  Bildbeschreibung vorgelesen – kurz und treffend halten.
 
 ## Die zwei Marken
 
@@ -31,10 +28,10 @@ Im Shop stehen zwei Zeichen, mit getrennten Aufgaben:
 * **Jahrgangslogo "HGV ABI 2027"** (`logo-dark.png`) – sagt, *wer* hier bestellt. Es steht in
   Kopfzeile, Fußzeile und auf der Zugangsseite. Kopfzeile und Fußzeile sind immer dunkel,
   deshalb wird dort nur die helle Fassung gebraucht. Sie ist aus `logo.png` einfarbig in
-  Creme gerechnet (`npm run logo:brand`), passend zum zweifarbigen Druck des Hoodies.
-* **Lorbeer-Emblem** – der Brustdruck des Hoodies, also das *Was*. Es steht beim Artikel.
-  Es ist **kein Bild**, sondern gezeichnet: `src/components/shop/abi-emblem.tsx`. Dadurch ist
-  es bei jeder Größe scharf und färbt sich mit dem Farbschema mit.
+  Creme gerechnet (`npm run logo:brand`), passend zum zweifarbigen Druck.
+* **Lorbeer-Emblem** – der Brustdruck von Hoodie und Shirt, also das *Was*. Es steht über
+  der Kollektion. Es ist **kein Bild**, sondern gezeichnet:
+  `src/components/shop/abi-emblem.tsx`. Dadurch ist es bei jeder Größe scharf.
 
 Das Favicon (`src/app/icon.svg`) zeigt Säule und Lorbeer, weil der Pinguin bei 16 Pixeln
 nicht mehr zu erkennen wäre.

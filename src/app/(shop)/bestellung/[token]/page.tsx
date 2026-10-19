@@ -103,7 +103,7 @@ export default async function OrderPage({ params, searchParams }: PageProps) {
             ) : (
               <p className="mt-2 font-medium">
                 Der Bestellzeitraum ist beendet und die Sammelbestellung ist raus. Wenn du den
-                Hoodie trotzdem noch möchtest, wende dich bitte an die Q-Sprecher.
+                Artikel trotzdem noch möchtest, wende dich bitte an die Q-Sprecher.
               </p>
             )}
           </AlertDescription>
@@ -196,7 +196,7 @@ export default async function OrderPage({ params, searchParams }: PageProps) {
         <CardContent>
           <p className="text-muted-foreground text-sm whitespace-pre-line">{settings.pickupInfo}</p>
           <p className="text-muted-foreground mt-3 text-sm">
-            Dein Pulli ist Teil der Sammelbestellung der Q13. Ausgegeben wird erst, wenn die
+            Deine Bestellung ist Teil der Sammelbestellung der Q13. Ausgegeben wird erst, wenn die
             gesamte Lieferung da ist.
           </p>
         </CardContent>

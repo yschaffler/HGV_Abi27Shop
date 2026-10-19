@@ -13,7 +13,7 @@ export type ProductFormValues = {
   name: string;
   summary: string;
   description: string;
-  imageId: string | null;
+  model: string;
   active: boolean;
   sortOrder: number;
 };
@@ -23,7 +23,7 @@ const EMPTY: ProductFormValues = {
   name: '',
   summary: '',
   description: '',
-  imageId: null,
+  model: '',
   active: true,
   sortOrder: 0,
 };
@@ -45,7 +45,6 @@ export function ProductForm({ product }: { product?: ProductFormValues }) {
   return (
     <form action={formAction} className="space-y-4">
       {values.id ? <input type="hidden" name="id" value={values.id} /> : null}
-      {values.imageId ? <input type="hidden" name="imageId" value={values.imageId} /> : null}
 
       <FormFeedback state={state} />
 
@@ -103,16 +102,17 @@ export function ProductForm({ product }: { product?: ProductFormValues }) {
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
-          <label htmlFor={`image-${values.id ?? 'neu'}`} className="field-label">Bild (PNG, JPEG oder WebP, max. 2 MB)</label>
+          <label htmlFor={`model-${values.id ?? 'neu'}`} className="field-label">Modell beim Textildrucker</label>
           <input
-            id={`image-${values.id ?? 'neu'}`}
-            name="image"
-            type="file"
-            accept="image/png,image/jpeg,image/webp"
-            className="field-input py-2"
+            id={`model-${values.id ?? 'neu'}`}
+            name="model"
+            maxLength={120}
+            defaultValue={values.model}
+            placeholder="Basic Oversize Hoodie"
+            className="field-input"
           />
           <p className="text-muted-foreground mt-1 text-xs">
-            Leer lassen, um das vorhandene Bild zu behalten. Der Dateityp wird serverseitig am Inhalt geprüft.
+            Erscheint im Shop als „Modell bei Shirtival“. Leer lassen, um nichts anzuzeigen.
           </p>
         </div>
 

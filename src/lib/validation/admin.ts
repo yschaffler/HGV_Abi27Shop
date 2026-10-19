@@ -34,9 +34,16 @@ export const productSchema = z.object({
   name: z.string().trim().min(2, 'Mindestens 2 Zeichen').max(120),
   summary: z.string().trim().max(200).optional(),
   description: z.string().trim().max(4000).optional(),
-  imageId: z.string().trim().max(64).optional(),
+  model: z.string().trim().max(120).default(''),
   active: z.boolean(),
   sortOrder: z.coerce.number().int().min(0).max(9999),
+});
+
+export const imageCaptionSchema = z.string().trim().max(60, 'Höchstens 60 Zeichen').default('');
+
+export const productImageMoveSchema = z.object({
+  imageId: z.string().trim().min(1).max(64),
+  direction: z.enum(['up', 'down']),
 });
 
 export const variantSchema = z.object({

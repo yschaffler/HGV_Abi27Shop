@@ -1,19 +1,17 @@
-import Link from 'next/link';
 import {
   CalendarX2Icon,
+  ExternalLinkIcon,
   HandCoinsIcon,
+  LayersIcon,
   MapPinIcon,
-  PackageIcon,
+  PrinterIcon,
   RulerIcon,
-  ShirtIcon,
   UsersIcon,
 } from 'lucide-react';
 import { AbiEmblem } from '@/components/shop/abi-emblem';
-import { AddToCart } from '@/components/shop/add-to-cart';
-import { HoodieGallery, type GalleryImage } from '@/components/shop/hoodie-gallery';
 import { OrderCountdown } from '@/components/shop/order-countdown';
 import { OrderWindowBanner } from '@/components/shop/order-window-banner';
-import { ProductImage } from '@/components/shop/product-image';
+import { ProductShowcase } from '@/components/shop/product-showcase';
 import {
   Accordion,
   AccordionContent,
@@ -25,7 +23,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatCents } from '@/lib/money';
-import { listPublicProducts } from '@/server/shop/catalog';
+import { PRINT_PARTNER } from '@/lib/print-partner';
+import { listPublicProducts, type PublicProduct } from '@/server/shop/catalog';
 import { evaluateOrderWindow, formatBerlinDateTime } from '@/server/shop/order-window';
 import { getOrderWindow, getSettings } from '@/server/settings';
 
@@ -33,40 +32,33 @@ import { getOrderWindow, getSettings } from '@/server/settings';
 export const dynamic = 'force-dynamic';
 
 /**
- * Die Startseite ist auf genau einen Artikel ausgelegt: den Abi-Hoodie der Q13. Das erste
- * aktive Produkt (niedrigster sortOrder) wird als Hauptartikel inszeniert und lässt sich
- * direkt hier bestellen – ohne Umweg über eine Produktliste.
+ * Die Startseite ist die Kollektion des Jahrgangs: ein Design, zwei Teile – Hoodie und
+ * Shirt. Jedes aktive Produkt steht hier vollständig mit Galerie und Bestellauswahl, ohne
+ * Umweg über eine Produktliste. Was im Adminbereich aktiv ist, steht auf der Seite; die
+ * Texte sind auf zwei Artikel geschrieben, die Darstellung käme aber auch mit einem oder
+ * dreien zurecht.
  *
- * Das Datenmodell erlaubt weiterhin mehrere Produkte. Falls jemand im Adminbereich noch
- * etwas anlegt, erscheint es weiter unten als zusätzlicher Artikel, statt unsichtbar zu
- * werden. Die Seite bleibt damit ehrlich zu dem, was in der Datenbank steht.
+ * Die Bilder kommen aus dem Adminbereich (Produkte › Bilder). Nur für den Fall, dass noch
+ * keines hochgeladen ist, zeigt der Hero das Mockup aus public/img.
  */
 
-/*
- * Die Bilddateien sind bewusst feste Pfade: Sobald es echte Produktfotos gibt, werden
- * genau diese vier Dateien in public/img ersetzt – ohne Codeänderung. Siehe public/img/README.md.
- */
-const GALLERY: GalleryImage[] = [
-  { src: '/img/hoodie-front.webp', alt: 'Der Abi-Hoodie von vorne mit dem Lorbeer-Emblem auf der Brust', caption: 'Vorne' },
-  { src: '/img/hoodie-back.webp', alt: 'Der Abi-Hoodie von hinten mit dem großen Abikropolis-Print', caption: 'Hinten' },
-  { src: '/img/hoodie-detail.webp', alt: 'Nahaufnahme des Schriftzugs mit der Weinranke', caption: 'Detail' },
-];
+const HERO_FALLBACK = { src: '/img/hoodie-back.webp', width: 1000, height: 1908 };
 
 const HIGHLIGHTS = [
   {
-    icon: ShirtIcon,
-    title: 'Schwerer Stoff in Navy',
-    text: 'Dicker, angerauter Baumwollmix in tiefem Marineblau. Kein dünner Werbeartikel, sondern ein Pulli, den man auch nach dem Abi noch trägt.',
-  },
-  {
-    icon: PackageIcon,
-    title: 'Alle Namen auf dem Rücken',
-    text: 'Der Abikropolis-Schriftzug, die Weinranke und darunter der gesamte Jahrgang – großflächig gedruckt, nicht aufgebügelt.',
+    icon: LayersIcon,
+    title: 'Ein Design, zwei Teile',
+    text: 'Hoodie und Shirt tragen denselben Abikropolis-Print. Nimm eins von beiden – oder beides in einer Bestellung.',
   },
   {
     icon: RulerIcon,
     title: 'Vorher anprobieren',
-    text: 'Unisex-Schnitt, fällt normal aus. Die Q-Sprecher haben Musterteile in der Schule – umtauschen geht bei einer Sammelbestellung nämlich nicht.',
+    text: 'Beide Modelle sind Oversize-Schnitte. Die Q-Sprecher haben Musterteile in der Schule – umtauschen geht bei einer Sammelbestellung nämlich nicht.',
+  },
+  {
+    icon: PrinterIcon,
+    title: `Gedruckt bei ${PRINT_PARTNER.name}`,
+    text: `Bestellt und bedruckt wird alles bei ${PRINT_PARTNER.name}. Dort findet ihr auch die Details zu Stoff und Schnitt der Modelle.`,
   },
   {
     icon: UsersIcon,
@@ -76,12 +68,12 @@ const HIGHLIGHTS = [
 ];
 
 const STEPS = [
-  { step: '1', title: 'Aussuchen', text: 'Farbe und Größe wählen und in den Warenkorb legen.' },
+  { step: '1', title: 'Aussuchen', text: 'Hoodie, Shirt oder beides – Größe wählen und in den Warenkorb legen.' },
   { step: '2', title: 'Bezahlen', text: 'Direkt beim Bestellen online bezahlen. Danach kommt die Bestätigung per E-Mail.' },
   {
     step: '3',
     title: 'Sammelbestellung',
-    text: 'Nach dem Bestellschluss geht alles in einem Auftrag zum Hersteller.',
+    text: `Nach dem Bestellschluss geht alles in einem Auftrag zu ${PRINT_PARTNER.name}.`,
   },
   {
     step: '4',
@@ -94,27 +86,31 @@ const FAQ = [
   {
     question: 'Was heißt hier Sammelbestellung?',
     answer:
-      'Die gesamte Q13 bestellt als ein einziger Auftrag beim Hersteller. Das macht den Pulli für alle günstiger, bedeutet aber auch: Es gibt einen festen Bestellschluss, alle Größen gehen gemeinsam raus, und einzelne Änderungen sind danach nicht mehr möglich.',
+      'Die gesamte Q13 bestellt als ein einziger Auftrag beim Textildrucker. Das macht Hoodie und Shirt für alle günstiger, bedeutet aber auch: Es gibt einen festen Bestellschluss, alle Größen gehen gemeinsam raus, und einzelne Änderungen sind danach nicht mehr möglich.',
   },
   {
-    question: 'Wird der Hoodie verschickt?',
+    question: 'Kann ich Hoodie und Shirt zusammen bestellen?',
+    answer:
+      'Ja. Leg einfach beides in den Warenkorb – es wird eine Bestellung, eine Zahlung und eine Abholung.',
+  },
+  {
+    question: 'Wer druckt die Sachen?',
+    answer: `Bestellt und bedruckt wird bei ${PRINT_PARTNER.name}. Welches Modell es jeweils ist, steht beim Artikel; Details zu Stoff und Schnitt findet ihr auf der Seite von ${PRINT_PARTNER.name}.`,
+  },
+  {
+    question: 'Wird etwas verschickt?',
     answer:
       'Nein. Es gibt keinen Versand. Die Ausgabe findet in der Schule bei den Q-Sprechern statt, sobald die Lieferung da ist.',
   },
   {
     question: 'Kann ich nach dem Bestellschluss noch bestellen?',
     answer:
-      'Nein. Nach dem Bestellschluss geht die Sammelbestellung zum Hersteller. Danach lässt sich nichts mehr hinzufügen – auch keine einzelne Nachbestellung.',
+      'Nein. Nach dem Bestellschluss geht die Sammelbestellung zum Drucker. Danach lässt sich nichts mehr hinzufügen – auch keine einzelne Nachbestellung.',
   },
   {
     question: 'Kann ich die Größen vorher anprobieren?',
     answer:
-      'Ja. Die Q-Sprecher haben Musterteile in der Schule – sprecht sie an oder schreibt im Abichat, dann findet sich ein Termin. Das lohnt sich, weil ein Umtausch bei einer Sammelbestellung nicht möglich ist.',
-  },
-  {
-    question: 'Was ist, wenn die Größe nicht passt?',
-    answer:
-      'Bei einer Sammelbestellung gibt es keinen Umtausch. Probiert deshalb vorher bei den Q-Sprechern an, oder messt einen Pulli nach, den ihr gerne tragt, und orientiert euch daran.',
+      'Ja. Die Q-Sprecher haben Musterteile in der Schule – sprecht sie an oder schreibt im Abichat, dann findet sich ein Termin. Das lohnt sich besonders, weil beide Modelle Oversize-Schnitte sind und ein Umtausch bei einer Sammelbestellung nicht möglich ist.',
   },
   {
     question: 'Wie bezahle ich?',
@@ -128,6 +124,16 @@ const FAQ = [
   },
 ];
 
+/** Titelbilder der Artikel für den Hero – höchstens zwei, sonst wird es unruhig. */
+function heroImages(products: PublicProduct[]) {
+  return products
+    .flatMap((product) => {
+      const cover = product.images[0];
+      return cover ? [{ src: `/api/media/${cover.mediaId}`, alt: product.name }] : [];
+    })
+    .slice(0, 2);
+}
+
 export default async function ShopHomePage() {
   const [products, settings, window] = await Promise.all([
     listPublicProducts(),
@@ -136,13 +142,17 @@ export default async function ShopHomePage() {
   ]);
 
   const status = evaluateOrderWindow(window);
-  const [featured, ...otherProducts] = products;
+  const covers = heroImages(products);
+  const lowestPrice = products.length > 0 ? Math.min(...products.map((product) => product.minPriceCents)) : null;
+  const pricesDiffer = products.some(
+    (product) => product.minPriceCents !== lowestPrice || product.maxPriceCents !== lowestPrice,
+  );
 
   return (
     <div>
       {/* ---------------------------------------------------------------- Hero */}
       <section className="bg-night relative overflow-hidden">
-        {/* Dezenter Lichtschein hinter dem Hoodie, damit Navy auf Navy nicht flach wirkt. */}
+        {/* Dezenter Lichtschein hinter den Bildern, damit Navy auf Navy nicht flach wirkt. */}
         <div
           aria-hidden="true"
           className="pointer-events-none absolute -top-20 right-0 size-[36rem] rounded-full opacity-25 blur-3xl"
@@ -152,9 +162,7 @@ export default async function ShopHomePage() {
         <div className="relative mx-auto grid max-w-6xl items-center gap-10 px-4 py-14 sm:py-20 md:grid-cols-2 md:gap-6">
           <div>
             <div className="flex flex-wrap items-center gap-2">
-              <Badge variant="ink-dark">
-                Sammelbestellung
-              </Badge>
+              <Badge variant="ink-dark">Sammelbestellung</Badge>
               <span className="eyebrow text-creme-300/50">Q13 · HGV</span>
             </div>
 
@@ -165,25 +173,21 @@ export default async function ShopHomePage() {
               Die Götter verlassen den Olymp
             </p>
             <p className="text-creme-300/70 mt-5 max-w-md text-base">
-              Ein Pulli, ein Print, ein Jahrgang. Die Q13 bestellt gemeinsam – du bezahlst online
-              und holst deinen Hoodie in der Schule bei den Q-Sprechern ab.
+              Ein Print, zwei Teile, ein Jahrgang. Hoodie oder Shirt – die Q13 bestellt
+              gemeinsam, du bezahlst online und holst alles in der Schule bei den Q-Sprechern ab.
             </p>
 
-            {featured ? (
-              <p className="mt-6 flex items-baseline gap-2">
-                <span className="font-display text-creme-200 text-4xl leading-none">
-                  {formatCents(featured.minPriceCents)}
-                </span>
-                {featured.minPriceCents !== featured.maxPriceCents ? (
-                  <span className="text-creme-300/50 text-sm">bis {formatCents(featured.maxPriceCents)}</span>
-                ) : null}
+            {lowestPrice !== null ? (
+              <p className="mt-6 flex flex-wrap items-baseline gap-2">
+                {pricesDiffer ? <span className="text-creme-300/60 text-sm">ab</span> : null}
+                <span className="font-display text-creme-200 text-4xl leading-none">{formatCents(lowestPrice)}</span>
                 <span className="text-creme-300/50 text-sm">inkl. MwSt., kein Versand</span>
               </p>
             ) : null}
 
             <div className="mt-8 flex flex-wrap items-center gap-3">
               <Button asChild variant="ink" size="xl">
-                <a href="#bestellen">{status.isOpen ? 'Jetzt bestellen' : 'Zum Artikel'}</a>
+                <a href="#kollektion">{status.isOpen ? 'Jetzt bestellen' : 'Zur Kollektion'}</a>
               </Button>
               <Button asChild variant="ghost" size="xl" className="text-creme-300/80 hover:bg-creme-300/10 hover:text-creme-100">
                 <a href="#ablauf">So läuft es ab</a>
@@ -200,22 +204,37 @@ export default async function ShopHomePage() {
             ) : null}
           </div>
 
-          <div className="flex justify-center md:justify-end">
-            {/*
-              Die Produktbilder sind freigestellt, der Hoodie steht also ohne Kasten auf dem
-              Navy. Die Hoehenbegrenzung haelt den Hero auf dem Laptop in einer Bildschirmhoehe –
-              ohne sie wuerde das hochformatige Bild die ganze Sektion auseinanderziehen.
-            */}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/img/hoodie-back.webp"
-              alt="Der Abi-Hoodie von hinten mit dem Abikropolis-Print"
-              width={1000}
-              height={1908}
-              className="max-h-[30rem] w-auto drop-shadow-2xl"
-              fetchPriority="high"
-              decoding="async"
-            />
+          {/*
+            Die Höhenbegrenzung hält den Hero auf dem Laptop in einer Bildschirmhöhe. Bei
+            zwei Artikeln steht das zweite Titelbild etwas kleiner daneben.
+          */}
+          <div className="flex items-end justify-center gap-4 md:justify-end">
+            {covers.length === 0 ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={HERO_FALLBACK.src}
+                alt=""
+                width={HERO_FALLBACK.width}
+                height={HERO_FALLBACK.height}
+                className="max-h-[30rem] w-auto drop-shadow-2xl"
+                fetchPriority="high"
+                decoding="async"
+              />
+            ) : (
+              covers.map((cover, index) => (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  key={cover.src}
+                  src={cover.src}
+                  alt={cover.alt}
+                  className={`min-w-0 rounded-2xl object-contain drop-shadow-2xl ${
+                    index === 0 ? 'max-h-[30rem] w-auto max-w-[60%]' : 'max-h-[21rem] w-auto max-w-[40%]'
+                  }`}
+                  fetchPriority={index === 0 ? 'high' : 'auto'}
+                  decoding="async"
+                />
+              ))
+            )}
           </div>
         </div>
       </section>
@@ -227,7 +246,7 @@ export default async function ShopHomePage() {
             {
               icon: UsersIcon,
               title: 'Ein Auftrag für alle',
-              text: 'Die ganze Q13 bestellt zusammen beim Hersteller.',
+              text: `Die ganze Q13 bestellt zusammen bei ${PRINT_PARTNER.name}.`,
             },
             {
               icon: CalendarX2Icon,
@@ -251,57 +270,39 @@ export default async function ShopHomePage() {
         </div>
       </section>
 
-      {/* -------------------------------------------------- Bestellen (Artikel) */}
-      <section id="bestellen" className="mx-auto max-w-6xl scroll-mt-20 px-4 py-14 sm:py-20">
-        <div className="mb-8">
+      {/* ------------------------------------------------------------ Kollektion */}
+      <section id="kollektion" className="mx-auto max-w-6xl scroll-mt-20 px-4 py-14 sm:py-20">
+        <div className="flex items-center gap-4">
+          <AbiEmblem className="text-foreground h-14 w-14 shrink-0" />
+          <div>
+            <p className="eyebrow text-primary">Die Kollektion</p>
+            <h2 className="mt-1 text-2xl sm:text-3xl">Ein Design, zwei Teile</h2>
+          </div>
+        </div>
+
+        <div className="mt-8">
           <OrderWindowBanner status={status} closedNotice={window.closedNotice} />
         </div>
 
-        {!featured ? (
-          <Card>
+        {products.length === 0 ? (
+          <Card className="mt-8">
             <CardContent className="text-muted-foreground py-12 text-center">
               Aktuell ist kein Artikel verfügbar.
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-10 md:grid-cols-2 md:gap-12">
-            <HoodieGallery images={GALLERY} />
-
-            <div className="md:pt-2">
-              {/*
-                Das Lorbeer-Emblem ist der Brustdruck des Hoodies – es steht deshalb beim
-                Artikel und nicht in der Kopfzeile. Dort trägt das Jahrgangslogo.
-              */}
-              <div className="flex items-center gap-4">
-                <AbiEmblem className="text-foreground h-14 w-14 shrink-0" />
-                <Badge variant="ink">Sammelbestellung der Q13</Badge>
-              </div>
-              <h2 className="mt-4 text-3xl sm:text-4xl">{featured.name}</h2>
-              <p className="text-foreground mt-3 text-2xl font-semibold">
-                {featured.minPriceCents === featured.maxPriceCents
-                  ? formatCents(featured.minPriceCents)
-                  : `${formatCents(featured.minPriceCents)} – ${formatCents(featured.maxPriceCents)}`}
-              </p>
-
-              {featured.description ? (
-                <p className="text-muted-foreground mt-5 whitespace-pre-line">{featured.description}</p>
-              ) : featured.summary ? (
-                <p className="text-muted-foreground mt-5">{featured.summary}</p>
-              ) : null}
-
-              <div className="rule text-foreground my-7" />
-
-              <AddToCart
-                variants={featured.variants}
-                disabled={!status.isOpen}
-                sizeAdvice={settings.sizeAdvice}
-              />
-
-              <p className="text-muted-foreground mt-6 flex items-start gap-2 text-sm">
-                <MapPinIcon className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-                Kein Versand – Abholung in der Schule bei den Q-Sprechern.
-              </p>
-            </div>
+          <div className="mt-10 space-y-16 sm:space-y-24">
+            {products.map((product, index) => (
+              <article key={product.id} id={product.slug} className="scroll-mt-20">
+                {index > 0 ? <div className="rule text-foreground mb-16 sm:mb-24" /> : null}
+                <ProductShowcase
+                  product={product}
+                  orderingOpen={status.isOpen}
+                  sizeAdvice={settings.sizeAdvice}
+                  reverse={index % 2 === 1}
+                />
+              </article>
+            ))}
           </div>
         )}
       </section>
@@ -309,8 +310,8 @@ export default async function ShopHomePage() {
       {/* ------------------------------------------------------------ Highlights */}
       <section className="border-border border-y bg-muted/40">
         <div className="mx-auto max-w-6xl px-4 py-14 sm:py-20">
-          <p className="eyebrow text-primary">Das Produkt</p>
-          <h2 className="mt-3 text-2xl sm:text-3xl">Worauf es beim Pulli ankommt</h2>
+          <p className="eyebrow text-primary">Gut zu wissen</p>
+          <h2 className="mt-3 text-2xl sm:text-3xl">Bevor du bestellst</h2>
 
           <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {HIGHLIGHTS.map((item) => (
@@ -323,13 +324,41 @@ export default async function ShopHomePage() {
               </Card>
             ))}
           </div>
+
+          {/*
+            Der Drucker mit den bestellten Modellen. Die Modellnamen kommen aus dem
+            Adminbereich, damit hier nichts Falsches steht, wenn sich das Modell ändert.
+          */}
+          <div className="border-border bg-card mt-8 flex flex-wrap items-center justify-between gap-4 rounded-xl border p-5">
+            <div className="text-sm">
+              <p className="text-foreground font-semibold">Gedruckt von {PRINT_PARTNER.name}</p>
+              {products.some((product) => product.model) ? (
+                <ul className="text-muted-foreground mt-1 space-y-0.5">
+                  {products
+                    .filter((product) => product.model)
+                    .map((product) => (
+                      <li key={product.id}>
+                        {product.name}: <span className="text-foreground">{product.model}</span>
+                      </li>
+                    ))}
+                </ul>
+              ) : null}
+            </div>
+            <Button asChild variant="outline">
+              <a href={PRINT_PARTNER.url} target="_blank" rel="noopener noreferrer">
+                Modelle bei {PRINT_PARTNER.name} ansehen
+                <ExternalLinkIcon aria-hidden="true" />
+                <span className="sr-only">(öffnet in neuem Tab)</span>
+              </a>
+            </Button>
+          </div>
         </div>
       </section>
 
       {/* ---------------------------------------------------------------- Ablauf */}
       <section id="ablauf" className="mx-auto max-w-6xl scroll-mt-20 px-4 py-14 sm:py-20">
         <p className="eyebrow text-primary">Ablauf</p>
-        <h2 className="mt-3 text-2xl sm:text-3xl">Von der Bestellung bis zum Pulli</h2>
+        <h2 className="mt-3 text-2xl sm:text-3xl">Von der Bestellung bis zur Abholung</h2>
 
         <ol className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {STEPS.map((item) => (
@@ -353,43 +382,6 @@ export default async function ShopHomePage() {
           </Alert>
         ) : null}
       </section>
-
-      {/* ------------------------------------------------- Weitere Artikel (falls) */}
-      {otherProducts.length > 0 ? (
-        <section className="border-border border-y bg-muted/40">
-          <div className="mx-auto max-w-6xl px-4 py-14">
-            <p className="eyebrow text-primary">Außerdem</p>
-            <h2 className="mt-3 text-2xl">Weitere Artikel</h2>
-
-            <ul className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {otherProducts.map((product) => (
-                <li key={product.id}>
-                  <Link href={`/produkte/${product.slug}`} className="group block h-full">
-                    <Card className="h-full gap-0 overflow-hidden py-0 transition group-hover:shadow-md">
-                      <ProductImage
-                        imageId={product.imageId}
-                        alt={product.name}
-                        className="aspect-4/3 w-full object-cover"
-                      />
-                      <CardContent className="p-4">
-                        <h3 className="group-hover:text-primary text-lg">{product.name}</h3>
-                        {product.summary ? (
-                          <p className="text-muted-foreground mt-1 text-sm">{product.summary}</p>
-                        ) : null}
-                        <p className="text-foreground mt-3 font-semibold">
-                          {product.minPriceCents === product.maxPriceCents
-                            ? formatCents(product.minPriceCents)
-                            : `ab ${formatCents(product.minPriceCents)}`}
-                        </p>
-                      </CardContent>
-                    </Card>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </section>
-      ) : null}
 
       {/* ------------------------------------------------------------------- FAQ */}
       <section className="mx-auto max-w-3xl px-4 py-14 sm:py-20">

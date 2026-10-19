@@ -329,12 +329,23 @@ Link aus der Bestaetigungsmail immer funktioniert.
 
 Was der Code leistet und was nicht, steht in [SECURITY.md](SECURITY.md), Abschnitt 10a.
 
-## Produktbilder austauschen
+## Kollektion und Produktbilder
 
-Der Shop laedt die Produktbilder ueber feste Pfade unter `public/img`. Sobald echte Fotos
-vorliegen, werden einfach diese Dateien ersetzt – ohne Codeaenderung. Welche Datei wo
-erscheint und worauf beim Fotografieren zu achten ist, steht in
-[`public/img/README.md`](public/img/README.md).
+Der Shop ist auf zwei Artikel mit demselben Design ausgelegt: den Hoodie und das Shirt.
+Beide stehen vollstaendig auf der Startseite, jeweils mit Galerie und Groessenauswahl.
+Bestellt und bedruckt wird bei Shirtival; Name und Link stehen zentral in
+`src/lib/print-partner.ts`.
+
+Unter *Admin → Produkte* hat jeder Artikel:
+
+* **Modell beim Textildrucker**, z. B. "Basic Oversize Hoodie" oder "Premium Oversize
+  Shirt". Erscheint beim Artikel und im Abschnitt "Gedruckt von Shirtival".
+* **Bilder**: bis zu acht pro Artikel, mit Beschriftung ("Vorne", "Hinten" …). Mit den
+  Pfeilen laesst sich die Reihenfolge aendern; das erste Bild ist das Titelbild und steht
+  auch im Hero der Startseite. Hochformat (4:5) passt am besten.
+
+Solange noch kein Artikel ein Bild hat, zeigt der Hero das Mockup aus `public/img`. Der
+Entwicklungs-Seed (`npm run db:seed`) haengt die Hoodie-Mockups als Galerie an.
 
 Das Lorbeer-Emblem in Kopfzeile, Fusszeile und auf der Zugangsseite ist kein Bild, sondern
 gezeichnet (`src/components/shop/abi-emblem.tsx`) und deshalb bei jeder Groesse scharf.
@@ -351,7 +362,7 @@ bei einer Sammelbestellung nicht moeglich ist.
 ## Rundmail an die Besteller
 
 Unter *Admin → Rundmail* laesst sich eine Nachricht an alle Besteller schicken – typischer
-Fall: "Am Freitag koennt ihr eure Hoodies abholen". Der Text ist Freitext; Anrede mit
+Fall: "Am Freitag koennt ihr eure Hoodies und Shirts abholen". Der Text ist Freitext; Anrede mit
 Vornamen, Bestellnummer und der persoenliche Link werden automatisch ergaenzt. Eine Vorschau
 daneben zeigt, was ankommt.
 

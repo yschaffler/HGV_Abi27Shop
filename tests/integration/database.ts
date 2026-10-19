@@ -47,6 +47,7 @@ const TABLES = [
   'order_items',
   'orders',
   'product_variants',
+  'product_images',
   'products',
   'recovery_codes',
   'sessions',
