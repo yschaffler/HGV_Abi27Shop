@@ -7,7 +7,7 @@ import '@fontsource-variable/inter/wght.css';
 import '@/styles/globals.css';
 
 export const metadata: Metadata = {
-  title: { default: 'Abikropolis 2027', template: '%s · Abikropolis 2027' },
+  title: { default: 'HGV-Abi 2027', template: '%s · HGV-Abi 27' },
   description: 'Der Abi-Hoodie des Jahrgangs 2027 – bestellen, bezahlen, in der Schule abholen.',
   // Bestellseiten enthalten personenbezogene Daten und gehören in keinen Suchindex.
   robots: { index: false, follow: false },
