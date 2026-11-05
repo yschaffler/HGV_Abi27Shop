@@ -7,7 +7,7 @@ export function FormFeedback({ state, successMessage = 'Gespeichert.' }: { state
   if (state.status === 'ok') {
     return (
       <p role="status" className="bg-success-bg text-success-fg rounded-lg px-3 py-2 text-sm font-medium">
-        {successMessage}
+        {state.message ?? successMessage}
       </p>
     );
   }

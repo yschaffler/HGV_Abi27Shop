@@ -222,8 +222,9 @@ den Preis als Snapshot in der Bestellposition ab.
 
 ## Stripe-Webhooks
 
-**Ohne funktionierenden Webhook wird keine Bestellung jemals als bezahlt markiert.** Die
-Rückleitung aus dem Browser zeigt nur an, sie entscheidet nichts.
+Der Webhook ist der Normalweg, auf dem eine Bestellung als bezahlt markiert wird. Die
+Rückleitung aus dem Browser zeigt nur an, sie entscheidet nichts. Bleibt ein Webhook aus,
+fragt der Server Stripe selbst – siehe [Zahlung oder Bestätigungsmail fehlt](#zahlung-oder-bestätigungsmail-fehlt).
 
 ### Produktion
 
@@ -256,7 +257,7 @@ stripe listen --forward-to localhost:3000/api/stripe/webhook
 * Stripe stellt Events mindestens einmal zu, also durchaus mehrfach. Jede Event-ID wird als
   Primärschlüssel gespeichert – ein zweiter Zustellversuch läuft in den Unique-Constraint
   und bleibt wirkungslos.
-* Statusübergänge sind als bedingte Updates formuliert (`PENDING → PAID`). Zwei gleichzeitig
+* Statusübergänge sind als bedingte Updates formuliert (z. B. nur aus unbezahlt nach `PAID`). Zwei gleichzeitig
   eintreffende Events können sich nicht überholen.
 * Betrag und Währung müssen zur gespeicherten Bestellung passen. Weichen sie ab, wird nichts
   gebucht und der Vorgang laut geloggt.
@@ -504,11 +505,27 @@ git rm --cached -r .
 git reset --hard
 ```
 
-### Bestellungen bleiben auf „Zahlung ausstehend"
+### Zahlung oder Bestätigungsmail fehlt
 
-Der Stripe-Webhook kommt nicht an. Im Stripe-Dashboard unter *Entwickler → Webhooks* die
+Drei Wege, von automatisch bis Handarbeit:
+
+1. **Bestellseite:** Steht eine Bestellung noch auf „Zahlung ausstehend“, fragt der Server
+   beim Aufruf der Bestellseite selbst bei Stripe nach (höchstens sechsmal in zehn Minuten
+   je Bestellung). Ist bezahlt, wird gebucht und die Mail verschickt.
+2. **Admin → Bestellungen → „Jetzt nachholen“:** gleicht alle offenen Bestellungen mit
+   Stripe ab und schickt allen bezahlten Bestellungen ohne Bestätigung die Mail nach. Der
+   Kasten zeigt vorher, wie viele es betrifft.
+3. **Admin → einzelne Bestellung → „Zahlung und Bestätigungsmail“:** *Zahlung bei Stripe
+   prüfen* für eine offene Bestellung, *Bestätigungsmail jetzt senden* bzw. *erneut senden*
+   für eine bezahlte – auch wenn die Mail schon rausging, aber im Spam gelandet ist.
+
+Gebucht wird in allen Fällen nur, was Stripe als bezahlt meldet und betragsmäßig passt.
+Alles landet im Protokoll.
+
+Kommen Webhooks dauerhaft nicht an, im Stripe-Dashboard unter *Entwickler → Webhooks* die
 Zustellversuche ansehen. Häufigste Ursachen: falsche URL, das Signing Secret stammt aus dem
-anderen Modus (Test statt Live), oder der Endpunkt ist von außen nicht erreichbar.
+anderen Modus (Test statt Live), oder der Endpunkt ist von außen nicht erreichbar. Ob die
+Mail selbst scheitert, steht im Log (`docker compose logs app | grep Bestätigungsmail`).
 
 ### `Konfiguration unvollständig oder ungültig`
 

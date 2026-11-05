@@ -31,6 +31,12 @@ import {
 import { assertSameOrigin } from '@/server/request-context';
 import { SETTINGS_ID } from '@/server/settings';
 import { countRecipients, runBroadcast } from '@/server/mail/broadcast';
+import {
+  sendMissingConfirmations,
+  sendOrderConfirmation,
+  type ConfirmationResult,
+} from '@/server/mail/order-confirmation';
+import { reconcileOpenOrders, reconcileOrderPayment, type ReconcileResult } from '@/server/stripe/reconcile';
 import { broadcastSchema } from '@/lib/validation/broadcast';
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limit';
 import {
@@ -411,6 +417,159 @@ export async function updateOrderStatusAction(_previous: ActionState, formData: 
 
   revalidatePath('/admin/orders');
   return OK;
+}
+
+// ---------------------------------------------------------------------------
+// Zahlung und Bestätigungsmail nachholen
+// ---------------------------------------------------------------------------
+
+/** Begrenzt Stripe-Abfragen und Mails aus dem Adminbereich, falls jemand Dauerklicken übt. */
+const MANUAL_PAYMENT_TOOLS_LIMIT = { limit: 30, windowMs: 10 * 60 * 1000 };
+
+const CONFIRMATION_MESSAGES: Record<ConfirmationResult, string> = {
+  sent: 'Bestätigungsmail versendet.',
+  already_sent: 'Die Bestätigungsmail wurde bereits versendet.',
+  not_paid: 'Die Bestellung ist nicht bezahlt – eine Bestätigung würde etwas Falsches behaupten.',
+  not_found: 'Bestellung nicht gefunden.',
+  rate_limited: 'Für diese Bestellung wurden gerade schon mehrere Mails verschickt. Bitte später erneut versuchen.',
+  failed: 'Der Mailversand ist fehlgeschlagen. Details stehen im Server-Log.',
+};
+
+export async function sendConfirmationAction(_previous: ActionState, formData: FormData): Promise<ActionState> {
+  const origin = await assertSameOrigin();
+  if (!origin.ok) return fail(origin.message);
+
+  const auth = await authorize(['ADMIN']);
+  if (!auth.ok) return fail(auth.error);
+
+  const orderId = idSchema.safeParse(formData.get('orderId'));
+  if (!orderId.success) return fail('Bestellung nicht gefunden.');
+
+  if (!checkRateLimit(`admin-payment-tools:${auth.user.id}`, MANUAL_PAYMENT_TOOLS_LIMIT).allowed) {
+    return fail('Zu viele Versuche. Bitte ein paar Minuten warten.');
+  }
+
+  let result: ConfirmationResult;
+  try {
+    // Ein ausdrücklicher Klick im Adminbereich darf auch eine bereits versendete Mail
+    // erneut schicken – etwa wenn sie im Spam gelandet ist.
+    result = await sendOrderConfirmation(orderId.data, { resend: true });
+  } catch (error) {
+    const errorId = logUnexpected('sendConfirmationAction', error);
+    return fail(`Versand fehlgeschlagen. (Kennung ${errorId})`);
+  }
+
+  if (result !== 'sent') return fail(CONFIRMATION_MESSAGES[result]);
+
+  await recordAudit({
+    actor: auth.user,
+    action: 'ORDER_CONFIRMATION_SENT',
+    entityType: 'Order',
+    entityId: orderId.data,
+    summary: 'Bestätigungsmail manuell versendet',
+  });
+
+  revalidatePath(`/admin/orders/${orderId.data}`);
+  return { status: 'ok', message: CONFIRMATION_MESSAGES.sent };
+}
+
+export async function reconcilePaymentAction(_previous: ActionState, formData: FormData): Promise<ActionState> {
+  const origin = await assertSameOrigin();
+  if (!origin.ok) return fail(origin.message);
+
+  const auth = await authorize(['ADMIN']);
+  if (!auth.ok) return fail(auth.error);
+
+  const orderId = idSchema.safeParse(formData.get('orderId'));
+  if (!orderId.success) return fail('Bestellung nicht gefunden.');
+
+  if (!checkRateLimit(`admin-payment-tools:${auth.user.id}`, MANUAL_PAYMENT_TOOLS_LIMIT).allowed) {
+    return fail('Zu viele Versuche. Bitte ein paar Minuten warten.');
+  }
+
+  let result: ReconcileResult;
+  try {
+    result = await reconcileOrderPayment(orderId.data);
+  } catch (error) {
+    const errorId = logUnexpected('reconcilePaymentAction', error);
+    return fail(`Abgleich fehlgeschlagen. (Kennung ${errorId})`);
+  }
+
+  revalidatePath(`/admin/orders/${orderId.data}`);
+  revalidatePath('/admin/orders');
+
+  switch (result.status) {
+    case 'paid_now':
+      await recordAudit({
+        actor: auth.user,
+        action: 'ORDER_PAYMENT_RECONCILED',
+        entityType: 'Order',
+        entityId: orderId.data,
+        summary: `Zahlung bei Stripe bestätigt, nachgebucht (${result.detail})`,
+      });
+      return {
+        status: 'ok',
+        message: result.mailSent
+          ? 'Stripe bestätigt die Zahlung. Die Bestellung ist jetzt bezahlt und die Bestätigungsmail ist raus.'
+          : 'Stripe bestätigt die Zahlung, die Bestellung ist jetzt bezahlt. Die Bestätigungsmail ging aber nicht raus – bitte unten erneut senden.',
+      };
+    case 'already_paid':
+      return { status: 'ok', message: 'Die Bestellung ist bereits als bezahlt verbucht.' };
+    case 'not_paid':
+      return fail(`Laut Stripe ist noch nicht bezahlt. ${result.detail}`);
+    case 'no_session':
+      return fail('Zu dieser Bestellung gibt es keine Stripe-Zahlung, die man abgleichen könnte.');
+    case 'mismatch':
+      return fail(`Stripe meldet eine Zahlung, die nicht zur Bestellung passt – bitte im Stripe-Dashboard prüfen. (${result.detail})`);
+    case 'stripe_error':
+      return fail('Stripe ist gerade nicht erreichbar oder nicht konfiguriert. Bitte später erneut versuchen.');
+    case 'not_found':
+      return fail('Bestellung nicht gefunden.');
+  }
+}
+
+/**
+ * Der Notfallknopf nach einem Webhook-Ausfall: erst alle offenen Bestellungen mit Stripe
+ * abgleichen, dann allen bezahlten Bestellungen ohne Bestätigung die Mail nachschicken.
+ */
+export async function catchUpPaymentsAction(_previous: ActionState): Promise<ActionState> {
+  const origin = await assertSameOrigin();
+  if (!origin.ok) return fail(origin.message);
+
+  const auth = await authorize(['ADMIN']);
+  if (!auth.ok) return fail(auth.error);
+
+  if (!checkRateLimit(`admin-payment-catchup:${auth.user.id}`, { limit: 5, windowMs: 10 * 60 * 1000 }).allowed) {
+    return fail('Gerade erst ausgeführt. Bitte ein paar Minuten warten.');
+  }
+
+  let summary: string;
+  try {
+    const payments = await reconcileOpenOrders();
+    const mails = await sendMissingConfirmations();
+
+    summary =
+      `${payments.checked} offene Bestellung(en) mit Stripe abgeglichen, ${payments.paidNow} davon jetzt bezahlt` +
+      (payments.errors > 0 ? `, ${payments.errors} nicht abgleichbar` : '') +
+      `. ${mails.sent} Bestätigungsmail(s) nachgesendet` +
+      (mails.failed > 0 ? `, ${mails.failed} fehlgeschlagen` : '') +
+      '.';
+
+    await recordAudit({
+      actor: auth.user,
+      action: 'ORDER_PAYMENT_RECONCILED',
+      entityType: 'Order',
+      entityId: null,
+      summary,
+    });
+  } catch (error) {
+    const errorId = logUnexpected('catchUpPaymentsAction', error);
+    return fail(`Nachholen fehlgeschlagen. (Kennung ${errorId})`);
+  }
+
+  revalidatePath('/admin/orders');
+  revalidatePath('/admin');
+  return { status: 'ok', message: summary };
 }
 
 /** Setzt den Sammelbestellungsstatus für alle bezahlten Bestellungen auf einmal. */

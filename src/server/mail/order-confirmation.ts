@@ -12,10 +12,18 @@ import { sendMail } from './mailer';
 /**
  * Bestellbestätigung nach erfolgreicher Zahlung.
  *
- * Wird ausschließlich aus dem Stripe-Webhook heraus aufgerufen, also erst dann, wenn die
- * Zahlung tatsächlich bestätigt ist. `confirmationEmailSentAt` verhindert, dass ein
- * erneut zugestellter Webhook eine zweite Mail auslöst.
+ * Geht nur für Bestellungen raus, die bereits auf PAID stehen – die Mail sagt "Zahlung
+ * erhalten", und das muss stimmen. Ausgelöst wird sie automatisch, sobald eine Bestellung
+ * bezahlt ist (Webhook oder Abgleich mit Stripe), und manuell aus dem Adminbereich.
+ *
+ * `confirmationEmailSentAt` verhindert, dass ein erneut zugestellter Webhook eine zweite
+ * Mail auslöst. Nur ein ausdrückliches `resend` aus dem Adminbereich schickt sie nochmals.
+ *
+ * Das Ergebnis wird zurückgegeben statt nur geloggt: Der Adminbereich muss anzeigen können,
+ * ob die Mail wirklich rausging.
  */
+
+export type ConfirmationResult = 'sent' | 'already_sent' | 'not_paid' | 'not_found' | 'rate_limited' | 'failed';
 
 const PAYMENT_STATUS_LABEL: Record<string, string> = {
   PENDING: 'Zahlung ausstehend',
@@ -25,7 +33,10 @@ const PAYMENT_STATUS_LABEL: Record<string, string> = {
   CANCELLED: 'Storniert',
 };
 
-export async function sendOrderConfirmation(orderId: string): Promise<void> {
+export async function sendOrderConfirmation(
+  orderId: string,
+  options: { resend?: boolean } = {},
+): Promise<ConfirmationResult> {
   const order = await prisma.order.findUnique({
     where: { id: orderId },
     include: { items: { orderBy: [{ productName: 'asc' }, { variantLabel: 'asc' }] } },
@@ -33,16 +44,20 @@ export async function sendOrderConfirmation(orderId: string): Promise<void> {
 
   if (!order) {
     logger.warn('Bestätigungsmail: Bestellung nicht gefunden', { orderId });
-    return;
+    return 'not_found';
   }
 
-  if (order.confirmationEmailSentAt) return;
+  if (order.paymentStatus !== 'PAID') return 'not_paid';
+  if (order.confirmationEmailSentAt && !options.resend) return 'already_sent';
 
-  // Schutz vor einer Mailflut, falls ein Webhook in einer Schleife hängt.
-  const limit = checkRateLimit(`email:${order.email}`, RATE_LIMITS.email);
+  // Schutz vor einer Mailflut, falls ein Webhook in einer Schleife hängt oder jemand im
+  // Adminbereich zu oft klickt. Bewusst je Bestellung und nicht je Adresse: Wer mehrere
+  // Bestellungen mit derselben Adresse aufgibt, bekommt sonst ab der sechsten keine
+  // Bestätigung mehr – ohne dass es jemand merkt.
+  const limit = checkRateLimit(`email:order:${order.id}`, RATE_LIMITS.email);
   if (!limit.allowed) {
     logger.warn('Bestätigungsmail wegen Rate Limit nicht versendet', { orderNumber: order.orderNumber });
-    return;
+    return 'rate_limited';
   }
 
   const settings = await getSettings();
@@ -165,7 +180,7 @@ export async function sendOrderConfirmation(orderId: string): Promise<void> {
       orderNumber: order.orderNumber,
       reason: result.error,
     });
-    return;
+    return 'failed';
   }
 
   await prisma.order.update({
@@ -173,5 +188,34 @@ export async function sendOrderConfirmation(orderId: string): Promise<void> {
     data: { confirmationEmailSentAt: new Date() },
   });
 
-  logger.info('Bestätigungsmail versendet', { orderNumber: order.orderNumber });
+  logger.info('Bestätigungsmail versendet', { orderNumber: order.orderNumber, resend: Boolean(options.resend) });
+  return 'sent';
+}
+
+/**
+ * Schickt allen bezahlten Bestellungen, die noch keine Bestätigung bekommen haben, die
+ * Mail nach. Für den Adminbereich, etwa nach einem Ausfall des Mailversands.
+ */
+export async function sendMissingConfirmations(): Promise<{ pending: number; sent: number; failed: number }> {
+  const missing = await prisma.order.findMany({
+    where: { paymentStatus: 'PAID', confirmationEmailSentAt: null },
+    select: { id: true },
+    orderBy: { paidAt: 'asc' },
+    take: 500,
+  });
+
+  let sent = 0;
+  let failed = 0;
+  for (const order of missing) {
+    try {
+      const result = await sendOrderConfirmation(order.id);
+      if (result === 'sent') sent += 1;
+      else if (result !== 'already_sent') failed += 1;
+    } catch (error) {
+      failed += 1;
+      logger.error('Nachsenden der Bestätigungsmail fehlgeschlagen', { orderId: order.id, error });
+    }
+  }
+
+  return { pending: missing.length, sent, failed };
 }

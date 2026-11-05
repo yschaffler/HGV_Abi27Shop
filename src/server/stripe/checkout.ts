@@ -4,6 +4,7 @@ import { prisma } from '../db';
 import { appUrl, env } from '../env';
 import { logger } from '../logger';
 import { stripe } from './client';
+import { applyPaidCheckoutSession } from './webhook';
 import type { PricedCart } from '../shop/pricing';
 
 /**
@@ -171,7 +172,12 @@ export async function resumeCheckoutSession(orderId: string): Promise<ResumeResu
     try {
       const previous = await stripe().checkout.sessions.retrieve(order.stripeCheckoutSessionId);
 
-      // Bezahlt, aber der Webhook ist noch unterwegs: auf keinen Fall ein zweites Mal kassieren.
+      // Bezahlt, aber der Webhook ist noch unterwegs (oder ausgeblieben): auf keinen Fall ein
+      // zweites Mal kassieren. Stattdessen gleich verbuchen – mit denselben Prüfungen wie beim
+      // Webhook. Kommt er später doch noch, trifft er eine bereits bezahlte Bestellung.
+      if (previous.payment_status === 'paid') {
+        await applyPaidCheckoutSession(previous);
+      }
       if (previous.payment_status === 'paid' || previous.status === 'complete') {
         return {
           ok: false,

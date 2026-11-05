@@ -77,6 +77,8 @@ export const RATE_LIMITS = {
   resumePayment: { limit: 5, windowMs: 10 * 60 * 1000 },
   /** Aufrufe der Bestellseite – bremst das Durchprobieren von Tokens zusätzlich ab. */
   orderLookup: { limit: 60, windowMs: 5 * 60 * 1000 },
+  /** Abgleich einer offenen Bestellung mit Stripe beim Aufruf der Bestellseite, je Bestellung. */
+  orderReconcile: { limit: 6, windowMs: 10 * 60 * 1000 },
   /** Autocomplete an der Ausgabe: häufig, aber nicht unbegrenzt. */
   distributionSearch: { limit: 120, windowMs: 60 * 1000 },
   /** Ausgabe-Aktionen je Benutzer. */

@@ -6,6 +6,7 @@ import {
   OrderDistributionControls,
 } from '@/components/admin/distribution-controls';
 import { OrderStatusForm } from '@/components/admin/order-status-form';
+import { PaymentRecoveryPanel } from '@/components/admin/payment-tools';
 import { DistributionStatusBadge, PaymentStatusBadge } from '@/components/shop/order-status-badge';
 import { formatCents } from '@/lib/money';
 import { idSchema } from '@/lib/validation/admin';
@@ -43,6 +44,14 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
         <PaymentStatusBadge status={order.paymentStatus} />
         <DistributionStatusBadge status={order.distributionStatus} />
       </div>
+
+      {/* Die zwei häufigsten Probleme nach einer Zahlung, mit dem passenden Knopf daneben. */}
+      <PaymentRecoveryPanel
+        orderId={order.id}
+        paymentStatus={order.paymentStatus}
+        hasStripeSession={Boolean(order.stripeCheckoutSessionId)}
+        confirmationSentLabel={order.confirmationEmailSentAt ? DATE_FORMAT.format(order.confirmationEmailSentAt) : null}
+      />
 
       <div className="grid gap-5 lg:grid-cols-[1fr_22rem]">
         <div className="space-y-5">
@@ -142,6 +151,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
                 </dd>
               </div>
             </dl>
+
           </section>
 
           <section className="surface-card rounded-xl p-5">

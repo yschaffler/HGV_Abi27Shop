@@ -25,9 +25,14 @@ Bestellposition. Eine spätere Preisänderung am Katalog verändert bezahlte Bes
 Varianten werden zusammengefasst, **bevor** die Grenzen geprüft werden – sonst ließe sich die
 Obergrenze durch zehn Einzelzeilen derselben Variante umgehen.
 
-**Bezahlt** wird eine Bestellung ausschließlich über den signaturgeprüften Stripe-Webhook.
-Die Rückleitung in den Browser zeigt nur an. Zusätzlich müssen Betrag und Währung des Events
-zur gespeicherten Bestellung passen; sonst wird nichts gebucht und der Vorgang laut geloggt.
+**Bezahlt** wird eine Bestellung nur, wenn Stripe es bestätigt: über den signaturgeprüften
+Webhook oder über eine Abfrage, die der **Server** selbst authentifiziert an die Stripe-API
+stellt (`src/server/stripe/reconcile.ts`). Diesen Abgleich lösen die Bestellseite (gedrosselt
+je Bestellung) und der Adminbereich aus, für den Fall, dass ein Webhook ausbleibt. Die
+Rückleitung in den Browser und `?zahlung=erfolgreich` entscheiden nichts. Beide Wege buchen
+über dieselbe Funktion: Session-ID, Betrag und Währung müssen zur gespeicherten Bestellung
+passen, sonst wird nichts gebucht und der Vorgang laut geloggt. Einen manuell im Adminbereich
+gesetzten Status gibt es weiterhin, er steht im Protokoll.
 
 ## 2. Stripe-Webhook: Signatur, Replay, Nebenläufigkeit
 
@@ -41,7 +46,14 @@ zur gespeicherten Bestellung passen; sonst wird nichts gebucht und der Vorgang l
 * Statusübergänge sind bedingte Updates (`WHERE paymentStatus = 'PENDING'`), kein
   Lesen-Prüfen-Schreiben. Zwei gleichzeitig eintreffende Events können sich nicht überholen.
 * Bei einem unerwarteten Fehler antwortet der Endpunkt mit 500, damit Stripe erneut zustellt.
-  Die Idempotenz sorgt dafür, dass ein erfolgreicher zweiter Versuch nichts doppelt macht.
+  Der Event-Eintrag wird dabei wieder entfernt – sonst hielte der Replay-Schutz die erneute
+  Zustellung für ein Duplikat. Die Idempotenz sorgt dafür, dass ein erfolgreicher zweiter
+  Versuch nichts doppelt macht.
+* `payment_intent.payment_failed` ändert keinen Status: In Stripe Checkout darf man nach
+  einer abgelehnten Karte in derselben Session erneut zahlen. Eine von Stripe bestätigte
+  Zahlung bucht auch eine Bestellung, die auf FAILED oder CANCELLED stand.
+* Die Bestätigungsmail verschickt nur der Aufruf, der den Status tatsächlich auf PAID stellt.
+  Webhook und Abgleich gleichzeitig führen also nicht zu zwei Mails.
 
 ## 3. Zugriff auf Bestellungen (IDOR)
 

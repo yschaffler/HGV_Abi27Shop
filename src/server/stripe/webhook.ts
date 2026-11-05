@@ -2,7 +2,7 @@ import 'server-only';
 import type Stripe from 'stripe';
 import { prisma } from '../db';
 import { logger } from '../logger';
-import { sendOrderConfirmation } from '../mail/order-confirmation';
+import { sendOrderConfirmation, type ConfirmationResult } from '../mail/order-confirmation';
 
 /**
  * Verarbeitung der Stripe-Webhooks.
@@ -20,11 +20,20 @@ import { sendOrderConfirmation } from '../mail/order-confirmation';
  * 3. BETRAGSABGLEICH – Bezahlt wird nur, was betragsmäßig zur gespeicherten Bestellung passt.
  *    Weicht der Betrag ab, wird nichts umgestellt und laut geloggt: Das ist entweder ein Bug
  *    oder ein Manipulationsversuch, und beides will man sehen statt stillschweigend buchen.
+ *
+ * Schlägt die Verarbeitung mit einem Fehler fehl, wird der Event-Eintrag wieder entfernt.
+ * Sonst hielte der Replay-Schutz die erneute Zustellung von Stripe für ein Duplikat, und
+ * die Zahlung bliebe dauerhaft unverbucht.
+ *
+ * Die Buchung einer bezahlten Session (`applyPaidCheckoutSession`) nutzt auch der manuelle
+ * Abgleich in reconcile.ts – mit denselben Prüfungen.
  */
 
 export type WebhookProcessResult = {
   status: 'processed' | 'duplicate' | 'ignored' | 'mismatch';
   detail: string;
+  /** Nur bei einer frisch verbuchten Zahlung: was aus der Bestätigungsmail wurde. */
+  mail?: ConfirmationResult;
 };
 
 /** Events, auf die wir reagieren. Alles andere wird bewusst ignoriert. */
@@ -58,7 +67,14 @@ export async function processStripeEvent(event: Stripe.Event): Promise<WebhookPr
     throw error;
   }
 
-  const result = await dispatch(event);
+  let result: WebhookProcessResult;
+  try {
+    result = await dispatch(event);
+  } catch (error) {
+    // Freigeben, damit Stripes nächster Zustellversuch das Event wirklich verarbeitet.
+    await prisma.stripeWebhookEvent.delete({ where: { id: event.id } }).catch(() => undefined);
+    throw error;
+  }
 
   await prisma.stripeWebhookEvent.update({
     where: { id: event.id },
@@ -82,7 +98,7 @@ async function dispatch(event: Stripe.Event): Promise<WebhookProcessResult> {
       if (session.payment_status !== 'paid') {
         return { status: 'ignored', detail: `payment_status=${session.payment_status}, warte auf Zahlungseingang` };
       }
-      return markPaid(session);
+      return applyPaidCheckoutSession(session);
     }
 
     case 'checkout.session.async_payment_failed': {
@@ -96,8 +112,13 @@ async function dispatch(event: Stripe.Event): Promise<WebhookProcessResult> {
     }
 
     case 'payment_intent.payment_failed': {
+      // Bewusst KEIN Statuswechsel: In Stripe Checkout bleibt die Session nach einer
+      // abgelehnten Karte offen, und die Person kann es direkt mit einer anderen Karte noch
+      // einmal versuchen. Früher wurde die Bestellung hier auf FAILED gesetzt – die danach
+      // erfolgreiche Zahlung lief dann ins Leere, und die Bestätigungsmail blieb aus.
+      // Endgültig ist erst checkout.session.expired oder async_payment_failed.
       const intent = event.data.object;
-      return setFailed(intent.metadata?.['orderId'] ?? null, 'Zahlung fehlgeschlagen');
+      return { status: 'ignored', detail: `Zahlungsversuch abgelehnt (${intent.id}), Session bleibt offen` };
     }
 
     case 'charge.refunded': {
@@ -114,7 +135,10 @@ function orderIdFromSession(session: Stripe.Checkout.Session): string | null {
   return session.metadata?.['orderId'] ?? session.client_reference_id ?? null;
 }
 
-async function markPaid(session: Stripe.Checkout.Session): Promise<WebhookProcessResult> {
+/** Status, aus denen eine von Stripe bestätigte Zahlung die Bestellung auf PAID setzt. */
+const PAYABLE_STATUSES = ['PENDING', 'FAILED', 'CANCELLED'] as const;
+
+export async function applyPaidCheckoutSession(session: Stripe.Checkout.Session): Promise<WebhookProcessResult> {
   const orderId = orderIdFromSession(session);
   if (!orderId) return { status: 'ignored', detail: 'Session ohne orderId' };
 
@@ -151,9 +175,15 @@ async function markPaid(session: Stripe.Checkout.Session): Promise<WebhookProces
 
   const paymentIntentId = typeof session.payment_intent === 'string' ? session.payment_intent : session.payment_intent?.id;
 
-  // Bedingtes Update: nur PENDING -> PAID. Ein später eintreffendes Event trifft 0 Zeilen.
+  // Bedingtes Update: nur aus einem unbezahlten Status heraus. Ein später eintreffendes Event
+  // trifft 0 Zeilen, und genau der Aufruf, der umstellt, verschickt die Mail – auch wenn
+  // Webhook und manueller Abgleich gleichzeitig laufen.
+  //
+  // FAILED und CANCELLED gehören dazu: Hat Stripe das Geld nachweislich eingezogen (Session
+  // passt, Betrag passt), ist die Bestellung bezahlt – auch wenn vorher ein Fehlversuch oder
+  // eine Abbruchmeldung eingegangen ist. Erstattete Bestellungen bleiben unberührt.
   const updated = await prisma.order.updateMany({
-    where: { id: order.id, paymentStatus: 'PENDING' },
+    where: { id: order.id, paymentStatus: { in: [...PAYABLE_STATUSES] } },
     data: {
       paymentStatus: 'PAID',
       paidAt: new Date(),
@@ -165,16 +195,23 @@ async function markPaid(session: Stripe.Checkout.Session): Promise<WebhookProces
     return { status: 'ignored', detail: `Bestellung stand bereits auf ${order.paymentStatus}` };
   }
 
-  logger.info('Bestellung als bezahlt markiert', { orderNumber: order.orderNumber, amountCents: order.totalCents });
+  logger.info('Bestellung als bezahlt markiert', {
+    orderNumber: order.orderNumber,
+    amountCents: order.totalCents,
+    previousStatus: order.paymentStatus,
+  });
 
-  // Mailversand darf die Webhook-Antwort nicht gefährden: Fehler werden geloggt, nicht geworfen.
+  // Mailversand darf die Buchung nicht gefährden: Fehler werden geloggt, nicht geworfen.
+  // Fehlt die Mail danach, zeigt der Adminbereich das an und kann sie nachsenden.
+  let mail: ConfirmationResult;
   try {
-    await sendOrderConfirmation(order.id);
+    mail = await sendOrderConfirmation(order.id);
   } catch (error) {
+    mail = 'failed';
     logger.error('Bestätigungsmail nach Zahlung fehlgeschlagen', { orderNumber: order.orderNumber, error });
   }
 
-  return { status: 'processed', detail: `${order.orderNumber} -> PAID` };
+  return { status: 'processed', detail: `${order.orderNumber} -> PAID, Mail: ${mail}`, mail };
 }
 
 async function setFailed(orderId: string | null, reason: string): Promise<WebhookProcessResult> {

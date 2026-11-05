@@ -8,7 +8,9 @@ import {
   PAYMENT_STATUSES,
   orderFilterSchema,
 } from '@/lib/validation/admin';
+import { CatchUpPaymentsButton } from '@/components/admin/payment-tools';
 import { listOrders } from '@/server/admin/orders';
+import { prisma } from '@/server/db';
 
 export const metadata: Metadata = { title: 'Bestellungen', robots: { index: false, follow: false } };
 export const dynamic = 'force-dynamic';
@@ -51,7 +53,13 @@ export default async function OrdersPage({
   const parsed = orderFilterSchema.safeParse(query);
   const filter = parsed.success ? parsed.data : orderFilterSchema.parse({});
 
-  const { orders, total, page, pageCount } = await listOrders(filter);
+  const [{ orders, total, page, pageCount }, openPayments, missingMails] = await Promise.all([
+    listOrders(filter),
+    prisma.order.count({
+      where: { paymentStatus: { in: ['PENDING', 'FAILED'] }, stripeCheckoutSessionId: { not: null } },
+    }),
+    prisma.order.count({ where: { paymentStatus: 'PAID', confirmationEmailSentAt: null } }),
+  ]);
 
   function pageHref(targetPage: number): string {
     const params = new URLSearchParams();
@@ -69,6 +77,24 @@ export default async function OrdersPage({
         <h1 className="text-2xl">Bestellungen</h1>
         <p className="text-muted-foreground text-sm">{total} Treffer</p>
       </div>
+
+      {/*
+        Notfallknopf für ausgebliebene Stripe-Meldungen. Steht immer da, damit man ihn im
+        Ernstfall nicht suchen muss; hervorgehoben wird er nur, wenn es etwas nachzuholen gibt.
+      */}
+      <section className={`surface-card rounded-xl p-4 ${missingMails > 0 ? 'border-l-4' : ''}`}>
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="max-w-2xl text-sm">
+            <h2 className="text-base">Zahlungen und Bestätigungsmails nachholen</h2>
+            <p className="text-muted-foreground mt-1">
+              {openPayments} offene Bestellung(en) mit Stripe-Zahlung · {missingMails} bezahlte
+              Bestellung(en) ohne Bestätigungsmail. Der Abgleich fragt Stripe direkt, bucht nur
+              bestätigte Zahlungen mit passendem Betrag und schickt fehlende Mails nach.
+            </p>
+          </div>
+          <CatchUpPaymentsButton />
+        </div>
+      </section>
 
       {/* Filter als GET-Formular: funktioniert ohne JavaScript und ist teil- und lesbar in der URL. */}
       <form method="get" className="surface-card grid gap-3 rounded-xl p-4 sm:grid-cols-2 lg:grid-cols-4">

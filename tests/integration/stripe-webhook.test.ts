@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import Stripe from 'stripe';
 import { POST } from '@/app/api/stripe/webhook/route';
 import { prisma } from '@/server/db';
@@ -277,5 +277,67 @@ describe('Webhook – Betragsabgleich', () => {
 
     const updated = await prisma.order.findUniqueOrThrow({ where: { id: order.id } });
     expect(updated.paymentStatus).toBe('PENDING');
+  });
+});
+
+describe('Webhook – ausgebliebene Bestaetigungen', () => {
+  it('verschickt nach der Zahlung die Bestaetigungsmail', async () => {
+    const order = await createPendingOrderRow();
+
+    await POST(signedRequest(checkoutCompletedEvent({ eventId: 'evt_mail', orderId: order.id, amountTotal: 3990 })));
+
+    const updated = await prisma.order.findUniqueOrThrow({ where: { id: order.id } });
+    expect(updated.confirmationEmailSentAt).not.toBeNull();
+  });
+
+  it('laesst die Bestellung nach einer abgelehnten Karte offen und verbucht die zweite Karte', async () => {
+    // Stripe Checkout erlaubt nach einer Ablehnung einen zweiten Versuch in derselben Session.
+    // Frueher landete die Bestellung dabei auf FAILED, und die erfolgreiche Zahlung lief ins Leere.
+    const order = await createPendingOrderRow();
+
+    const failed = {
+      id: 'evt_pi_failed',
+      object: 'event',
+      api_version: '2026-08-26.dahlia',
+      created: Math.floor(Date.now() / 1000),
+      type: 'payment_intent.payment_failed',
+      livemode: false,
+      pending_webhooks: 0,
+      request: { id: null, idempotency_key: null },
+      data: { object: { id: 'pi_test_123', object: 'payment_intent', metadata: { orderId: order.id } } },
+    };
+    await POST(signedRequest(failed));
+    expect((await prisma.order.findUniqueOrThrow({ where: { id: order.id } })).paymentStatus).toBe('PENDING');
+
+    await POST(signedRequest(checkoutCompletedEvent({ eventId: 'evt_after_decline', orderId: order.id, amountTotal: 3990 })));
+
+    const updated = await prisma.order.findUniqueOrThrow({ where: { id: order.id } });
+    expect(updated.paymentStatus).toBe('PAID');
+    expect(updated.confirmationEmailSentAt).not.toBeNull();
+  });
+
+  it('verbucht eine von Stripe bestaetigte Zahlung auch aus FAILED heraus', async () => {
+    const order = await createPendingOrderRow();
+    await prisma.order.update({ where: { id: order.id }, data: { paymentStatus: 'FAILED' } });
+
+    await POST(signedRequest(checkoutCompletedEvent({ eventId: 'evt_from_failed', orderId: order.id, amountTotal: 3990 })));
+
+    expect((await prisma.order.findUniqueOrThrow({ where: { id: order.id } })).paymentStatus).toBe('PAID');
+  });
+
+  it('gibt ein Event nach einem Verarbeitungsfehler frei, damit die erneute Zustellung greift', async () => {
+    const order = await createPendingOrderRow();
+    const event = checkoutCompletedEvent({ eventId: 'evt_retry', orderId: order.id, amountTotal: 3990 });
+
+    const spy = vi.spyOn(prisma.order, 'findUnique').mockRejectedValueOnce(new Error('Datenbank kurz weg'));
+    const first = await POST(signedRequest(event));
+    spy.mockRestore();
+
+    expect(first.status).toBe(500);
+    expect(await prisma.stripeWebhookEvent.findUnique({ where: { id: 'evt_retry' } })).toBeNull();
+
+    const second = await POST(signedRequest(event));
+    expect(second.status).toBe(200);
+    expect((await prisma.order.findUniqueOrThrow({ where: { id: order.id } })).paymentStatus).toBe('PAID');
   });
 });

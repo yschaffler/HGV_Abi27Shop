@@ -11,8 +11,11 @@ import { ResumePaymentForm } from '@/components/shop/resume-payment-form';
 import { formatCents } from '@/lib/money';
 import { publicTokenSchema } from '@/lib/validation/order';
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limit';
+import { logUnexpected } from '@/server/logger';
 import { clientIp } from '@/server/request-context';
 import { findOrderByPublicToken } from '@/server/shop/order';
+import { isStripeConfigured } from '@/server/stripe/client';
+import { reconcileOrderPayment } from '@/server/stripe/reconcile';
 import { evaluateOrderWindow } from '@/server/shop/order-window';
 import { getOrderWindow, getSettings } from '@/server/settings';
 
@@ -23,8 +26,11 @@ import { getOrderWindow, getSettings } from '@/server/settings';
  * nicht hochzählbar. Es gibt bewusst keinen Zugriff über die Bestellnummer: die steht auf
  * Listen und wird vorgelesen, sie taugt nicht als Geheimnis.
  *
- * Die Seite setzt NIEMALS einen Zahlungsstatus. Sie zeigt nur an, was der signaturgeprüfte
- * Stripe-Webhook in der Datenbank hinterlegt hat.
+ * Der Browser setzt NIEMALS einen Zahlungsstatus – auch nicht über ?zahlung=erfolgreich.
+ * Steht die Bestellung noch offen, fragt allerdings der Server selbst bei Stripe nach
+ * (reconcile.ts). Das fängt den Fall ab, dass der Webhook nicht ankommt: Die Antwort kommt
+ * authentifiziert von der Stripe-API, gebucht wird mit denselben Prüfungen wie beim Webhook.
+ * Je Bestellung ist das gedrosselt, damit Neuladen keine Stripe-Abfragen in Serie auslöst.
  */
 
 export const metadata: Metadata = { title: 'Deine Bestellung', robots: { index: false, follow: false } };
@@ -54,12 +60,31 @@ export default async function OrderPage({ params, searchParams }: PageProps) {
     );
   }
 
-  const [order, settings, window] = await Promise.all([
+  const [found, settings, window] = await Promise.all([
     findOrderByPublicToken(parsedToken.data),
     getSettings(),
     getOrderWindow(),
   ]);
-  if (!order) notFound();
+  if (!found) notFound();
+
+  let order = found;
+  if (
+    order.paymentStatus === 'PENDING' &&
+    order.stripeCheckoutSessionId &&
+    isStripeConfigured() &&
+    checkRateLimit(`order-reconcile:${order.id}`, RATE_LIMITS.orderReconcile).allowed
+  ) {
+    // Ein Fehler beim Abgleich darf die Bestellseite nicht kaputt machen – sie zeigt dann
+    // eben den bisherigen Stand, und der nächste Aufruf versucht es erneut.
+    try {
+      const reconciled = await reconcileOrderPayment(order.id);
+      if (reconciled.status === 'paid_now') {
+        order = (await findOrderByPublicToken(parsedToken.data)) ?? order;
+      }
+    } catch (error) {
+      logUnexpected('order-page-reconcile', error);
+    }
+  }
 
   const cameFromPayment = query['zahlung'] === 'erfolgreich';
   const awaitingPayment = order.paymentStatus === 'PENDING' && cameFromPayment;
