@@ -3,7 +3,7 @@
 import { after } from 'next/server';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
-import { parseEuroInput } from '@/lib/money';
+import { formatCents, parseEuroInput } from '@/lib/money';
 import {
   FULFILLMENT_STATUSES,
   PAYMENT_STATUSES,
@@ -16,6 +16,7 @@ import {
   variantSchema,
 } from '@/lib/validation/admin';
 import { recordAudit } from '@/server/audit';
+import { changeOrderItemVariant, type ChangeVariantOutcome } from '@/server/admin/order-edit';
 import { authorize } from '@/server/auth/rbac';
 import { destroyAllSessionsForUser } from '@/server/auth/session';
 import { hashPassword, passwordSchema } from '@/server/auth/password';
@@ -570,6 +571,85 @@ export async function catchUpPaymentsAction(_previous: ActionState): Promise<Act
   revalidatePath('/admin/orders');
   revalidatePath('/admin');
   return { status: 'ok', message: summary };
+}
+
+// ---------------------------------------------------------------------------
+// Bestellposition ändern (z. B. andere Größe)
+// ---------------------------------------------------------------------------
+
+const changeItemSchema = z.object({
+  itemId: idSchema,
+  variantId: idSchema,
+  quantity: z.coerce.number().int().min(1).max(99),
+});
+
+export async function changeOrderItemAction(_previous: ActionState, formData: FormData): Promise<ActionState> {
+  const origin = await assertSameOrigin();
+  if (!origin.ok) return fail(origin.message);
+
+  const auth = await authorize(['ADMIN']);
+  if (!auth.ok) return fail(auth.error);
+
+  const parsed = changeItemSchema.safeParse({
+    itemId: formData.get('itemId'),
+    variantId: formData.get('variantId'),
+    quantity: formData.get('quantity') ?? 1,
+  });
+  if (!parsed.success) return fail('Bitte eine neue Variante wählen.');
+
+  const notify = checkbox(formData, 'notify');
+
+  let outcome: ChangeVariantOutcome;
+  let orderId: string | null = null;
+  try {
+    const item = await prisma.orderItem.findUnique({ where: { id: parsed.data.itemId }, select: { orderId: true } });
+    orderId = item?.orderId ?? null;
+
+    outcome = await changeOrderItemVariant({
+      itemId: parsed.data.itemId,
+      newVariantId: parsed.data.variantId,
+      quantity: parsed.data.quantity,
+      actor: auth.user,
+    });
+  } catch (error) {
+    const errorId = logUnexpected('changeOrderItemAction', error);
+    return fail(`Ändern fehlgeschlagen. (Kennung ${errorId})`);
+  }
+
+  if (!outcome.ok) return fail(outcome.message);
+
+  const notes: string[] = ['Geändert.'];
+
+  if (notify && orderId) {
+    // Die Bestätigungsmail listet die aktuellen Positionen – sie ist damit zugleich die
+    // Mitteilung über die neue Größe. Nur für bezahlte Bestellungen, sonst behauptet sie
+    // einen Zahlungseingang, den es nicht gibt.
+    const mail = await sendOrderConfirmation(orderId, { resend: true }).catch(() => 'failed' as const);
+    notes.push(
+      mail === 'sent'
+        ? 'Aktualisierte Bestätigung an den Besteller verschickt.'
+        : mail === 'not_paid'
+          ? 'Keine Mail verschickt, weil die Bestellung noch nicht bezahlt ist.'
+          : 'Die Mail an den Besteller ging nicht raus.',
+    );
+  }
+
+  if (outcome.priceDifferenceCents !== 0) {
+    const diff = formatCents(Math.abs(outcome.priceDifferenceCents));
+    notes.push(
+      `Hinweis: Die neue Variante kostet im Shop ${diff} ${outcome.priceDifferenceCents > 0 ? 'mehr' : 'weniger'}. ` +
+        'Berechnet bleibt der bezahlte Preis – einen Ausgleich bitte separat klären.',
+    );
+  }
+
+  if (outcome.alreadyOrdered) {
+    notes.push('Achtung: Die Sammelbestellung ist schon beim Hersteller – die Änderung dort nachmelden.');
+  }
+
+  if (orderId) revalidatePath(`/admin/orders/${orderId}`);
+  revalidatePath('/admin/orders');
+  revalidatePath('/admin/statistics');
+  return { status: 'ok', message: notes.join(' ') };
 }
 
 /** Setzt den Sammelbestellungsstatus für alle bezahlten Bestellungen auf einmal. */

@@ -5,12 +5,16 @@ import {
   ItemDistributionToggle,
   OrderDistributionControls,
 } from '@/components/admin/distribution-controls';
+import { ChangeItemForm, type VariantOption } from '@/components/admin/change-item-form';
+import { Disclosure } from '@/components/admin/disclosure';
 import { OrderStatusForm } from '@/components/admin/order-status-form';
 import { PaymentRecoveryPanel } from '@/components/admin/payment-tools';
 import { DistributionStatusBadge, PaymentStatusBadge } from '@/components/shop/order-status-badge';
 import { formatCents } from '@/lib/money';
+import { variantLabel } from '@/lib/variant-label';
 import { idSchema } from '@/lib/validation/admin';
 import { getOrderDetail } from '@/server/admin/orders';
+import { prisma } from '@/server/db';
 import { appUrl } from '@/server/env';
 
 export const metadata: Metadata = { title: 'Bestellung', robots: { index: false, follow: false } };
@@ -29,6 +33,29 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
 
   const order = await getOrderDetail(parsed.data);
   if (!order) notFound();
+
+  // Alle Varianten der Artikel dieser Bestellung – für "andere Größe". Inaktive gehören
+  // dazu, damit man auch auf eine im Shop ausverkaufte Größe umstellen kann.
+  const productIds = await prisma.productVariant.findMany({
+    where: { id: { in: order.items.map((item) => item.variantId) } },
+    select: { id: true, productId: true },
+  });
+  const productOfVariant = new Map(productIds.map((row) => [row.id, row.productId]));
+  const variants = await prisma.productVariant.findMany({
+    where: { productId: { in: [...new Set(productIds.map((row) => row.productId))] } },
+    orderBy: [{ sortOrder: 'asc' }, { color: 'asc' }, { size: 'asc' }],
+    select: { id: true, productId: true, color: true, size: true, label: true, priceCents: true, active: true },
+  });
+  const optionsFor = (variantId: string): VariantOption[] =>
+    variants
+      .filter((variant) => variant.productId === productOfVariant.get(variantId))
+      .map((variant) => ({
+        id: variant.id,
+        label: variantLabel(variant),
+        priceLabel: formatCents(variant.priceCents),
+        active: variant.active,
+      }));
+  const editable = order.paymentStatus !== 'REFUNDED' && order.paymentStatus !== 'CANCELLED';
 
   const distributedCount = order.items.filter((item) => item.distributionStatus === 'DISTRIBUTED').length;
   const openCount = order.items.length - distributedCount;
@@ -74,6 +101,20 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
                         <span className="text-muted-foreground">Noch nicht ausgegeben</span>
                       )}
                     </p>
+                    {editable && item.distributionStatus !== 'DISTRIBUTED' ? (
+                      <div className="mt-2">
+                        <Disclosure summary="Größe / Variante ändern" tone="accent">
+                          <ChangeItemForm
+                            itemId={item.id}
+                            currentVariantId={item.variantId}
+                            quantity={item.quantity}
+                            options={optionsFor(item.variantId)}
+                            canNotify={order.paymentStatus === 'PAID'}
+                            alreadyOrdered={order.fulfillmentStatus !== 'NEW'}
+                          />
+                        </Disclosure>
+                      </div>
+                    ) : null}
                     {order.paymentStatus === 'PAID' ? (
                       <div className="mt-2">
                         <ItemDistributionToggle

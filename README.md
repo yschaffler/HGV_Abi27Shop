@@ -454,6 +454,21 @@ soll versehentlich eine Ausgabe zuruecknehmen. Die Korrektur sitzt unter
 *Admin → Bestellungen → [Bestellung]*: je Position und fuer die ganze Bestellung, jeweils in
 beide Richtungen. Jede Aenderung landet mit Zeitpunkt und Konto im Protokoll.
 
+## Größe nachträglich ändern
+
+*Admin → Bestellungen → Bestellung → Position → Größe / Variante ändern.* Gewählt werden kann
+jede Variante desselben Artikels, auch eine im Shop deaktivierte. Bei Menge 2 oder mehr lässt
+sich auch nur ein Teil umstellen (2 × M → 1 × M und 1 × L).
+
+* Die Position wird selbst umgeschrieben. Danach stimmen Sammelbestellung, Export, Statistik,
+  Ausgabe, Bestellseite und Mail ohne weiteres Zutun.
+* Der bezahlte Preis bleibt, die Summe der Bestellung ändert sich nie. Kostet die neue Größe
+  im Shop etwas anderes, weist die Meldung darauf hin; ausgleichen muss man das separat.
+* Ausgegebene Positionen sind gesperrt: erst die Ausgabe zurücknehmen.
+* Ist die Sammelbestellung schon beim Hersteller, warnt das Formular: dort nachmelden.
+* Auf Wunsch bekommt der Besteller eine aktualisierte Bestätigung. Jede Änderung steht im
+  Protokoll.
+
 ## Zahlung nachholen
 
 Bricht jemand die Zahlung ab oder verfaellt die Stripe-Session nach 30 Minuten, bleibt die
